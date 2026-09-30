@@ -58,6 +58,17 @@ h1 { color: var(--strong); font-size: clamp(30px, 5.2vw, 46px); line-height: 1.1
 .button.secondary { background: transparent; color: var(--strong); border-color: var(--line); }
 .button.secondary:hover { border-color: var(--muted); }
 
+/* The hero's downloads: the head script marks the visitor's system on
+   <html data-os>, and only that system's button stays; any other system, or
+   no script, sees both. */
+.hero .actions { align-items: stretch; }
+.hero .button { display: inline-flex; flex-direction: column; justify-content: center; }
+.button.download { padding-block: 8px; }
+.button.download small { font-size: 10px; font-weight: 400; opacity: .7; }
+html[data-os="mac"] .download.linux, html[data-os="linux"] .download.mac { display: none; }
+.actions .more { align-self: center; color: var(--muted); font-size: 12px; }
+.actions .more:hover { color: var(--strong); }
+
 /* Sections. */
 section.part { border-top: 1px solid var(--line); padding: 64px 0; }
 h2 { color: var(--strong); font-size: 22px; letter-spacing: -.4px; margin: 12px 0 28px; }
