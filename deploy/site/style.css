@@ -41,6 +41,8 @@ a { color: inherit; }
 
 /* Hero: the first screen of the app's onboarding. */
 .hero { padding: 72px 0 88px; max-width: 720px; }
+.demo { margin: -32px 0 72px; }
+.demo img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; background: #0a0a0a; }
 .eyebrow { font-size: 10px; letter-spacing: 2px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
 h1 { color: var(--strong); font-size: clamp(30px, 5.2vw, 46px); line-height: 1.18; letter-spacing: -1px; font-weight: 700; margin: 18px 0 20px; text-wrap: balance; }
 .lead { font-size: 15px; color: var(--muted); max-width: 640px; margin: 0 0 32px; }
@@ -99,6 +101,7 @@ footer a { color: var(--muted); }
   .nav { gap: 14px; flex-wrap: wrap; }
   .nav .optional { display: none; }
   .hero { padding: 40px 0 56px; }
+  .demo { margin: -24px 0 44px; }
   .invite, .grid.pairs { grid-template-columns: 1fr; }
   section.part { padding: 44px 0; }
 }
