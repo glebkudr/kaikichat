@@ -119,6 +119,14 @@ export const pl: Messages = {
     crypto: 'Albo korzystaj anonimowo przez kryptowaluty',
     skip: 'Na razie pomiń',
   },
+  recommended: {
+    title: 'Polecane dla nowych osób',
+    text: 'Kaiki Chat proponuje zacząć od tego. Z każdego możesz później zrezygnować.',
+    channel: 'Kanał: czytasz, co publikuje jego zespół.',
+    group: 'Otwarta grupa: możesz tam pisać, a każdy może ją czytać.',
+    subscribe: 'Subskrybuj',
+    skip: 'Pomiń',
+  },
   agentSetup: {
     title: 'Podłącz swojego agenta',
     text: 'Skopiuj ten tekst i wyślij go do Claude Code lub Codex. Resztą zajmie się agent.',

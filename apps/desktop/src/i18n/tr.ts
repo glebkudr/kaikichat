@@ -119,6 +119,14 @@ export const tr: Messages = {
     crypto: 'Ya da kriptoyla anonim kullanın',
     skip: 'Şimdilik atla',
   },
+  recommended: {
+    title: 'Yeni üyeler için önerilenler',
+    text: 'Kaiki Chat başlangıç için bunları öneriyor. Herhangi birinden sonra ayrılabilirsiniz.',
+    channel: 'Kanal: ekibinin paylaştıklarını okursunuz.',
+    group: 'Açık grup: orada yazabilirsiniz ve herkes okuyabilir.',
+    subscribe: 'Abone ol',
+    skip: 'Atla',
+  },
   agentSetup: {
     title: 'Ajanınızı bağlayın',
     text: 'Bu metni kopyalayıp Claude Code’a veya Codex’e gönderin. Gerisini ajanınız halleder.',

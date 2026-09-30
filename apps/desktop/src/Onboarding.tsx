@@ -1,10 +1,11 @@
 import {useEffect,useState,type ReactNode} from 'react';
-import type {Balance,DesktopApi,Identity,ProfileStatus} from './types';
+import type {Balance,DesktopApi,Identity,ProfileStatus,Recommended} from './types';
 import {isCode} from './core-error';
 import {LanguageSelect,useDescribe,useT} from './i18n';
 import {ClaimOutcome,useClaim,useClaimOutcome} from './WalletPanel';
 import {ProviderButtons} from './ProviderButtons';
 import {CopyStep,useAgentInstruction} from './Connect';
+import {known,takeChosen} from './Recommended';
 
 /** A password-sealed profile: the password opens it (or seals a new one). */
 export function UnlockScreen({api,status,onOpened}:{api:DesktopApi;status:ProfileStatus;onOpened:()=>void}) {
@@ -31,12 +32,12 @@ export function UnlockScreen({api,status,onOpened}:{api:DesktopApi;status:Profil
   </form>;
 }
 
-type Step='welcome'|'name'|'login'|'agent'|'invite';
-const steps:Step[]=['welcome','name','login','agent','invite'];
+type Step='welcome'|'name'|'login'|'recommended'|'agent'|'invite';
+const steps:Step[]=['welcome','name','login','recommended','agent','invite'];
 
 /** The first run, one action per screen: what this is, a name, free
- * messages through a login, the agent's instructions, an invitation for
- * friends. Only the name is required. */
+ * messages through a login, what the network recommends, the agent's
+ * instructions, an invitation for friends. Only the name is required. */
 export function Onboarding({api,identity,notice,onCreated,onFinish,onTopUp}:{api:DesktopApi;identity:Identity|null;notice?:ReactNode;onCreated:()=>void;onFinish:()=>void;onTopUp:()=>void}) {
   const t=useT();
   const [step,setStep]=useState<Step>(identity?'login':'welcome');
@@ -51,6 +52,7 @@ export function Onboarding({api,identity,notice,onCreated,onFinish,onTopUp}:{api
       {step==='welcome'?<Welcome onNext={next}/>:
       step==='name'?<NameStep api={api} onCreated={()=>{onCreated();next();}}/>:
       step==='login'?<LoginStep api={api} onNext={next} onTopUp={onTopUp}/>:
+      step==='recommended'?<RecommendedStep api={api} onNext={next}/>:
       step==='agent'?<AgentStep api={api} onNext={next}/>:
       identity&&<InviteStep identity={identity} onNext={next}/>}
     </div>
@@ -117,6 +119,43 @@ function LoginStep({api,onNext,onTopUp}:{api:DesktopApi;onNext:()=>void;onTopUp:
     {asked&&outcome.text&&<ClaimOutcome {...(balance?.claim?{text:t.starter.waiting,note:''}:outcome)}/>}
     <ProviderButtons busy={claim.busy} disabled={unavailable} onPick={provider=>{setAsked(true);void claim.claim(provider);}}/>
     <div className="wizard-links"><button type="button" className="link" onClick={onTopUp}>{t.starter.crypto}</button><button type="button" className="link" onClick={onNext}>{t.starter.skip}</button></div>
+  </Screen>;
+}
+
+/** The channels and groups the network's signed preset recommends, all
+ * chosen: one press follows and joins them; without a book yet the choice is
+ * kept and taken once the free messages arrive. Nothing to offer, no screen. */
+function RecommendedStep({api,onNext}:{api:DesktopApi;onNext:()=>void}) {
+  const t=useT();
+  const [offered,setOffered]=useState<Recommended[]>();
+  const [chosen,setChosen]=useState<Set<string>>(new Set());
+  const [busy,setBusy]=useState(false);
+  useEffect(()=>{
+    let live=true;
+    api.networkPreset().then(preset=>known(preset.recommended),()=>[]).then(list=>{
+      if(!live)return;
+      setOffered(list);setChosen(new Set(list.map(r=>r.ref)));
+    });
+    return ()=>{live=false;};
+  },[api]);
+  // Once, when there is nothing to offer.
+  useEffect(()=>{if(offered&&!offered.length)onNext();},[offered]);
+  if(!offered?.length)return null;
+  const toggle=(ref:string)=>setChosen(now=>{const next=new Set(now);if(!next.delete(ref))next.add(ref);return next;});
+  async function subscribe() {
+    if(busy)return;setBusy(true);
+    try {await takeChosen(api,offered!.filter(r=>chosen.has(r.ref)));}
+    finally {setBusy(false);onNext();}
+  }
+  return <Screen title={t.recommended.title} text={t.recommended.text}>
+    <div className="recommended-list">
+      {offered.map(r=><label key={r.ref} className="recommended-item">
+        <input type="checkbox" checked={chosen.has(r.ref)} onChange={()=>toggle(r.ref)}/>
+        <span><b>{r.name}</b><small>{r.kind==='channel'?t.recommended.channel:t.recommended.group}</small></span>
+      </label>)}
+    </div>
+    <button type="button" autoFocus disabled={busy} onClick={()=>void subscribe()}>{t.recommended.subscribe}</button>
+    <div className="wizard-links"><button type="button" className="link" onClick={onNext}>{t.recommended.skip}</button></div>
   </Screen>;
 }
 

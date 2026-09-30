@@ -1,4 +1,4 @@
-import {render,screen,waitFor,within} from '@testing-library/react';
+import {cleanup,render,screen,waitFor,within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach,describe,expect,it,vi} from 'vitest';
 import {ChatShell} from '../src/ChatShell';
@@ -6,8 +6,8 @@ import {ContactsPanel} from '../src/ContactsPanel';
 import {parseInvitation,shellWord} from '../src/Connect';
 import {coreError} from '../src/core-error';
 import {locales} from '../src/i18n';
-import type {Balance} from '../src/types';
-import {appCli,bobId,emptyBalance,fakeApi,ownId} from './fake-api';
+import type {Balance,Recommended} from '../src/types';
+import {appCli,bobId,emptyBalance,fakeApi,ownId,preset} from './fake-api';
 
 afterEach(()=>localStorage.clear());
 const refusal=(code:string,retryable=false)=>coreError({code,message:code,retryable});
@@ -32,7 +32,7 @@ describe('first run: one action per screen',()=>{
     expect(await screen.findByRole('heading',{name:'Let your AI agent talk to your friends’ agents.'})).toBeVisible();
     // Nothing else competes for the first screens: no conversation list.
     expect(screen.queryByRole('heading',{name:'Messages'})).not.toBeInTheDocument();
-    expect(screen.getByText('Step 1 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Step 1 of 6')).toBeInTheDocument();
     await user.click(screen.getByRole('button',{name:'Get started'}));
 
     await user.type(await screen.findByRole('textbox',{name:'Your name'}),'Alice{Enter}');
@@ -219,5 +219,96 @@ describe('the start screen keeps the next steps in reach',()=>{
     await screen.findByRole('region',{name:'Your agent needs friends to talk to.'});
     await waitFor(()=>expect(api.coinsBalance).toHaveBeenCalled());
     expect(screen.queryByRole('region',{name:'Get free messages'})).not.toBeInTheDocument();
+  });
+});
+
+const newsRef='ef'.repeat(32),lobbyRef='cd'.repeat(32),welcomeId=`ain1${'ab'.repeat(32)}`;
+/** What the live network recommends: its news channel, then its lobby. */
+const recommended:Recommended[]=[
+  {kind:'channel',ref:newsRef,owner:welcomeId,name:'Kaiki News'},
+  {kind:'group',ref:lobbyRef,owner:welcomeId,name:'Kaiki Lobby'},
+];
+
+/** A new owner through the name and the login, the grant arriving. */
+async function pastTheLogin(api:ReturnType<typeof fakeApi>,user:ReturnType<typeof userEvent.setup>) {
+  render(<ChatShell api={api}/>);
+  await user.click(await screen.findByRole('button',{name:'Get started'}));
+  await user.type(await screen.findByRole('textbox',{name:'Your name'}),'Alice{Enter}');
+  await user.click(await screen.findByRole('button',{name:'Log in with Google'}));
+}
+
+describe('what the network recommends at the first run',()=>{
+  it('offers its channel and group after the login, both chosen, and follows and joins them',async()=>{
+    const api=newOwner();const user=userEvent.setup();
+    api.networkPreset.mockResolvedValue(preset({recommended}));
+    api.coinsBalance.mockResolvedValueOnce(emptyBalance()).mockResolvedValue(granted());
+    await pastTheLogin(api,user);
+    expect(await screen.findByRole('heading',{name:'Recommended for new members'})).toBeVisible();
+    const news=screen.getByRole('checkbox',{name:/Kaiki News/});
+    const lobby=screen.getByRole('checkbox',{name:/Kaiki Lobby/});
+    expect(news).toBeChecked();expect(lobby).toBeChecked();
+    // Each says what taking it means.
+    expect(news.closest('label')).toHaveTextContent('Channel: you read what its team posts.');
+    expect(lobby.closest('label')).toHaveTextContent('Open group: you can write there, and anyone can read it.');
+    await user.click(screen.getByRole('button',{name:'Subscribe'}));
+    expect(api.followGroup).toHaveBeenCalledWith({group:newsRef,owner:welcomeId,name:'Kaiki News'});
+    expect(api.joinGroup).toHaveBeenCalledWith({groupRef:lobbyRef,note:'',operationId:expect.any(String)});
+    expect(await screen.findByRole('heading',{name:'Connect your agent'})).toBeVisible();
+  });
+
+  it('takes only what the owner leaves chosen, and a skip takes nothing',async()=>{
+    const api=newOwner();const user=userEvent.setup();
+    api.networkPreset.mockResolvedValue(preset({recommended}));
+    api.coinsBalance.mockResolvedValueOnce(emptyBalance()).mockResolvedValue(granted());
+    await pastTheLogin(api,user);
+    await user.click(await screen.findByRole('checkbox',{name:/Kaiki Lobby/}));
+    await user.click(screen.getByRole('button',{name:'Subscribe'}));
+    expect(api.followGroup).toHaveBeenCalledTimes(1);
+    expect(api.joinGroup).not.toHaveBeenCalled();
+    await screen.findByRole('heading',{name:'Connect your agent'});
+
+    const other=newOwner();cleanup();
+    other.networkPreset.mockResolvedValue(preset({recommended}));
+    other.coinsBalance.mockResolvedValueOnce(emptyBalance()).mockResolvedValue(granted());
+    await pastTheLogin(other,user);
+    await user.click(await screen.findByRole('button',{name:'Skip'}));
+    expect(await screen.findByRole('heading',{name:'Connect your agent'})).toBeVisible();
+    expect(other.followGroup).not.toHaveBeenCalled();
+    expect(other.joinGroup).not.toHaveBeenCalled();
+  });
+
+  it('keeps the choice until the free messages arrive, then takes it by itself once',async()=>{
+    const api=newOwner();const user=userEvent.setup();
+    const listeners=new Set<()=>void>();
+    api.subscribe.mockImplementation(listener=>{listeners.add(listener);return ()=>{listeners.delete(listener);};});
+    api.networkPreset.mockResolvedValue(preset({recommended}));
+    api.coinsBalance.mockResolvedValue(emptyBalance());
+    api.followGroup.mockRejectedValueOnce(refusal('book_required'));
+    api.joinGroup.mockRejectedValueOnce(refusal('book_required'));
+    render(<ChatShell api={api}/>);
+    await user.click(await screen.findByRole('button',{name:'Get started'}));
+    await user.type(await screen.findByRole('textbox',{name:'Your name'}),'Alice{Enter}');
+    await user.click(await screen.findByRole('button',{name:'Skip for now'}));  // no login yet
+    await user.click(await screen.findByRole('button',{name:'Subscribe'}));
+    // Nothing holds the owner up: the next screen comes.
+    expect(await screen.findByRole('heading',{name:'Connect your agent'})).toBeVisible();
+    expect(api.followGroup).toHaveBeenCalledTimes(1);
+    // The node tells the window something changed: the book is there now.
+    listeners.forEach(listener=>listener());
+    await waitFor(()=>expect(api.followGroup).toHaveBeenCalledTimes(2));
+    await waitFor(()=>expect(api.joinGroup).toHaveBeenCalledTimes(2));
+    expect(api.joinGroup.mock.calls[1]![0].operationId).toBe(api.joinGroup.mock.calls[0]![0].operationId);
+    listeners.forEach(listener=>listener());
+    await new Promise(resolve=>setTimeout(resolve,50));
+    expect(api.followGroup).toHaveBeenCalledTimes(2);
+    expect(api.joinGroup).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows no such screen when the network recommends nothing',async()=>{
+    const api=newOwner();const user=userEvent.setup();
+    api.coinsBalance.mockResolvedValueOnce(emptyBalance()).mockResolvedValue(granted());
+    await pastTheLogin(api,user);
+    expect(await screen.findByRole('heading',{name:'Connect your agent'})).toBeVisible();
+    expect(screen.queryByRole('heading',{name:'Recommended for new members'})).not.toBeInTheDocument();
   });
 });

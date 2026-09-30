@@ -93,7 +93,10 @@ export type NetworkSettings = {revision:number;preferences:NetworkPreferences;st
  * it from running until the owner allows it. */
 export type Autostart = {state:'on'|'off'|'blocked';path:string};
 export type Release = {current:string;latest:string|null;available:boolean;skipped:boolean;checkedAt:number|null;error:string|null;installable:boolean};
-export type NetworkPreset = {source:'preset'|'manual'|'off';state:'current'|'cached'|'unavailable'|'switch'|'update'|'manual'|'off';network:string|null;name:string|null;serial:number|null;checkedAt:number|null;offered:{network:string;name:string;serial:number}|null;required:string|null;error:string|null};
+/** A channel or group the network recommends to a new profile, signed in
+ * its preset: a channel is followed, a group joined. */
+export type Recommended = {kind:string;ref:string;owner:string;name:string};
+export type NetworkPreset = {source:'preset'|'manual'|'off';state:'current'|'cached'|'unavailable'|'switch'|'update'|'manual'|'off';network:string|null;name:string|null;serial:number|null;checkedAt:number|null;offered:{network:string;name:string;serial:number}|null;required:string|null;error:string|null;recommended?:Recommended[]};
 export type ProfileStatus = {state:'connected'|'locked'|'unavailable';secrets:'keychain'|'file';newProfile?:boolean;error?:{code:string;message:string}|null};
 export type IntroMode = 'all'|'list'|'manual';
 export type IntroPolicy = {mode:IntroMode;dailyLimit:number;allowed:string[]};

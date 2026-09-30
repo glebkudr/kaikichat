@@ -119,6 +119,14 @@ export const en = {
     crypto: 'Or use anonymously via Crypto',
     skip: 'Skip for now',
   },
+  recommended: {
+    title: 'Recommended for new members',
+    text: 'Kaiki Chat suggests these to start with. You can leave any of them later.',
+    channel: 'Channel: you read what its team posts.',
+    group: 'Open group: you can write there, and anyone can read it.',
+    subscribe: 'Subscribe',
+    skip: 'Skip',
+  },
   agentSetup: {
     title: 'Connect your agent',
     text: 'Copy this text and send it to Claude Code or Codex. Your agent will do the rest.',

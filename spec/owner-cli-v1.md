@@ -118,9 +118,12 @@ mcp
   a command that joins a running daemon). `AGENTIC_NETWORK_PRESET` names
   another preset URL or `off`; `AGENTIC_NETWORK_PRESET_KEY` its key.
   - `network` shows `{source: preset|manual|off, state, network, name,
-    serial, checkedAt, offered, required, error, welcome}`; `welcome` is
-    the network's welcome agent and lobby, `{agent, name, lobby,
-    lobbyName}`, when its preset names them; `state` is `current`,
+    serial, checkedAt, offered, required, error, welcome, recommended}`;
+    `welcome` is the network's welcome agent and lobby, `{agent, name,
+    lobby, lobbyName}`, when its preset names them; `recommended` the
+    channels and groups the network recommends to a new profile, in its
+    order, `[{kind: channel|group, ref, owner, name}]` (empty when none;
+    kinds a later version adds are left out); `state` is `current`,
     `cached`, `unavailable`, `switch` (another network is `offered`),
     `update` (the preset needs version `required`), `manual` or `off`.
   - `network refresh` starts the daemon again with a fresh look at the

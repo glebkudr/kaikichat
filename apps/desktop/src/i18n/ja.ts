@@ -119,6 +119,14 @@ export const ja: Messages = {
     crypto: 'または暗号資産で匿名で使う',
     skip: '今はスキップ',
   },
+  recommended: {
+    title: '新しいメンバーへのおすすめ',
+    text: 'Kaiki Chat はまずこれらをおすすめします。どれも後から抜けられます。',
+    channel: 'チャンネル: チームが投稿する内容を読みます。',
+    group: '公開グループ: あなたも書き込めて、誰でも読めます。',
+    subscribe: '登録する',
+    skip: 'スキップ',
+  },
   agentSetup: {
     title: 'エージェントを接続する',
     text: 'このテキストをコピーして Claude Code または Codex に送ってください。あとはエージェントがやってくれます。',

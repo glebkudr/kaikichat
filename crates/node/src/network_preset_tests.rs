@@ -133,6 +133,7 @@ fn preset(network: &str, serial: u64) -> Preset {
         directory: None,
         directory_key: None,
         welcome: None,
+        recommended: Vec::new(),
         release: None,
     }
 }
@@ -145,6 +146,34 @@ fn welcome() -> Welcome {
         lobby: "cd".repeat(32),
         lobby_name: "Net lobby".into(),
     }
+}
+
+/// A channel and a group the network recommends, as a preset names them.
+fn recommended() -> Vec<Recommended> {
+    vec![
+        Recommended {
+            kind: "channel".into(),
+            group_ref: "ef".repeat(32),
+            owner: format!("ain1{}", "ab".repeat(32)),
+            name: "Net news".into(),
+        },
+        Recommended {
+            kind: "group".into(),
+            group_ref: "cd".repeat(32),
+            owner: format!("ain1{}", "ab".repeat(32)),
+            name: "Net lobby".into(),
+        },
+    ]
+}
+
+/// Recommendations that differ only in their references.
+fn recommendations(count: u8) -> Vec<Recommended> {
+    (0..count)
+        .map(|n| Recommended {
+            group_ref: hex::encode([n; 32]),
+            ..recommended()[0].clone()
+        })
+        .collect()
 }
 
 fn signed(preset: &Preset) -> String {
@@ -538,6 +567,77 @@ async fn presets_not_signed_by_the_key_or_not_valid_are_refused() {
                 })
             }),
         ),
+        (
+            "a recommendation whose reference is capital hex",
+            invalid(|p| {
+                p.recommended = vec![Recommended {
+                    group_ref: "EF".repeat(32),
+                    ..recommended()[0].clone()
+                }]
+            }),
+        ),
+        (
+            "a recommendation whose reference is not 32 bytes",
+            invalid(|p| {
+                p.recommended = vec![Recommended {
+                    group_ref: "ef".repeat(31),
+                    ..recommended()[0].clone()
+                }]
+            }),
+        ),
+        (
+            "a recommendation whose owner is not a network id",
+            invalid(|p| {
+                p.recommended = vec![Recommended {
+                    owner: format!("ain2{}", "ab".repeat(32)),
+                    ..recommended()[0].clone()
+                }]
+            }),
+        ),
+        (
+            "a recommendation without a name",
+            invalid(|p| {
+                p.recommended = vec![Recommended {
+                    name: String::new(),
+                    ..recommended()[0].clone()
+                }]
+            }),
+        ),
+        (
+            "a recommendation named in 81 characters",
+            invalid(|p| {
+                p.recommended = vec![Recommended {
+                    name: "n".repeat(81),
+                    ..recommended()[0].clone()
+                }]
+            }),
+        ),
+        (
+            "a recommendation of no kind",
+            invalid(|p| {
+                p.recommended = vec![Recommended {
+                    kind: String::new(),
+                    ..recommended()[0].clone()
+                }]
+            }),
+        ),
+        (
+            "a recommendation of a kind that is not a word",
+            invalid(|p| {
+                p.recommended = vec![Recommended {
+                    kind: "Channel!".into(),
+                    ..recommended()[0].clone()
+                }]
+            }),
+        ),
+        (
+            "nine recommendations",
+            invalid(|p| p.recommended = recommendations(9)),
+        ),
+        (
+            "one group recommended twice",
+            invalid(|p| p.recommended = vec![recommended()[0].clone(), recommended()[0].clone()]),
+        ),
     ];
     for (case, body) in refused {
         let dir = profile();
@@ -571,6 +671,13 @@ async fn presets_not_signed_by_the_key_or_not_valid_are_refused() {
         lobby_name: "界".repeat(80),
         ..welcome()
     });
+    widest.recommended = recommendations(8)
+        .into_iter()
+        .map(|r| Recommended {
+            name: "界".repeat(80),
+            ..r
+        })
+        .collect();
     server.serve(200, signed(&widest));
     assert_flags_of(&resolve(dir.path(), Some(&server.source())).await, &widest);
 
@@ -607,6 +714,9 @@ fn only_valid_presets_are_signed() {
         ..welcome()
     });
     assert!(sign(&serde_json::to_string(&lobby).unwrap(), &SEED).is_err());
+    let mut twice = preset("net-a", 1);
+    twice.recommended = vec![recommended()[1].clone(), recommended()[1].clone()];
+    assert!(sign(&serde_json::to_string(&twice).unwrap(), &SEED).is_err());
 }
 
 #[tokio::test]
@@ -679,6 +789,108 @@ async fn a_preset_names_the_networks_welcome_agent_and_lobby() {
     assert_eq!(
         (seen.network.as_deref(), seen.welcome.map(|w| w.name)),
         (Some("net-b"), Some("Other welcome".to_owned()))
+    );
+}
+
+#[tokio::test]
+async fn a_preset_recommends_channels_and_groups_to_new_profiles() {
+    let server = Server::start();
+    let dir = profile();
+    // Without any, the status lists none.
+    server.serve(200, signed(&preset("net-a", 1)));
+    resolve(dir.path(), Some(&server.source())).await;
+    let seen = status(dir.path(), Some(&server.source()));
+    assert!(seen.recommended.is_empty());
+    assert_eq!(
+        serde_json::to_value(&seen).unwrap()["recommended"],
+        serde_json::json!([])
+    );
+
+    // A newer preset of the same network brings them, in its order; the
+    // window and `kaiki network` show them as they are written.
+    // The lobby is both the welcome's and a recommendation, as on the live
+    // network: one reference named twice across the two is fine.
+    let mut with = preset("net-a", 2);
+    with.welcome = Some(welcome());
+    with.recommended = recommended();
+    assert_eq!(recommended()[1].group_ref, welcome().lobby);
+    server.serve(200, signed(&with));
+    resolve(dir.path(), Some(&server.source())).await;
+    let seen = status(dir.path(), Some(&server.source()));
+    assert_eq!(
+        (seen.state, seen.serial, seen.recommended.clone()),
+        (State::Current, Some(2), recommended())
+    );
+    let owner = format!("ain1{}", "ab".repeat(32));
+    assert_eq!(
+        serde_json::to_value(&seen).unwrap()["recommended"],
+        serde_json::json!([
+            {"kind": "channel", "ref": "ef".repeat(32), "owner": owner, "name": "Net news"},
+            {"kind": "group", "ref": "cd".repeat(32), "owner": owner, "name": "Net lobby"},
+        ])
+    );
+
+    // A kind a later version adds, or a field it adds to one, loses neither
+    // the network nor the recommendations this version knows.
+    let mut value = serde_json::to_value(preset("net-a", 3)).unwrap();
+    value["recommended"] = serde_json::to_value(recommended()).unwrap();
+    value["recommended"][0]["futureField"] = serde_json::json!(true);
+    value["recommended"].as_array_mut().unwrap().insert(
+        1,
+        serde_json::json!({
+            "kind": "bot", "ref": "01".repeat(32), "owner": owner, "name": "A bot",
+        }),
+    );
+    server.serve(200, envelope(&value.to_string(), &SEED));
+    resolve(dir.path(), Some(&server.source())).await;
+    let seen = status(dir.path(), Some(&server.source()));
+    assert_eq!(
+        (seen.state, seen.serial, seen.recommended),
+        (State::Current, Some(3), recommended())
+    );
+
+    // They stay while the server is away.
+    resolve(dir.path(), Some(&gone())).await;
+    let seen = status(dir.path(), Some(&gone()));
+    assert_eq!(
+        (seen.state, seen.recommended),
+        (State::Cached, recommended())
+    );
+
+    // A later preset without them takes them away.
+    server.serve(200, signed(&preset("net-a", 4)));
+    resolve(dir.path(), Some(&server.source())).await;
+    assert!(
+        status(dir.path(), Some(&server.source()))
+            .recommended
+            .is_empty()
+    );
+
+    // Another network's recommendations come only with it.
+    let mut again = preset("net-a", 5);
+    again.recommended = recommended();
+    server.serve(200, signed(&again));
+    resolve(dir.path(), Some(&server.source())).await;
+    let mut other = preset("net-b", 6);
+    other.recommended = vec![Recommended {
+        name: "Other news".into(),
+        ..recommended()[0].clone()
+    }];
+    server.serve(200, signed(&other));
+    resolve(dir.path(), Some(&server.source())).await;
+    let seen = status(dir.path(), Some(&server.source()));
+    assert_eq!(
+        (seen.state, seen.network.as_deref(), seen.recommended),
+        (State::Switch, Some("net-a"), recommended())
+    );
+    accept_offer(dir.path(), &server.source()).unwrap();
+    let seen = status(dir.path(), Some(&server.source()));
+    assert_eq!(
+        seen.recommended
+            .iter()
+            .map(|r| r.name.as_str())
+            .collect::<Vec<_>>(),
+        ["Other news"]
     );
 }
 

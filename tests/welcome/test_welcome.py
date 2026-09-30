@@ -36,6 +36,7 @@ DAY = 24 * 3600
 T0 = 1_790_000_000.0  # 2026-09-21 14:13:20 UTC
 ME = "ain1" + "0" * 64
 LOBBY_REF = "ab" * 32
+NEWS_REF = "cd" * 32
 
 
 def hexid(n):
@@ -86,6 +87,7 @@ class FakeKaiki:
         self.created = {}  # operation id -> group id
         self.opened = {}  # operation id -> commit
         self.pending = {}  # group id -> access the notaries have not decided yet
+        self.pending_retention = {}  # channel id -> days (None for ever) not decided yet
         self.unread = {}
         self.leases = {}
         self.sent = []  # (conversation, text, operation id)
@@ -115,6 +117,13 @@ class FakeKaiki:
         self.groups[group] = self.info(group, name, owner=member(9), role="member",
                                        ref="ef" * 32, members=[member(9), ME])
 
+    def team(self, channel, name):
+        """Someone else's public channel whose team names this profile: anyone
+        may, once the agent is their contact, and it lists as an admin's."""
+        self.groups[channel] = self.info(channel, name, owner=member(9), role="admin",
+                                         ref="ef" * 32, members=[member(9), ME], kind="channel")
+        self.groups[channel].update(access="public", admins=[ME])
+
     def settle(self):
         """The node delivers what was queued and the notaries decide the
         commits made so far."""
@@ -122,6 +131,10 @@ class FakeKaiki:
             self.groups[group]["access"] = access
             self.groups[group]["epoch"] += 1
         self.pending.clear()
+        for channel, days in self.pending_retention.items():
+            self.groups[channel]["retention"] = days
+            self.groups[channel]["epoch"] += 1
+        self.pending_retention.clear()
         for what, coins in self.due:
             self.remaining -= coins
             self.charged.append((what, coins))
@@ -144,10 +157,10 @@ class FakeKaiki:
         return [g for g in self.groups.values() if g["name"] == name and g["role"] == "owner"]
 
     @staticmethod
-    def info(group, name, owner, role, ref, members):
+    def info(group, name, owner, role, ref, members, kind="group"):
         return {"id": group, "name": name, "epoch": 0, "owner": owner, "admins": [],
                 "members": list(members), "role": role, "access": "private", "groupRef": ref,
-                "banned": [], "kind": "group", "retention": 1}
+                "banned": [], "kind": kind, "retention": 1 if kind == "group" else 30}
 
     # What `kaiki` answers.
     def __call__(self, *args, text=None):
@@ -210,6 +223,33 @@ class FakeKaiki:
                                                ref=ref, members=[ME])
                 self.created[operation] = group
                 return dict(self.groups[group])
+            case ["channels", "create"]:
+                if one["--access"] == "public" and one.get("--confirm") is not True:
+                    raise invalid("a public channel needs --confirm")
+                if operation in self.created:
+                    return dict(self.groups[self.created[operation]])
+                self.charge("channels create", 1)
+                channel = hexid(len(self.groups) + 1)
+                ref = NEWS_REF if not self.owned(one["--name"]) else hexid(98)
+                self.groups[channel] = self.info(channel, one["--name"], owner=ME, role="owner",
+                                                 ref=ref, members=[ME], kind="channel")
+                self.groups[channel]["access"] = one["--access"]
+                self.created[operation] = channel
+                return dict(self.groups[channel])
+            case ["channels", "retention"]:
+                days = one["--days"]
+                if days not in ("30", "90", "180", "365", "forever"):
+                    raise invalid("--days is 30, 90, 180, 365 or forever")
+                channel = self.group(one["--channel"])
+                if channel["kind"] != "channel" or channel["access"] != "public":
+                    raise invalid("only a public channel keeps history")
+                if operation not in self.opened:
+                    self.due.append(("channels retention", 1))
+                    self.opened[operation] = {"epoch": channel["epoch"] + 1,
+                                              "commit": hexid(500 + len(self.opened)),
+                                              "messageId": hexid(600 + len(self.opened))}
+                    self.pending_retention[channel["id"]] = None if days == "forever" else int(days)
+                return dict(self.opened[operation])
             case ["groups", "access"]:
                 if one["--to"] == "public" and one.get("--confirm") is not True:
                     raise invalid("opening a group needs --confirm")
@@ -359,6 +399,10 @@ class WelcomeAgent(unittest.TestCase):
         (lobby,) = self.kaiki.owned(welcome.LOBBY_NAME)
         return lobby
 
+    def news(self):
+        (news,) = self.kaiki.owned(welcome.NEWS_NAME)
+        return news
+
     def texts_to(self, conversation):
         return [text for to, text, _ in self.kaiki.sent if to == conversation]
 
@@ -380,17 +424,19 @@ class WelcomeAgent(unittest.TestCase):
         self.step()
         lobby = self.lobby()
         self.assertEqual(lobby["access"], "public")
-        (card,) = [card for card in self.kaiki.cards if card["kind"] == "group"]
-        self.assertEqual(card["group"], lobby["id"])
+        (card,) = [card for card in self.kaiki.cards if card["group"] == lobby["id"]]
+        self.assertEqual(card["kind"], "group")
         self.assertIn("lobby", card["tags"])
         self.assertEqual(card["langs"], ["en"])
+        # The news channel opens with the lobby, public at once.
         self.assertEqual(json.loads((self.home / "welcome.json").read_text()),
                          {"agent": ME, "name": welcome.NAME, "lobby": LOBBY_REF,
-                          "lobbyName": welcome.LOBBY_NAME})
+                          "lobbyName": welcome.LOBBY_NAME, "news": NEWS_REF,
+                          "newsName": welcome.NEWS_NAME})
         self.assertEqual(self.kaiki.sent, [])
 
     def test_names_and_limits_fit_the_preset_and_the_cli(self):
-        for name in (welcome.NAME, welcome.LOBBY_NAME):
+        for name in (welcome.NAME, welcome.LOBBY_NAME, welcome.NEWS_NAME):
             # A preset takes 80 characters, a directory card's name 64.
             self.assertTrue(1 <= len(name) <= 64 and name == name.strip(), name)
         self.assertTrue(0 < welcome.DAILY_CONTACTS <= 1000)
@@ -398,6 +444,101 @@ class WelcomeAgent(unittest.TestCase):
         self.assertGreaterEqual(welcome.DAILY_SPEND, 100)
         # A watch returns before the CLI's runner gives up on it.
         self.assertLess(welcome.WATCH_SECONDS + 30, welcome.Kaiki("kaiki", self.home, self.home).timeout)
+
+    def test_the_news_channel_opens_after_the_lobby_and_keeps_its_history_for_ever(self):
+        self.step()
+        # The lobby comes first: a fresh agent's first coins open where
+        # newcomers meet, which every welcome points to.
+        self.assertEqual(self.kaiki.owned(welcome.NEWS_NAME), [])
+        self.ready()
+        news = self.news()
+        self.assertEqual((news["kind"], news["access"], news["owner"]), ("channel", "public", ME))
+        self.step()  # the notaries decided the retention asked for
+        self.assertIsNone(self.news()["retention"])
+        (card,) = [card for card in self.kaiki.cards if card["group"] == news["id"]]
+        self.assertIn("news", card["tags"])
+        self.assertEqual(card["langs"], ["en"])
+        # Nothing of it is asked for again.
+        spent = self.kaiki.spent()
+        self.clock.advance(3600)
+        self.step()
+        self.assertEqual(self.kaiki.spent(), spent)
+        self.assertEqual(self.kaiki.paid_for("channels create"), 1)
+        self.assertEqual(len(self.kaiki.called("channels", "retention")), 1)
+        # The agent never writes in it: news is the team's.
+        self.assertEqual(self.texts_to(news["id"]), [])
+
+    def test_a_lost_state_finds_its_news_channel_not_a_second(self):
+        self.ready()
+        self.kaiki.settle()
+        made = self.news()
+        self.lose_state()
+        self.clock.advance(3600)
+        self.step()
+        self.assertEqual(len(self.kaiki.owned(welcome.NEWS_NAME)), 1)
+        self.assertEqual(self.kaiki.paid_for("channels create"), 1)
+        self.assertEqual(json.loads((self.home / "welcome.json").read_text())["news"],
+                         made["groupRef"])
+
+    def test_a_news_channel_made_by_hand_is_taken_with_the_history_it_keeps(self):
+        self.kaiki.groups[hexid(40)] = self.kaiki.info(hexid(40), welcome.NEWS_NAME, owner=ME,
+                                                       role="owner", ref="12" * 32, members=[ME],
+                                                       kind="channel")
+        self.kaiki.groups[hexid(40)].update(access="public", retention=90)
+        self.ready()
+        self.step()
+        self.assertEqual(self.kaiki.called("channels", "create"), [])
+        self.assertEqual(self.kaiki.called("channels", "retention"), [])
+        self.assertEqual(self.news()["retention"], 90)
+        self.assertEqual(json.loads((self.home / "welcome.json").read_text())["news"], "12" * 32)
+        self.assertTrue([c for c in self.kaiki.cards if c["group"] == hexid(40)])
+
+    def test_a_retention_the_team_set_later_is_not_changed_back(self):
+        self.ready()
+        self.step()
+        self.assertIsNone(self.news()["retention"])
+        self.news()["retention"] = 90  # the owner, in the channel's team, keeps less
+        for _ in range(3):
+            self.clock.advance(DAY)
+            self.step()
+        self.assertEqual(self.news()["retention"], 90)
+        self.assertEqual(len(self.kaiki.called("channels", "retention")), 1)
+
+    def test_a_channel_whose_team_names_the_agent_is_not_taken_as_the_news(self):
+        # Anyone the agent welcomed can make a channel of that name with the
+        # agent in its team: the preset must never recommend it.
+        self.kaiki.team(hexid(78), welcome.NEWS_NAME)
+        self.ready()
+        self.step()
+        news = self.news()
+        self.assertEqual(news["groupRef"], NEWS_REF)
+        self.assertEqual(json.loads((self.home / "welcome.json").read_text())["news"], NEWS_REF)
+        self.assertTrue([c for c in self.kaiki.cards if c["group"] == news["id"]])
+        self.assertFalse([c for c in self.kaiki.cards if c["group"] == hexid(78)])
+        retained = {flags(args)[1]["--channel"][0] for args, _ in self.kaiki.called("channels", "retention")}
+        self.assertEqual(retained, {news["id"]})
+        self.assertEqual(self.kaiki.groups[hexid(78)]["retention"], 30)
+
+    def test_a_refused_ask_for_the_news_history_is_asked_again(self):
+        self.kaiki.fail(["channels", "retention"], retryable("group_busy"))
+        self.ready()
+        for _ in range(2):
+            self.clock.advance(60)
+            self.step()
+        self.assertIsNone(self.news()["retention"])
+        self.assertEqual(self.kaiki.paid_for("channels retention"), 1)
+
+    def test_the_news_channel_waiting_holds_up_no_welcome(self):
+        self.kaiki.fail(["channels", "create"], retryable("network_unavailable"))
+        self.kaiki.contact("c1", "Ann")
+        self.ready()  # the lobby opened, the channel could not be made
+        (text,) = self.texts_to("c1")
+        self.assertIn(LOBBY_REF, text)
+        self.assertNotIn("news", json.loads((self.home / "welcome.json").read_text()))
+        self.clock.advance(3600)
+        self.step()
+        self.assertEqual(len(self.kaiki.owned(welcome.NEWS_NAME)), 1)
+        self.assertEqual(json.loads((self.home / "welcome.json").read_text())["news"], NEWS_REF)
 
     def test_nobody_is_welcomed_before_the_lobby_is_open(self):
         self.kaiki.contact("c1", "Ann")
@@ -473,10 +614,11 @@ class WelcomeAgent(unittest.TestCase):
         self.ready()
         self.clock.advance(24 * DAY)
         self.step()
-        self.assertEqual(len(self.kaiki.cards), 2)
+        self.assertEqual(len(self.kaiki.cards), 3)
         self.clock.advance(DAY + 60)
         self.step()
-        self.assertEqual(sorted(c["kind"] for c in self.kaiki.cards[2:]), ["group", "profile"])
+        self.assertEqual(sorted(c["group"] or "profile" for c in self.kaiki.cards[3:]),
+                         sorted([self.lobby()["id"], self.news()["id"], "profile"]))
 
     def test_a_refused_card_is_tried_again_a_day_later_not_every_step(self):
         self.kaiki.fail(["discover", "publish", "profile"], final("book_required"))
@@ -487,7 +629,8 @@ class WelcomeAgent(unittest.TestCase):
         self.assertEqual(len(self.kaiki.called("discover", "publish", "profile")), 1)
         self.clock.advance(DAY)
         self.step()
-        self.assertEqual(sorted(c["kind"] for c in self.kaiki.cards), ["group", "profile"])
+        self.assertEqual(sorted(c["group"] or "profile" for c in self.kaiki.cards),
+                         sorted([self.lobby()["id"], self.news()["id"], "profile"]))
         self.assertEqual(len(self.kaiki.called("discover", "publish", "profile")), 2)
 
     def test_every_new_contact_is_welcomed_once_with_the_lobby(self):
@@ -609,7 +752,8 @@ class WelcomeAgent(unittest.TestCase):
         allowed = {("init",), ("daemon", "status"), ("daemon", "stop"), ("contacts", "policy"),
                    ("contacts", "list"), ("messages",), ("coins", "balance"), ("groups", "list"),
                    ("groups", "show"), ("groups", "create"), ("groups", "access"),
-                   ("groups", "send"), ("discover", "publish"), ("send",), ("inbox", "watch"),
+                   ("groups", "send"), ("channels", "create"), ("channels", "retention"),
+                   ("discover", "publish"), ("send",), ("inbox", "watch"),
                    ("inbox", "poll"), ("inbox", "ack")}
         used = {args[:1] if args[0] in ("init", "messages", "send") else args[:2]
                 for args, _ in self.kaiki.calls}

@@ -8,6 +8,7 @@ import {WalletPanel} from './WalletPanel';
 import {DiscoverPanel} from './DiscoverPanel';
 import {Onboarding,UnlockScreen} from './Onboarding';
 import {StartHere} from './StartHere';
+import {RecommendedPending} from './Recommended';
 import {DeliveryBadge} from './DeliveryBadge';
 import {NavMenu} from './NavMenu';
 import {NetworkNotice} from './NetworkPreset';
@@ -99,10 +100,11 @@ function Shell({api}:{api:DesktopApi}) {
   const ready=gate.kind==='ready'&&snapshot;
   useEffect(()=>{if(ready&&!identity)setFirstRun(true);},[ready,identity]);
   const notice=<>{ready&&<NetworkNotice api={api} onChanged={()=>void reload()}/>}<ReleaseNotice api={api}/></>;
-  if(ready&&(!identity||firstRun))return <Onboarding api={api} notice={notice} identity={identity??null} onCreated={()=>void reload()} onFinish={()=>{setFirstRun(false);setPanel('chat');}} onTopUp={()=>{setFirstRun(false);setPanel('wallet');}}/>;
+  if(ready&&(!identity||firstRun))return <><RecommendedPending api={api}/><Onboarding api={api} notice={notice} identity={identity??null} onCreated={()=>void reload()} onFinish={()=>{setFirstRun(false);setPanel('chat');}} onTopUp={()=>{setFirstRun(false);setPanel('wallet');}}/></>;
   const time=(seconds:number)=>new Date(seconds*1000).toLocaleTimeString(t.tag,{hour:'2-digit',minute:'2-digit'});
   const nav=(id:string,target:Panel,label:string,badge?:number)=>({id,label,badge,current:panel===target,onSelect:()=>show(target)});
   return <div className="app-shell">
+    {ready&&<RecommendedPending api={api}/>}
     <aside className="sidebar">
       <div className="brand"><span className="brand-mark" aria-hidden="true">k<span>·</span>c</span><div>Kaiki Chat<small>{t.shell.tagline}</small></div></div>
       <div className="sidebar-heading"><h1>{t.shell.messages}</h1>{ready&&identity&&<div className="sidebar-actions"><button className="icon-button" aria-label={t.shell.addContact} onClick={()=>show('contacts')}>+</button><NavMenu disabled={busy} items={[

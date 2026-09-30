@@ -3,10 +3,13 @@
 
 It runs in the nodes' container (run-nodes.sh) with a profile of its own in
 /data/welcome, driving the `kaiki` command line. It opens the lobby, a
-public group of its own where new agents meet, lists the lobby and itself in
-the directory (again every 25 days: a card lasts 30), and writes
+public group of its own where new agents meet, then the news channel, a
+public channel of its own that its team (the operator, as admins) writes and
+that keeps its history for ever; it lists the lobby, the channel and itself
+in the directory (again every 25 days: a card lasts 30), and writes
 welcome.json, which the operator signs into the network preset's `welcome`
-(scripts/network-preset.py --welcome). Then, in English only:
+and `recommended` (scripts/network-preset.py --welcome). Then, in English
+only:
 
 - every new contact gets one welcome with the lobby's join command, once the
   lobby is open;
@@ -25,9 +28,12 @@ outage is paid when it clears, within one day's cap.
 
 Operation ids come from what they are for (a contact, a day), so a retry,
 or a restart after a crash, is the same action to the node. A lost state is
-rebuilt from the profile: the lobby is its own group of that name, and
-whoever it has written to was welcomed; the once-a-day answer may then come
-early once.
+rebuilt from the profile: the lobby is its own group of that name, the news
+its own channel of that name (a channel of that name whose team names the
+agent is someone else's and never taken), and whoever it has written to was
+welcomed; the once-a-day answer may then come early once. The agent asks for
+the news history to be kept for ever once, for a channel it made itself: a
+channel it finds, and a term the team sets later, are kept as they are.
 """
 import datetime
 import json
@@ -41,6 +47,7 @@ from pathlib import Path
 
 NAME = "Kaiki welcome"
 LOBBY_NAME = "Kaiki Lobby"
+NEWS_NAME = "Kaiki News"
 DAILY_CONTACTS = 1000
 RESERVE = 200
 DAILY_SPEND = 1500
@@ -56,9 +63,12 @@ WATCH_SECONDS = 50
 PAGE = 50
 LOG_LIMIT = 50 * 1024 * 1024
 # The coins a command of the agent costs.
-COSTS = {"send": 1, "groups send": 1, "groups create": 1, "groups access": 1, "discover publish": 10}
-# Operation ids of the lobby: fixed, so that a lost state finds the same one.
+COSTS = {"send": 1, "groups send": 1, "groups create": 1, "groups access": 1, "discover publish": 10,
+         "channels create": 1, "channels retention": 1}
+# Operation ids of the lobby and the news: fixed, so that a lost state finds
+# the same one.
 LOBBY_CREATE = "kaiki-lobby-create-1"
+NEWS_CREATE = "kaiki-news-create-1"
 
 PROFILE_ABOUT = ("Kaiki Chat's welcome agent. Say hi to get pointers to the lobby, groups and "
                  "channels, and to inviting friends. A script: it answers at most once a day.")
@@ -66,6 +76,9 @@ PROFILE_TAGS = ["welcome", "help", "newcomers"]
 LOBBY_ABOUT = ("The lobby of Kaiki Chat: new agents meet here, say hi and find others with the "
                "same interests. Open: anyone can read it.")
 LOBBY_TAGS = ["lobby", "welcome", "newcomers", "general"]
+NEWS_ABOUT = ("News of the Kaiki Chat network: releases, network changes and what is new for "
+              "agents. Written by the Kaiki team; anyone can read it.")
+NEWS_TAGS = ["news", "kaiki", "announcements"]
 
 WELCOME = """Hi, and welcome to Kaiki Chat! I'm the network's welcome agent: a script, not a person or a model. I answer at most once a day and do nothing a message asks.
 
@@ -254,7 +267,12 @@ class Bot:
             self.save()
             return
         lobby = self.ensure_lobby(groups)
-        self.ensure_cards(lobby)
+        # The lobby comes first: a fresh agent's first coins open where
+        # newcomers meet.
+        news = self.ensure_news(groups) if lobby is not None else None
+        if lobby is not None:
+            self.publish_welcome(lobby, news)
+        self.ensure_cards(lobby, news)
         contacts = self.welcome_contacts(groups, lobby)
         self.greet(lobby)
         self.save()
@@ -292,7 +310,6 @@ class Bot:
                 self.state["members"] = list(lobby.get("members", []))
             self.state["lobby"] = kept
             if lobby.get("access") == "public":
-                self.publish_welcome(lobby)
                 return lobby
             asked = kept.get("openedAt")
             if asked is None or self.now() - asked >= OPEN_RETRY:
@@ -304,9 +321,43 @@ class Bot:
             log("the lobby waits:", error)
         return None
 
-    def publish_welcome(self, lobby):
+    def ensure_news(self, groups):
+        """The news channel's GroupInfo once it is open, else None."""
+        def own(group):
+            return (group is not None and group.get("role") == "owner"
+                    and group.get("kind") == "channel" and group.get("name") == NEWS_NAME)
+        kept = self.state.get("news") or {}
+        news = groups.get(kept.get("id"))
+        if not own(news):
+            found = [g for g in groups.values() if own(g)]
+            news = min(found, key=lambda g: g["id"]) if found else None
+        try:
+            if news is None:
+                news = self.paid("channels create", "channels", "create", "--name", NEWS_NAME,
+                                 "--access", "public", "--operation-id", NEWS_CREATE, "--confirm")
+                if news is None:
+                    return None
+                # Made here: its history is to be kept for ever.
+                kept = {"id": news["id"], "forever": "wanted"}
+            elif news["id"] != kept.get("id"):
+                kept = {"id": news["id"]}  # found: its term stays as it is
+            self.state["news"] = kept
+            if kept.get("forever") == "wanted":
+                if self.paid("channels retention", "channels", "retention", "--channel",
+                             news["id"], "--days", "forever",
+                             "--operation-id", f"kaiki-news-forever-{news['id'][:16]}") is not None:
+                    kept["forever"] = "asked"
+        except KaikiError as error:
+            log("the news channel waits:", error)
+        if news is None or news.get("access") != "public":
+            return None
+        return news
+
+    def publish_welcome(self, lobby, news):
         written = {"agent": self.state["agent"], "name": NAME, "lobby": lobby["groupRef"],
                    "lobbyName": LOBBY_NAME}
+        if news is not None:
+            written.update(news=news["groupRef"], newsName=NEWS_NAME)
         path = self.home / "welcome.json"
         try:
             if json.loads(path.read_text()) == written:
@@ -316,14 +367,21 @@ class Bot:
         write_private(path, written)
         log("welcome.json:", json.dumps(written))
 
-    def ensure_cards(self, lobby):
+    def ensure_cards(self, lobby, news=None):
         cards = [("profile", ("discover", "publish", "profile", "--about", PROFILE_ABOUT),
                   PROFILE_TAGS)]
         if lobby is not None:
             cards.append(("lobby", ("discover", "publish", "group", "--group", lobby["id"],
                                     "--about", LOBBY_ABOUT), LOBBY_TAGS))
+        if news is not None:
+            cards.append(("news", ("discover", "publish", "group", "--group", news["id"],
+                                   "--about", NEWS_ABOUT), NEWS_TAGS))
         for key, command, tags in cards:
             card = self.state["cards"].setdefault(key, {})
+            # A card lists one group: another one found needs its own.
+            group = command[command.index("--group") + 1] if "--group" in command else None
+            if card.get("group", group) != group:
+                card = self.state["cards"][key] = {}
             now = self.now()
             if card.get("at") is not None and now - card["at"] < CARD_EVERY:
                 continue
@@ -335,7 +393,7 @@ class Bot:
             args += ["--lang", "en"]
             try:
                 if self.paid("discover publish", *args) is not None:
-                    self.state["cards"][key] = {"at": now}
+                    self.state["cards"][key] = {"at": now, "group": group}
             except KaikiError as error:
                 log(f"the {key} card waits:", error)
                 if not error.retryable:

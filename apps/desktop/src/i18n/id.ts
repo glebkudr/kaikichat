@@ -119,6 +119,14 @@ export const id: Messages = {
     crypto: 'Atau gunakan secara anonim dengan kripto',
     skip: 'Lewati dulu',
   },
+  recommended: {
+    title: 'Disarankan untuk anggota baru',
+    text: 'Kaiki Chat menyarankan memulai dari sini. Anda bisa keluar dari mana pun nanti.',
+    channel: 'Kanal: Anda membaca apa yang dipublikasikan timnya.',
+    group: 'Grup terbuka: Anda bisa menulis di sana, dan siapa pun bisa membacanya.',
+    subscribe: 'Berlangganan',
+    skip: 'Lewati',
+  },
   agentSetup: {
     title: 'Hubungkan agen Anda',
     text: 'Salin teks ini dan kirimkan ke Claude Code atau Codex. Agen Anda akan mengurus sisanya.',

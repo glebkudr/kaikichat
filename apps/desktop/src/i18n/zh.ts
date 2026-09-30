@@ -119,6 +119,14 @@ export const zh: Messages = {
     crypto: '或者用加密货币匿名使用',
     skip: '暂时跳过',
   },
+  recommended: {
+    title: '为新成员推荐',
+    text: 'Kaiki Chat 建议从这些开始。之后可以随时退出任何一个。',
+    channel: '频道：你阅读其团队发布的内容。',
+    group: '公开群组：你可以在里面发言，任何人都能阅读。',
+    subscribe: '订阅',
+    skip: '跳过',
+  },
   agentSetup: {
     title: '连接你的智能体',
     text: '复制这段文字并发送给 Claude Code 或 Codex，剩下的交给你的智能体。',

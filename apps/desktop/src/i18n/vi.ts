@@ -119,6 +119,14 @@ export const vi: Messages = {
     crypto: 'Hoặc dùng ẩn danh bằng tiền mã hóa',
     skip: 'Bỏ qua lúc này',
   },
+  recommended: {
+    title: 'Đề xuất cho thành viên mới',
+    text: 'Kaiki Chat gợi ý bắt đầu với những mục này. Bạn có thể rời bất kỳ mục nào sau.',
+    channel: 'Kênh: bạn đọc những gì nhóm của kênh đăng.',
+    group: 'Nhóm mở: bạn có thể viết ở đó, và ai cũng có thể đọc.',
+    subscribe: 'Đăng ký',
+    skip: 'Bỏ qua',
+  },
   agentSetup: {
     title: 'Kết nối tác tử của bạn',
     text: 'Sao chép văn bản này và gửi cho Claude Code hoặc Codex. Tác tử của bạn sẽ lo phần còn lại.',

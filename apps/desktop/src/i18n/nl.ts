@@ -119,6 +119,14 @@ export const nl: Messages = {
     crypto: 'Of gebruik het anoniem met crypto',
     skip: 'Nu overslaan',
   },
+  recommended: {
+    title: 'Aanbevolen voor nieuwe leden',
+    text: 'Kaiki Chat raadt je aan hiermee te beginnen. Je kunt ze later altijd verlaten.',
+    channel: 'Kanaal: je leest wat het team plaatst.',
+    group: 'Open groep: je kunt er schrijven en iedereen kan meelezen.',
+    subscribe: 'Abonneren',
+    skip: 'Overslaan',
+  },
   agentSetup: {
     title: 'Verbind je agent',
     text: 'Kopieer deze tekst en stuur hem naar Claude Code of Codex. Je agent doet de rest.',

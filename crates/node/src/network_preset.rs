@@ -166,6 +166,11 @@ pub struct Preset {
     /// Not a daemon flag: `kaiki network` shows it for the agent to use.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub welcome: Option<Welcome>,
+    /// The channels and groups the network recommends to a new profile, in
+    /// its order: the window offers them at the first run, `kaiki network`
+    /// shows them for the agent to offer. Not daemon flags either.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub recommended: Vec<Recommended>,
     /// The app's latest release. Not a daemon flag either.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub release: Option<Release>,
@@ -215,15 +220,69 @@ pub struct Welcome {
     pub lobby_name: String,
 }
 
+/// 32 bytes written as 64 lowercase hex digits.
+fn lower_hex(text: &str) -> bool {
+    text.len() == 64
+        && text
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+}
+
+/// A network id: `ain1` and 64 lowercase hex digits.
+fn network_id(text: &str) -> bool {
+    text.strip_prefix("ain1").is_some_and(lower_hex)
+}
+
+/// At most this many recommendations in a preset.
+const MAX_RECOMMENDED: usize = 8;
+/// The kinds of recommendation this version offers.
+const KNOWN_KINDS: [&str; 2] = ["channel", "group"];
+
+/// A channel or group the network recommends to a new profile: a channel is
+/// followed (`kaiki groups follow --group-ref REF --owner OWNER --name
+/// NAME`), a group joined (`kaiki groups join --group-ref REF`).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Recommended {
+    /// `channel` or `group`. A kind a later version adds keeps the preset
+    /// valid and is left out of the status.
+    pub kind: String,
+    /// The group's reference `G`, 64 lowercase hex digits.
+    #[serde(rename = "ref")]
+    pub group_ref: String,
+    /// The owner's network id.
+    pub owner: String,
+    pub name: String,
+}
+
+impl Recommended {
+    fn check(&self) -> Result<()> {
+        let kind = self.kind.len();
+        if kind == 0 || kind > 16 || !self.kind.bytes().all(|b| b.is_ascii_lowercase()) {
+            return Err("a recommendation's kind is 1-16 of a-z".into());
+        }
+        if !lower_hex(&self.group_ref) {
+            return Err("a recommendation's reference is 32 bytes of lowercase hex".into());
+        }
+        if !network_id(&self.owner) {
+            return Err("a recommendation's owner is ain1 and 64 lowercase hex digits".into());
+        }
+        let name = self.name.chars().count();
+        if name == 0 || name > 80 {
+            return Err("a recommendation's name is 1-80 characters".into());
+        }
+        Ok(())
+    }
+
+    /// Whether this version knows what to do with it.
+    fn known(&self) -> bool {
+        KNOWN_KINDS.contains(&self.kind.as_str())
+    }
+}
+
 impl Welcome {
     fn check(&self) -> Result<()> {
-        let lower_hex = |text: &str| {
-            text.len() == 64
-                && text
-                    .bytes()
-                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
-        };
-        if !self.agent.strip_prefix("ain1").is_some_and(lower_hex) {
+        if !network_id(&self.agent) {
             return Err("a welcome agent is ain1 and 64 lowercase hex digits".into());
         }
         if !lower_hex(&self.lobby) {
@@ -303,6 +362,16 @@ impl Preset {
         }
         if let Some(welcome) = &self.welcome {
             welcome.check()?;
+        }
+        if self.recommended.len() > MAX_RECOMMENDED {
+            return Err(format!("a preset recommends at most {MAX_RECOMMENDED}").into());
+        }
+        let mut recommended = BTreeSet::new();
+        for recommendation in &self.recommended {
+            recommendation.check()?;
+            if !recommended.insert(&recommendation.group_ref) {
+                return Err("a preset recommends a group once".into());
+            }
         }
         if let Some(release) = &self.release {
             release.check()?;
@@ -483,6 +552,9 @@ pub struct PresetStatus {
     pub error: Option<String>,
     /// The welcome agent and lobby of the network the profile is on.
     pub welcome: Option<Welcome>,
+    /// What that network recommends to a new profile, of the kinds this
+    /// version knows.
+    pub recommended: Vec<Recommended>,
 }
 
 impl PresetStatus {
@@ -498,6 +570,7 @@ impl PresetStatus {
             required: None,
             error: None,
             welcome: None,
+            recommended: Vec::new(),
         }
     }
     /// A profile with no preset source.
@@ -794,6 +867,17 @@ pub fn status(data_dir: &Path, source: Option<&PresetSource>) -> PresetStatus {
         }),
         required: kept.required,
         error: kept.error,
+        recommended: accepted
+            .as_ref()
+            .map(|preset| {
+                preset
+                    .recommended
+                    .iter()
+                    .filter(|r| r.known())
+                    .cloned()
+                    .collect()
+            })
+            .unwrap_or_default(),
         welcome: accepted.and_then(|preset| preset.welcome),
     }
 }

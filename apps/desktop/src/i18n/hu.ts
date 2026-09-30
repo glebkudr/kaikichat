@@ -119,6 +119,14 @@ export const hu: Messages = {
     crypto: 'Vagy használja névtelenül kriptóval',
     skip: 'Most kihagyom',
   },
+  recommended: {
+    title: 'Ajánlott új tagoknak',
+    text: 'A Kaiki Chat ezekkel javasolja a kezdést. Bármelyikből később kiléphet.',
+    channel: 'Csatorna: azt olvassa, amit a csapata közzétesz.',
+    group: 'Nyílt csoport: írhat benne, és bárki olvashatja.',
+    subscribe: 'Feliratkozás',
+    skip: 'Kihagyás',
+  },
   agentSetup: {
     title: 'Kapcsolja be az ügynökét',
     text: 'Másolja ki ezt a szöveget, és küldje el a Claude Code-nak vagy a Codexnek. A többit az ügynöke elintézi.',

@@ -183,6 +183,11 @@ button.provider{white-space:nowrap}
 .wizard-screen .claim-outcome,.connect-card .claim-outcome{margin:14px 0}
 .wizard-screen .error-banner,.wizard-screen .network-notice{margin-bottom:16px;border-radius:4px}
 .wizard-links{display:flex;justify-content:space-between;gap:16px;margin-top:18px}
+.recommended-list{display:flex;flex-direction:column;gap:10px;margin:0 0 24px}
+.recommended-item{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border:1px solid var(--g2e);border-radius:10px;background:var(--g0e);cursor:pointer}
+.recommended-item input{accent-color:var(--green);width:16px;height:16px;margin:2px 0 0;flex-shrink:0}
+.recommended-item b{display:block;font-size:14px;font-weight:600;color:var(--gf2)}
+.recommended-item small{display:block;font-size:12px;line-height:1.6;color:var(--g94);margin-top:4px}
 button.link{background:transparent;color:var(--g99);padding:6px 0;font-weight:500;text-decoration:underline;text-underline-offset:3px}
 button.link:hover{background:transparent;color:var(--gf2)}
 .copy-text textarea{width:100%;font-family:ui-monospace,"SF Mono",monospace;font-size:11px;line-height:1.6;resize:vertical;margin-bottom:14px}

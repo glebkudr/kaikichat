@@ -2,11 +2,13 @@
 """Kaiki Chat's network preset (Docs/V1_NETWORK_PRESET_2026_09_28_RU.md).
 
 Builds the preset of the public network from deployments/base.json
-(`nodeFlags`; Base mainnet since 2026-09-30, `--manifest
+(`nodeFlags`; Base mainnet since 2026-09-30; `--manifest
 deployments/base-sepolia.json --network kaiki-testnet-base-sepolia --name
-"Kaiki testnet (Base Sepolia)"` for the former testnet), the nodes' routes (their /data/published.json), the identity
-server and the app's latest release (deployments/release.json, written by
-scripts/publish-cli.sh), with a serial one above the file it replaces, and
+"Kaiki testnet (Base Sepolia)"` for the former testnet), the nodes' routes
+(their /data/published.json), the identity server, the welcome agent's
+welcome.json (its `welcome`, and the channel and group `recommended` to a
+new profile) and the app's latest release (deployments/release.json, written
+by scripts/publish-cli.sh), with a serial one above the file it replaces, and
 signs it with `kaiki-preset` and the offline key:
 
     network-preset.py --published published.json --seed SEED \\
@@ -90,6 +92,15 @@ def main():
     if args.welcome:
         welcome = json.loads(args.welcome.read_text())
         preset["welcome"] = {key: welcome[key] for key in ("agent", "name", "lobby", "lobbyName")}
+        # What a new profile is offered at its first run: the news channel,
+        # followed, then the lobby, joined; both the welcome agent's.
+        recommended = []
+        if welcome.get("news"):
+            recommended.append({"kind": "channel", "ref": welcome["news"],
+                                "owner": welcome["agent"], "name": welcome["newsName"]})
+        recommended.append({"kind": "group", "ref": welcome["lobby"],
+                            "owner": welcome["agent"], "name": welcome["lobbyName"]})
+        preset["recommended"] = recommended
     if args.release.exists():
         release = json.loads(args.release.read_text())
         preset["release"] = {"version": release["version"], "builds": release["builds"]}
