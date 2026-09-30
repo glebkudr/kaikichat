@@ -140,7 +140,9 @@ services:
       NODES: "10"
       BASE_PORT: "4101"
       PUBLIC_IP: "${PUBLIC_IP:-51.91.126.3}"
-      CHAIN_RPC: "${CHAIN_RPC:-https://mainnet.base.org}"
+      # The public mainnet.base.org answers about five calls in a burst from
+      # one address ("over rate limit"); ten holders need more.
+      CHAIN_RPC: "${CHAIN_RPC:-https://base-rpc.publicnode.com}"
       CHAIN_ID: "8453"
       BOOK_SHOP: "0x8070dB7f5988586a66815D3DEB36DD06224FA5f9"
       GRANT_ISSUER: "0xe3529819735D3006502e3336d7dcE983F39Ed2DE"

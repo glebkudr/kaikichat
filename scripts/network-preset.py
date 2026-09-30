@@ -62,6 +62,7 @@ def main():
     parser.add_argument("--manifest", type=Path, default=ROOT / "deployments/base.json")
     parser.add_argument("--network", default=NETWORK, help="the network's id; another id is a switch")
     parser.add_argument("--name", default=NAME, help="the network's name shown to people")
+    parser.add_argument("--chain-rpc", help="the public JSON-RPC clients use (default: the manifest's)")
     parser.add_argument("--out", type=Path, default=ROOT / "deploy/site/network.json")
     parser.add_argument("--directory", help="the discovery service's URL")
     parser.add_argument("--directory-key", help="the key it signs bindings with (64 hex)")
@@ -80,6 +81,8 @@ def main():
         **chain(json.loads(args.manifest.read_text())),
         "identityServer": IDENTITY,
     }
+    if args.chain_rpc:
+        preset["chainRpc"] = args.chain_rpc
     if args.directory:
         preset["directory"] = args.directory
     if args.directory_key:
