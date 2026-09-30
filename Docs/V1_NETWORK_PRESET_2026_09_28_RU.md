@@ -268,19 +268,47 @@ kill switch. Network incompatibility is still expressed only by `minVersion`.
   from its own bundle. A Linux `.deb` package and debug builds do not
   replace themselves: for them the "Download" button opens
   `https://kaikichat.com/#get`.
-- On macOS the builds are ad-hoc signed, so after the swap the Keychain asks
-  once whether the new build may access the profile secret. Only a
-  Developer ID signature can remove that question.
+- On macOS every build is signed with the Developer ID and a stable
+  identifier (see Releasing), and `kaiki` shares the app's
+  `net.agenticinternet.desktop`, so after the swap the Keychain keeps giving
+  the new build the profile secret without asking. A secret saved under
+  another signature (the ad-hoc command line or the bundle's `kaiki` of
+  0.2.2 and older) still makes macOS ask once; the window explains the
+  dialog before it reads the key, and `kaiki` says so on stderr.
 
 ### Releasing
 
 1. Raise the version in `Cargo.toml` (workspace),
    `apps/desktop/package.json` and `tauri.conf.json`.
-2. Build and run `scripts/publish-cli.sh macos-arm64 DIR linux-x86_64 DIR
-   [app-macos-arm64 APP]`. The script uploads the archives to `downloads/`
-   (the latest, for `install.sh`) and to `downloads/<version>/` (for the
-   release), and writes `deployments/release.json`.
-3. Publish a preset: `scripts/network-preset.py` takes the release from
+2. Build through `scripts/build-storage.py`, as `AGENTS.md` describes:
+   `scripts/macos-release.sh` makes the app bundle and the command line in
+   `target/release`; Linux uses `scripts/linux-x86_64/build.sh release`.
+3. Sign every macOS binary with the owner's Developer ID; the ad-hoc
+   signatures the linker leaves are never published:
+   - the app: `scripts/macos-notarize.sh APP NEW_OUTPUT_DIR` signs its
+     executables inside-out, notarizes and staples it;
+   - the command line: `scripts/macos-sign-cli.sh target/release` signs
+     `kaiki`, `agentic-node`, `agentic-cli` and `agentic-mcp` with the
+     hardened runtime and a timestamp.
+
+   Both take the identifiers from the one table in
+   `scripts/macos-sign-cli.sh`: `kaiki` and the app's main executable are
+   `net.agenticinternet.desktop`, the others `net.agenticinternet.<name>`.
+   `APPLE_SIGNING_IDENTITY` selects the identity when the Keychain has more
+   than one Developer ID.
+4. Run `scripts/publish-cli.sh macos-arm64 DIR linux-x86_64 DIR
+   [app-macos-arm64 APP]`. Before packing anything or contacting the server
+   it checks every macOS build it is given with
+   `scripts/macos-sign-cli.sh --check`, the app's executables included, and
+   refuses an unsigned or ad-hoc binary, one without a Developer ID
+   Application authority, with another identifier or team, without the
+   hardened runtime or a secure timestamp. An app notarized before
+   2026-10-01 (0.2.2 and older: its helpers are named after the file) is
+   refused too; notarize it again with the current `macos-notarize.sh`. The
+   script uploads the archives to `downloads/` (the latest, for
+   `install.sh`) and to `downloads/<version>/` (for the release), and
+   writes `deployments/release.json`.
+5. Publish a preset: `scripts/network-preset.py` takes the release from
    `deployments/release.json`, then commit and deploy the site.
 
 ## Minimum version

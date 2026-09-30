@@ -188,8 +188,9 @@ Before packing anything or contacting the server it runs
 app bundle's executables included, and refuses when one is unsigned or
 ad-hoc, has no `Authority=Developer ID Application`, another identifier,
 another team than the others, no hardened runtime or no secure timestamp, or
-fails `codesign --verify --strict`. The identity and the notary profile are
-in `AGENTS.local.md`.
+fails `codesign --verify --strict`. The release steps, signing included,
+are in [Docs/V1_NETWORK_PRESET_2026_09_28_RU.md](Docs/V1_NETWORK_PRESET_2026_09_28_RU.md)
+("Releasing"); the identity and the notary profile are in `AGENTS.local.md`.
 
 ## Placement rules
 
