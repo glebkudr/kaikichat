@@ -19,9 +19,11 @@ for name in agentic-desktop agentic-node agentic-cli agentic-mcp kaiki; do
   [ -x "$app/Contents/MacOS/$name" ] || { echo "missing executable: $name" >&2; exit 1; }
 done
 mkdir -p "$out"
-# Kaiki's native code is these five executables; sign inside-out, without --deep.
+# Kaiki's native code is these five executables; sign inside-out, without
+# --deep, with the identifiers of macos-sign-cli.sh (kaiki shares the app's).
 for name in agentic-desktop agentic-node agentic-cli agentic-mcp kaiki; do
-  codesign --force --options runtime --timestamp --sign "$identity" "$app/Contents/MacOS/$name"
+  codesign --force --options runtime --timestamp --identifier "$(bash "$(dirname "$0")/macos-sign-cli.sh" --identifier "$name")" \
+    --sign "$identity" "$app/Contents/MacOS/$name"
 done
 codesign --force --options runtime --timestamp --sign "$identity" "$app"
 codesign --verify --deep --strict --verbose=2 "$app"

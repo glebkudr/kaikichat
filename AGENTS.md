@@ -162,16 +162,31 @@ before it is published, never only with the linker's ad-hoc signature:
 - the desktop app: `scripts/macos-notarize.sh` signs it inside-out,
   notarizes and staples it;
 - the command line that `scripts/publish-cli.sh macos-arm64` packs (`kaiki`,
-  `agentic-node`, `agentic-cli`, `agentic-mcp`): each one
-  `codesign --force --options runtime --timestamp --identifier net.agenticinternet.<name> --sign <Developer ID>`.
-  The explicit identifier stays the same from release to release (without it
-  codesign makes one from the file name and a hash), so the Keychain keeps
-  trusting an updated binary.
+  `agentic-node`, `agentic-cli`, `agentic-mcp`):
+  `scripts/macos-sign-cli.sh target/release` signs each one with
+  `codesign --force --options runtime --timestamp --identifier <identifier> --sign <Developer ID>`,
+  choosing the identity as `macos-notarize.sh` does (`APPLE_SIGNING_IDENTITY`
+  when there are several).
 
-Before publishing, `codesign --verify --strict` passes on every one and
-`codesign -dv` shows `Authority=Developer ID Application` and the team, not
-`Signature=adhoc`. The identity and the notary profile are in
-`AGENTS.local.md`.
+Both take the identifiers from the one table in `scripts/macos-sign-cli.sh`:
+`kaiki` and the app's main executable are `net.agenticinternet.desktop`,
+`agentic-node`, `agentic-cli` and `agentic-mcp` are
+`net.agenticinternet.<name>`. An explicit identifier stays the same from
+release to release (without it codesign makes one from the file name and a
+hash, or the bare file name), so the Keychain keeps trusting an updated
+binary. `kaiki` shares the app's identifier because the Keychain lets only
+code with the app's identifier and team read the profile key the app keeps
+there without the password dialog; its own identifier, the bare file name or
+an ad-hoc signature brings the dialog back.
+
+Signing stays an explicit release step; `scripts/publish-cli.sh` never signs.
+Before packing anything or contacting the server it runs
+`scripts/macos-sign-cli.sh --check` on every macOS build it is given, the
+app bundle's executables included, and refuses when one is unsigned or
+ad-hoc, has no `Authority=Developer ID Application`, another identifier,
+another team than the others, no hardened runtime or no secure timestamp, or
+fails `codesign --verify --strict`. The identity and the notary profile are
+in `AGENTS.local.md`.
 
 ## Placement rules
 

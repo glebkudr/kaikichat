@@ -65,6 +65,11 @@ elif name == "ditto":
             self.assertIn("--timestamp", call)
             self.assertEqual(call[call.index("--options") + 1], "runtime")
             self.assertNotIn("--deep", call)
+        # Stable identifiers; kaiki shares the app's for the Keychain.
+        self.assertEqual({Path(call[-1]).name: call[call.index("--identifier") + 1] for call in signs[:-1]},
+                         {"agentic-desktop": "net.agenticinternet.desktop", "kaiki": "net.agenticinternet.desktop",
+                          **{name: f"net.agenticinternet.{name}"
+                             for name in ("agentic-node", "agentic-cli", "agentic-mcp")}})
         self.assertEqual(archive, "stapled")
         self.assertTrue(any(call[:2] == ["spctl", "--assess"] for call in commands))
 

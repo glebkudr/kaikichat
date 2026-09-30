@@ -11,13 +11,23 @@
 # with its .sha256: at downloads/ (the latest, for install.sh) and at
 # downloads/<version>/ (kept, for the release the network preset names).
 # deployments/release.json then names the version and every build's URL and
-# SHA-256; scripts/network-preset.py signs it into the preset. The version
+# SHA-256; scripts/network-preset.py signs it into the preset. The macOS
+# builds are signed with the Developer ID beforehand (macos-sign-cli.sh,
+# macos-notarize.sh); this script only checks and refuses others. The version
 # is the workspace's. Builds go to the server only, never into Git; they
 # are copied into the chat-downloads volume of the Coolify application over
 # SSH, as .env.prod names it.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 [ $# -ge 2 ] && [ $(($# % 2)) -eq 0 ] || { echo "usage: $0 BUILD PATH [BUILD PATH]..." >&2; exit 2; }
+# Every macOS binary is signed with the Developer ID and its stable
+# identifier (scripts/macos-sign-cli.sh, macos-notarize.sh), never ad-hoc:
+# check them all before packing anything or contacting the server.
+args=("$@") macos=()
+for ((i = 0; i < $#; i += 2)); do
+  case "${args[i]}" in macos-arm64|app-macos-arm64) macos+=("${args[i + 1]}") ;; esac
+done
+[ ${#macos[@]} -eq 0 ] || bash scripts/macos-sign-cli.sh --check "${macos[@]}"
 # .env.prod is local (gitignored): the main checkout's, or KAIKI_ENV_FILE.
 set -a; . "${KAIKI_ENV_FILE:-./.env.prod}"; set +a
 export COPYFILE_DISABLE=1
