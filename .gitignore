@@ -84,3 +84,7 @@ yarn-error.log*
 # Machine-specific agent rules (paths, disks, keys, servers); see AGENTS.md.
 /AGENTS.local.md
 /CLAUDE.local.md
+
+# Private source conversations are kept outside the published repository.
+/Docs/ideation agentic internet/
+/Docs/ideation agentic internet.zip
