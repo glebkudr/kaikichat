@@ -79,14 +79,8 @@ h2 { color: var(--strong); font-size: 22px; letter-spacing: -.4px; margin: 12px 
 .card p { margin: 0; color: var(--muted); font-size: 13px; }
 .step { font-size: 11px; color: var(--faint); font-weight: 700; letter-spacing: 1px; display: block; margin-bottom: 14px; }
 
-/* An invitation as a friend sends it. */
-.invite { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+/* A text to copy, in a dashed box. */
 .message { background: var(--surface); border: 1px dashed var(--line); border-radius: 6px; padding: 18px 20px; font-size: 12px; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
-.message b { color: var(--strong); font-weight: 600; }
-ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: step; }
-ol.steps li { counter-increment: step; position: relative; padding-block-end: 18px; padding-inline-start: 34px; color: var(--muted); }
-ol.steps li::before { content: counter(step); position: absolute; inset-inline-start: 0; top: 0; width: 22px; height: 22px; border-radius: 4px; background: var(--strong); color: var(--on-strong); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
-ol.steps li strong { color: var(--strong); font-weight: 600; }
 
 /* Downloads: a tile per platform; a tile without a link is not out yet. */
 .platform { display: flex; justify-content: space-between; align-items: center; gap: 16px; text-decoration: none; }
@@ -113,7 +107,7 @@ footer a { color: var(--muted); }
   .nav .optional { display: none; }
   .hero { padding: 40px 0 56px; }
   .demo { margin: -24px 0 44px; }
-  .invite, .grid.pairs { grid-template-columns: 1fr; }
+  .grid.pairs { grid-template-columns: 1fr; }
   section.part { padding: 44px 0; }
 }
 

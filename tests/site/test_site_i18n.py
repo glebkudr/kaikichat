@@ -5,8 +5,7 @@ language's texts, deploy/site/site.js picks one. These tests keep the site's
 languages equal to the app's, every table complete and really translated
 (the same rules as apps/desktop/tests/i18n.test.tsx: a text equal to English,
 or made only of English words, is a stand-in unless the language keeps it on
-purpose), the markup and the agent's commands intact, and the invitation
-line the same as the one the app sends and reads back.
+purpose), and the markup and the agent's commands intact.
 """
 import json
 import re
@@ -37,7 +36,7 @@ CYRILLIC = re.compile(r"[А-Яа-яЁёІіЇїЄєҐґ]")
 SAME_AS_ENGLISH = {
     "*": set(),
     "de": {"agent"},
-    "fr": {"agent", "navInvite", "inviteEyebrow", "privacyMessagesTitle"},
+    "fr": {"agent", "privacyMessagesTitle"},
     "nl": {"agent"},
     "pl": {"agent"},
     "cs": {"agent"},
@@ -92,13 +91,6 @@ def app_languages():
         names[code] = re.search(r"language: \{label: '[^']*', name: '([^']*)'", source).group(1)
     return codes, names
 
-
-def app_invitation_line(code):
-    """The last line of the app's invitation, NAME and ID for its values."""
-    source = (APP_I18N / f"{code}.ts").read_text()
-    block = source[source.index("\n  invite: {") :]
-    template = re.search(r"message: [^`]*`(.*?)`,", block, re.S).group(1)
-    return template.split("\n")[-1].replace("${name}", "NAME").replace("${id}", "ID")
 
 
 def plain(text):
@@ -204,12 +196,6 @@ class SiteLanguages(unittest.TestCase):
             steps = re.findall(r"^\s*([1-5])\. ", agent_text, re.M)
             self.assertEqual(steps, ["1", "2", "3", "4", "5"], code)
 
-    def test_the_invitation_line_is_the_one_the_app_sends_and_reads(self):
-        for code in self.codes:
-            line = table(code)["strings"]["inviteLine"]
-            shown = re.sub(r"<b>ain1…</b>", "ID", line)
-            shown = re.sub(r"<b>[^<]+</b>", "NAME", shown, count=1)
-            self.assertEqual(shown, app_invitation_line(code), code)
 
 
 if __name__ == "__main__":
