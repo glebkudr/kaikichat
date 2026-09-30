@@ -283,6 +283,7 @@ fn messaging_cli_bounds_input_rejects_owner_commands_and_reports_recoverable_dae
         vec!["call", "create_identity"],
         vec!["messages", "send", "--to", peer.as_str(), "--text-stdin"],
         vec!["inbox", "poll", "--from", peer.as_str()],
+        vec!["history", "status", "--from", peer.as_str()],
     ] {
         assert_eq!(
             cli(&path, &args, b"", 2)["error"]["code"],

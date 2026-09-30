@@ -28,10 +28,6 @@ enum Command {
         #[command(subcommand)]
         command: Delivery,
     },
-    History {
-        #[command(subcommand)]
-        command: History,
-    },
     Inbox {
         #[command(subcommand)]
         command: Inbox,
@@ -58,14 +54,6 @@ enum Delivery {
         to: String,
         #[arg(long)]
         operation_id: String,
-    },
-}
-#[derive(Subcommand)]
-enum History {
-    /// Inspect incoming recovery progress without consuming inbox messages.
-    Status {
-        #[arg(long)]
-        from: String,
     },
 }
 #[derive(Subcommand)]
@@ -214,9 +202,6 @@ async fn execute(cli: Cli) -> Response {
         Command::Delivery {
             command: Delivery::Get { to, operation_id },
         } => (to, "delivery_get", json!({"operationId":operation_id})),
-        Command::History {
-            command: History::Status { from },
-        } => (from, "history_recovery_get", json!({})),
         Command::Inbox {
             command:
                 Inbox::Poll {
