@@ -82,7 +82,9 @@ let locked=state==='locked'||state==='new';let stopped=state==='stopped';
  * unavailable, switch or update. */
 let presetState=params.get('preset')??'current';
 const networkPreset=():NetworkPreset=>{
-  const base:NetworkPreset={source:'preset',state:'current',network:'kaiki-testnet-base-sepolia',name:'Kaiki testnet (Base Sepolia)',serial:1,checkedAt:1790550000,offered:null,required:null,error:null};
+  // What the live network recommends at the first run.
+  const recommended=[{kind:'channel',ref:'ff'.repeat(32),owner:`ain1${'da'.repeat(32)}`,name:'Kaiki News'},{kind:'group',ref:'67'.repeat(32),owner:`ain1${'da'.repeat(32)}`,name:'Kaiki Lobby'}];
+  const base:NetworkPreset={source:'preset',state:'current',network:'kaiki-base',name:'Kaiki Chat (Base)',serial:9,checkedAt:1790550000,offered:null,required:null,error:null,recommended};
   if(presetState==='unavailable')return {...base,state:'unavailable',network:null,name:null,serial:null,error:'timed out'};
   if(presetState==='switch')return {...base,state:'switch',offered:{network:'kaiki-main',name:'Kaiki main network',serial:2}};
   if(presetState==='update')return {...base,state:'update',required:'0.2.0'};
