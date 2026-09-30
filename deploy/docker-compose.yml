@@ -1,5 +1,7 @@
-# Coolify project "chat", environment "production": the Agentic Internet
-# testnet's public nodes. Deployed by Coolify from the `main` branch with this
+# Coolify project "chat", environment "production": Kaiki Chat's public
+# services and nodes on Base mainnet (since 2026-09-30; until then the Base
+# Sepolia testnet, whose data stays in the volumes without the `-base`
+# suffix). Deployed by Coolify from the `main` branch with this
 # file as the Docker Compose location; no port here overlaps the server's
 # other projects. Coolify builds from the repository root (its base
 # directory), so build contexts are relative to it; locally run
@@ -11,19 +13,20 @@
 #
 # `identity`: id.kaikichat.com, the identity server that grants free coins
 # after a Google or GitHub sign-in (services/identity-server). Its rules mirror
-# the GrantIssuer of deployments/base-sepolia.json. ISSUER_KEY,
-# GOOGLE_CLIENT_SECRET and GITHUB_CLIENT_SECRET are Coolify secrets; its
-# database (the per-day grant serials, which account holds which grant, bans
-# and revocations) is in the `chat-identity` volume and must never be
-# restored to an earlier state.
+# the GrantIssuer of deployments/base.json. BASE_ISSUER_KEY (the mainnet
+# issuer, never the testnet's: grants name no chain), GOOGLE_CLIENT_SECRET and
+# GITHUB_CLIENT_SECRET are Coolify secrets; its database (the per-day grant
+# serials, which account holds which grant, bans and revocations) is in the
+# `chat-identity-base` volume and must never be restored to an earlier state.
 #
 # `directory`: directory.kaikichat.com, account discovery on port 8081.
-# Its database lives in chat-directory; node 1 IPC is mounted read-only.
+# Its database lives in chat-directory-base; node 1 IPC is mounted read-only.
 #
 # `nodes`: ten mailbox holders (and bootstrap, DHT, AutoNAT and relay peers)
 # on the host's network, node N on UDP and TCP port 4100+N. They read the
-# Base Sepolia contracts of deployments/base-sepolia.json. Their routes and
-# unit commitments are in /data/published.json of the `chat-nodes` volume.
+# Base mainnet contracts of deployments/base.json. Their routes, unit
+# commitments and receipt accounts are in /data/published.json of the
+# `chat-nodes-base` volume.
 # They report grants spent twice to the identity server and refuse the
 # grants it revoked (Docs/V1_IDENTITY_PENALTIES_2026_09_30.md).
 # The same container runs the network's welcome agent (deploy/node/welcome.py),
@@ -60,7 +63,7 @@ services:
       AIN_ID_PUBLIC_URL: "https://id.kaikichat.com"
       AIN_ID_DOMAIN: "0xae2e3182ade817a3e726c29ef308eed15c6ec267ffc01a68da990e576fa0df18"
       AIN_ID_DATABASE: "/data/identity.db"
-      # GrantIssuer 0x6710…850d: a book of 10000, 100000000 coins a day,
+      # GrantIssuer 0xe352…d2DE: a book of 10000, 100000000 coins a day,
       # grants valid up to 30 days; one grant per account every 30 days.
       AIN_ID_BOOK_SIZE: "10000"
       AIN_ID_CAP_COINS: "100000000"
@@ -69,11 +72,11 @@ services:
       AIN_ID_CLAIM_INTERVAL_DAYS: "30"
       AIN_ID_GOOGLE_CLIENT_ID: "630672545352-vpuegdiua39ke8dpu2mldv63lf258c68.apps.googleusercontent.com"
       GITHUB_CLIENT_ID: "Ov23lioTFA6BO4tTRSF3"
-      ISSUER_KEY: "${ISSUER_KEY}"
+      ISSUER_KEY: "${BASE_ISSUER_KEY}"
       GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
       GITHUB_CLIENT_SECRET: "${GITHUB_CLIENT_SECRET}"
     volumes:
-      - chat-identity:/data
+      - chat-identity-base:/data
     tmpfs:
       - /run/secrets
     mem_limit: 256m
@@ -106,9 +109,9 @@ services:
       DIRECTORY_KEY: "${DIRECTORY_KEY}"
       DIRECTORY_PEPPER: "${DIRECTORY_PEPPER}"
     volumes:
-      - chat-directory:/data
+      - chat-directory-base:/data
       - type: volume
-        source: chat-nodes
+        source: chat-nodes-base
         target: /node
         read_only: true
         volume:
@@ -137,16 +140,16 @@ services:
       NODES: "10"
       BASE_PORT: "4101"
       PUBLIC_IP: "${PUBLIC_IP:-51.91.126.3}"
-      CHAIN_RPC: "${CHAIN_RPC:-https://sepolia.base.org}"
-      CHAIN_ID: "84532"
-      BOOK_SHOP: "0x20d1013D45f2C99472df833293375A811BF1e406"
-      GRANT_ISSUER: "0x6710BDeBb92c9D1D4c22f09aAB1305501e5b850d"
-      REGISTRY: "0xCb3EFbf760293CE658c44f7D17bAb4Fb5d53CbB1"
+      CHAIN_RPC: "${CHAIN_RPC:-https://mainnet.base.org}"
+      CHAIN_ID: "8453"
+      BOOK_SHOP: "0x8070dB7f5988586a66815D3DEB36DD06224FA5f9"
+      GRANT_ISSUER: "0xe3529819735D3006502e3336d7dcE983F39Ed2DE"
+      REGISTRY: "0x798C5D457DEC2590928F88a7C3a30afce9a4D3bc"
       CHAIN_CONFIRMATIONS: "5"
-      OPERATOR_POOL: "0x7B9e1DDEc7deb6ed69ef7f2E9c3ae9Ee924029Bc"
+      OPERATOR_POOL: "0xD4CF3E0Bae28a4316c9B969f50cFCd1Cc99DeB08"
       IDENTITY_SERVER: "https://id.kaikichat.com"
     volumes:
-      - chat-nodes:/data
+      - chat-nodes-base:/data
     mem_limit: 2g
     cpus: 2
     logging:
@@ -162,7 +165,7 @@ services:
       retries: 3
 
 volumes:
-  chat-nodes:
-  chat-identity:
-  chat-directory:
+  chat-nodes-base:
+  chat-identity-base:
+  chat-directory-base:
   chat-downloads:

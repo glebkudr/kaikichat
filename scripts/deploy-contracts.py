@@ -22,6 +22,13 @@ Run through the build wrapper, which puts forge and cast on PATH:
         --usdc 0x036CbD53842c5426634e7929541eC2318f3dCF7e \
         --eth-usd-feed 0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1 \
         --issuer 0x… --out deployments/base-sepolia.json
+
+Base mainnet takes its own registry genesis, so its units never pass for the
+testnet's: `--rpc-url https://mainnet.base.org --chain-id 8453
+--registry-genesis agentic-internet-base-v1 --usdc
+0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 --eth-usd-feed
+0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70 --key-file
+.local/mainnet/deployer.key --out deployments/base.json`.
 """
 import argparse
 import json
@@ -37,7 +44,7 @@ CONTRACTS = ROOT / "contracts"
 # `agentic_node::NETWORK_DOMAIN`.
 DOMAIN = "0xae2e3182ade817a3e726c29ef308eed15c6ec267ffc01a68da990e576fa0df18"
 
-# Testnet parameters: immutable; changing one means a new deployment.
+# The network's parameters: immutable; changing one means a new deployment.
 PARAMS = {
     # Treasury and operator pool, in basis points.
     "royaltyBps": [1000, 9000],
@@ -139,6 +146,8 @@ def main() -> None:
     parser.add_argument("--usdc", required=True, help="the USDC token")
     parser.add_argument("--eth-usd-feed", required=True, help="Chainlink ETH/USD feed")
     parser.add_argument("--confirmations", type=int, default=5)
+    parser.add_argument("--registry-genesis", default=PARAMS["registryGenesis"],
+                        help="names the network's NodeRegistry (default: the testnet's)")
     parser.add_argument("--out", required=True, type=pathlib.Path)
     options = parser.parse_args()
     rpc = options.rpc_url
@@ -157,7 +166,7 @@ def main() -> None:
     balance = run("cast", "balance", "--ether", deployer, "--rpc-url", rpc)
     print(f"deployer {deployer} on chain {chain}: {balance} ETH", flush=True)
     treasury = options.treasury or deployer
-    p = PARAMS
+    p = dict(PARAMS, registryGenesis=options.registry_genesis)
     nonces = Nonces(rpc, deployer)
 
     previous = json.loads(options.reuse.read_text()) if options.reuse else None

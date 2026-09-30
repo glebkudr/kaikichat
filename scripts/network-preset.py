@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Kaiki Chat's network preset (Docs/V1_NETWORK_PRESET_2026_09_28_RU.md).
 
-Builds the preset of the public testnet from deployments/base-sepolia.json
-(`nodeFlags`), the nodes' routes (their /data/published.json), the identity
+Builds the preset of the public network from deployments/base.json
+(`nodeFlags`; Base mainnet since 2026-09-30, `--manifest
+deployments/base-sepolia.json --network kaiki-testnet-base-sepolia --name
+"Kaiki testnet (Base Sepolia)"` for the former testnet), the nodes' routes (their /data/published.json), the identity
 server and the app's latest release (deployments/release.json, written by
 scripts/publish-cli.sh), with a serial one above the file it replaces, and
 signs it with `kaiki-preset` and the offline key:
@@ -20,8 +22,8 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-NETWORK = "kaiki-testnet-base-sepolia"
-NAME = "Kaiki testnet (Base Sepolia)"
+NETWORK = "kaiki-base"
+NAME = "Kaiki Chat (Base)"
 IDENTITY = "https://id.kaikichat.com"
 MIN_VERSION = "0.1.0"
 FLAGS = {
@@ -57,7 +59,9 @@ def main():
     parser.add_argument("--published", type=Path, required=True)
     parser.add_argument("--seed", type=Path, required=True)
     parser.add_argument("--signer", type=Path, default=ROOT / "target/debug/kaiki-preset")
-    parser.add_argument("--manifest", type=Path, default=ROOT / "deployments/base-sepolia.json")
+    parser.add_argument("--manifest", type=Path, default=ROOT / "deployments/base.json")
+    parser.add_argument("--network", default=NETWORK, help="the network's id; another id is a switch")
+    parser.add_argument("--name", default=NAME, help="the network's name shown to people")
     parser.add_argument("--out", type=Path, default=ROOT / "deploy/site/network.json")
     parser.add_argument("--directory", help="the discovery service's URL")
     parser.add_argument("--directory-key", help="the key it signs bindings with (64 hex)")
@@ -68,8 +72,8 @@ def main():
     args = parser.parse_args()
     routes = [node["route"] for node in json.loads(args.published.read_text())]
     preset = {
-        "network": NETWORK,
-        "name": NAME,
+        "network": args.network,
+        "name": args.name,
         "serial": serial_after(args.out),
         "minVersion": MIN_VERSION,
         "bootstrap": routes,

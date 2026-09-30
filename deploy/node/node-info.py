@@ -5,7 +5,7 @@ what the operator needs: its public route and its unit commitment.
     node-info.py DATA_DIR PUBLIC_IP PORT
 
 Waits up to a minute for the node. Prints one JSON line:
-{"peerId", "route", "commitment"}.
+{"peerId", "route", "commitment", "account"}.
 """
 import json
 import socket
@@ -42,6 +42,8 @@ def main() -> None:
         "peerId": peer,
         "route": f"/ip4/{ip}/udp/{port}/quic-v1/p2p/{peer}",
         "commitment": info.get("directory", {}).get("ownCommitment"),
+        # The holder's receipt account, which pays the gas of its payouts.
+        "account": (info.get("payouts") or {}).get("account"),
     }))
 
 

@@ -1,0 +1,75 @@
+{
+  "chainId": 8453,
+  "rpc": "https://mainnet.base.org",
+  "confirmations": 5,
+  "domain": "0xae2e3182ade817a3e726c29ef308eed15c6ec267ffc01a68da990e576fa0df18",
+  "deployer": "0x2769534D278C3161696DBAaCF13f44454D128E0E",
+  "treasury": "0x809Cc3e21767f3EbefF760A9A6cF954ED68d4522",
+  "pool": "0xD4CF3E0Bae28a4316c9B969f50cFCd1Cc99DeB08",
+  "issuer": "0xb8F2bE63bb12aD17eA7263745737D452A8CC9F84",
+  "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "ethUsdFeed": "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+  "contracts": {
+    "royaltySplitter": {
+      "address": "0x35350e648329F44477618D11617A2842452C118f",
+      "tx": "0x78a0669dbdf7158a3d834229d8829f132128c7e2a14975046dea66ccffc8d743"
+    },
+    "bookShop": {
+      "address": "0x8070dB7f5988586a66815D3DEB36DD06224FA5f9",
+      "tx": "0x95cf9888a5d3a51b46c5b30540a886b4cecbf431b81ecbea12d57a6dc2ddd022"
+    },
+    "grantIssuer": {
+      "address": "0xe3529819735D3006502e3336d7dcE983F39Ed2DE",
+      "tx": "0xdca6709e1a2616d1c6b01929b8d3def7fce4a94c2ba9fba5f162339a3c73cdcf"
+    },
+    "nodeRegistry": {
+      "address": "0x798C5D457DEC2590928F88a7C3a30afce9a4D3bc",
+      "tx": "0x10ca268581505ec9640fd22d57128aa7fd469bda746fecd4d8144e6b510603fd"
+    },
+    "operatorPool": {
+      "address": "0xD4CF3E0Bae28a4316c9B969f50cFCd1Cc99DeB08",
+      "tx": "0xba36efea2b626cbb849df21f36f5c4b734b14bee3b58d65ff5a59815b803e76f"
+    }
+  },
+  "registryGenesisDigest": "0xe439261bbcb26eecc16a8559651331ff368b38639aaacc3ef116d35bcad8e035",
+  "poolFirstDay": 20726,
+  "params": {
+    "royaltyBps": [
+      1000,
+      9000
+    ],
+    "bookPriceUsdc": 1000000,
+    "bookSize": 1000,
+    "maxPriceAgeSeconds": 3600,
+    "bookValiditySeconds": 2592000,
+    "grantBookSize": 10000,
+    "grantMaxValidityDays": 30,
+    "grantDailyCapCoins": 100000000,
+    "prizeUsdc": 100000,
+    "ticketLifetimeSeconds": 31104000,
+    "seedDelayBlocks": 5,
+    "registryGenesis": "agentic-internet-base-v1",
+    "unitBondWei": 100000000000000,
+    "epochSeconds": 3600,
+    "admissionLeaseSeconds": 7200,
+    "obligationSeconds": 604800,
+    "beaconDelayBlocks": 5
+  },
+  "nodeFlags": [
+    "--chain-rpc",
+    "https://mainnet.base.org",
+    "--chain-id",
+    "8453",
+    "--book-shop",
+    "0x8070dB7f5988586a66815D3DEB36DD06224FA5f9",
+    "--grant-issuer",
+    "0xe3529819735D3006502e3336d7dcE983F39Ed2DE",
+    "--registry",
+    "0x798C5D457DEC2590928F88a7C3a30afce9a4D3bc",
+    "--chain-confirmations",
+    "5",
+    "--operator-pool",
+    "0xD4CF3E0Bae28a4316c9B969f50cFCd1Cc99DeB08"
+  ],
+  "verified": true
+}
