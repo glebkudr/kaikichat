@@ -412,7 +412,7 @@ Scoped access for another agent through `agentic-cli` or `agentic-mcp`
 
 - `grants create` gives the agent the listed contacts (1–32, by name or
   conversation id) with `--read` (`read_inbox`) and/or `--send`
-  (`send_message`), at least one, for `--days` (1–365, default 30) and
+  (`send_message`), at least one, for `--days` (1–30, default 30) and
   `--max-bytes` per call (1–48000, default 4096). It returns `{grantId,
   name, contacts, actions, expiresAt, maxDataBytes, credentialsPath,
   cliConfig, mcpConfig}`; the credentials file is private (0600).

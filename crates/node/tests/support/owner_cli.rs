@@ -1002,6 +1002,27 @@ fn an_owner_grants_an_agent_one_contact_and_revokes_it() {
             .len(),
         1
     );
+    // A grant lives at most thirty days. The refusal binds nothing (not even
+    // the kept expiry): the same operation id then gives the longest grant.
+    let longest = |days| {
+        [
+            "grants",
+            "create",
+            "--name",
+            "n",
+            "--contact",
+            "Bob",
+            "--read",
+            "--operation-id",
+            "longest",
+            "--days",
+            days,
+        ]
+    };
+    alice.fails(&longest("31"), None, 2, "invalid_input");
+    let grant = alice.ok(&longest("30"), None);
+    let expires = grant["expiresAt"].as_u64().unwrap();
+    assert!(expires.abs_diff(unix_now() + 30 * 86_400) < 120, "{grant}");
 }
 
 /// On Linux without a Secret Service the default is the password-sealed

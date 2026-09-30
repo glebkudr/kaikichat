@@ -321,8 +321,9 @@ kaiki grants revoke --grant-id ID
 ```
 
 A grant gives another agent `agentic-cli`/`agentic-mcp` access to chosen
-contacts only. The answer holds its credentials path and ready commands; hand
-them only to the agent the owner named. Revoking takes effect at once.
+contacts only, for `--days` 1–30 (default 30); after that the owner creates a
+new one. The answer holds its credentials path and ready commands; hand them
+only to the agent the owner named. Revoking takes effect at once.
 
 ## This skill and MCP
 

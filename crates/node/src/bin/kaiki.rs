@@ -524,7 +524,8 @@ mod owner {
             send: bool,
             #[arg(long)]
             operation_id: String,
-            #[arg(long, default_value_t = 30, value_parser = clap::value_parser!(u64).range(1..=365))]
+            /// Days the grant lasts: at most 30.
+            #[arg(long, default_value_t = 30, value_parser = clap::value_parser!(u64).range(1..=30))]
             days: u64,
             #[arg(long, default_value_t = 4096, value_parser = clap::value_parser!(u64).range(1..=48_000))]
             max_bytes: u64,
