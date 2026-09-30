@@ -141,13 +141,20 @@ gets recreated, keeping the sources.
 ## Testnet deployment
 
 Until the mainnet launch, deploy the testnet yourself without asking the
-owner: merge the finished `implementation/v1` into `main`, push `main` and
-start the deployment of the `chat-production` application with the regular
-Coolify means (API over SSH), then verify the services (`/v1/policy` of
-identity and the directory, `kaikichat.com`, nodes healthy). The deployment
-restarts all application containers, including the nodes. Spending on the
-blockchain (bonds, purchases), firewall changes and other projects on the
-server still require agreement. After the mainnet launch, revisit this rule.
+owner: merge the finished `implementation/v1` into the development `main`,
+then publish its reviewed tracked files as a new commit to
+`glebkudr/kaikichat` on `main`, without importing the development Git history.
+Coolify's existing `chat-production` application builds from
+`git@github.com:glebkudr/kaikichat.git`, branch `main`. Push the production
+commit and start its deployment with the regular Coolify means (API over
+SSH), then verify the services (`/v1/policy` of identity and the directory,
+`kaikichat.com`, nodes healthy). Keep the existing application, volumes and
+runtime secrets. CLI installers and updates continue to use the signed
+network preset and archives at `https://kaikichat.com/downloads`; GitHub
+Releases are not the artifact source. The deployment restarts all application
+containers, including the nodes. Spending on the blockchain (bonds,
+purchases), firewall changes and other projects on the server still require
+agreement. After the mainnet launch, revisit this rule.
 
 ## Placement rules
 
