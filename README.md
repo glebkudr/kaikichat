@@ -27,8 +27,9 @@ Sepolia testnet it was accepted on is retired.
   a real Google or GitHub sign-in from a Linux install.
 - The `kaiki` command line is published for macOS on Apple silicon and
   Linux x86_64. It updates itself from the signed network preset.
-- The desktop app (macOS `.app`, Linux x86_64 `.deb`) builds and passes its
-  native checks but is not published yet.
+- The desktop app is available for macOS on Apple silicon and Linux x86_64
+  (`.deb`): download it from [kaikichat.com](https://kaikichat.com) or the
+  [releases page](https://github.com/glebkudr/kaikichat-releases/releases).
 - All ten holders are still ours. Next: holder push instead of polling,
   independent holders, and relays for agents behind NAT.
 
@@ -95,12 +96,36 @@ everyday operations as MCP tools over stdio.
   `agentic-cli`/`agentic-mcp` access to chosen contacts only: read and/or
   send, a lifetime and a size limit. Revocation takes effect at once.
 - **Networking.** QUIC and TCP, Circuit Relay v2, AutoNAT, DCUtR hole
-  punching, Kademlia lookups and optional mDNS on a LAN.
+  punching, Kademlia lookups and optional mDNS on a LAN. With local
+  discovery on, contacts keep chatting on one LAN without the Internet; a
+  message whose stamp cannot be checked there is marked low trust, and
+  groups need the holders.
 - **Network preset, updates, autostart.** The app and `kaiki` take their
   network (routes, contracts, identity server, directory, latest release)
   from the Ed25519-signed `https://kaikichat.com/network.json`. `kaiki update`
   installs the release it names, checked by hash. The daemon, and the window
   when installed, start at login.
+
+## How it compares
+
+All of these encrypt end to end and have group chats. Others can run bots
+through their APIs, but none ships tools for AI agents.
+
+| | No central server | Offline delivery | Public channels | Made for AI agents | Node operators get paid | Works without Internet | Weak spot |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|---|
+| **Kaiki Chat** | ✅ holder swarm | ✅ 10 holders, quorum 7, repaired | ✅ | ✅ CLI, MCP, skill | ✅ from stamp sales | ✅ LAN, direct chats | very young |
+| Sideband / LXMF / Reticulum | ✅ | ⚠️ propagation nodes, best effort | ❌ | ❌ | ❌ | ✅ | small ecosystem; license bans AI training use |
+| Briar | ✅ locally | ⚠️ your own mailbox device | ❌ | ❌ | ❌ | ✅ | uses Tor over the Internet |
+| Berty | ✅ by design | ⚠️ peer replication | ❌ | ❌ | ❌ | ✅ | still experimental |
+| Jami | ⚠️ | ❌ | ❌ | ❌ | ❌ | ✅ LAN | default bootstrap and TURN servers |
+| Tox | ⚠️ | ❌ | ❌ | ❌ | ❌ | ❌ | bootstrap nodes |
+| SimpleX | ❌ | ✅ relay servers | ✅ | ❌ | ⚠️ vouchers announced | ❌ | relay servers |
+| Signal | ❌ | ✅ Signal servers | ❌ | ❌ | ❌ | ❌ | server infrastructure |
+| Session | ❌ | ✅ swarm of 5–7 service nodes | ⚠️ community servers | ❌ | ✅ SESH staking | ❌ | service nodes |
+| Matrix | ❌ | ✅ homeservers | ✅ public rooms | ❌ | ❌ | ❌ | homeservers |
+| Ricochet / Cwtch | ❌ | ❌ both must be online | ❌ | ❌ | ❌ | ❌ | Tor relays |
+
+✅ yes · ⚠️ partly · ❌ no
 
 ## How it fits together
 
