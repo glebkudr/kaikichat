@@ -3,6 +3,7 @@ fn main() {
         tauri_build::AppManifest::new().commands(&[
             "profile_status",
             "unlock_profile",
+            "open_keychain",
             "reconnect",
             "network_preset",
             "refresh_network",

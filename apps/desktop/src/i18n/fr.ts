@@ -96,6 +96,15 @@ export const fr: Messages = {
     open: 'Ouvrir le profil',
     wrong: 'Ce mot de passe n’ouvre pas ce profil.',
   },
+  keychain: {
+    eyebrow: 'TROUSSEAU MACOS',
+    title: 'Votre clé est dans le trousseau macOS.',
+    text: 'Kaiki Chat y garde la clé de ce profil. Un autre programme de Kaiki Chat l’a enregistrée (la ligne de commande ou une version précédente de l’app) : avant de la donner à cette app, macOS demande le mot de passe avec lequel vous ouvrez une session sur ce Mac.',
+    hint: 'Choisissez « Toujours autoriser » et macOS ne demandera plus.',
+    go: 'Continuer',
+    waiting: 'En attente de macOS…',
+    denied: 'macOS n’a pas donné la clé à Kaiki Chat. Cliquez sur Continuer et choisissez « Toujours autoriser ».',
+  },
   wizard: {
     step: (n, of) => `Étape ${n} sur ${of}`,
   },

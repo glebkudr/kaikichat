@@ -9,6 +9,7 @@
     "core:event:allow-unlisten",
     "allow-profile-status",
     "allow-unlock-profile",
+    "allow-open-keychain",
     "allow-reconnect",
     "allow-network-preset",
     "allow-refresh-network",

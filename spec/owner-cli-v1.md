@@ -462,7 +462,9 @@ overrides it).
 - **The profile secret** is the 64 bytes the desktop keeps: the master key and
   the owner token.
   - `keychain`: the macOS Keychain or the Linux Secret Service, under the
-    desktop's service name.
+    desktop's service name. When another program saved the key (the app
+    signed otherwise, an older `kaiki`), macOS asks the owner before it gives
+    it; `kaiki` finds that without asking and first says so on stderr.
   - `file`: `secrets.json` in the data directory (mode 0600):
     `{"version": 1, "kdf": "argon2id", "salt", "nonce", "ciphertext"}`
     (hex).

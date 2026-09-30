@@ -96,6 +96,15 @@ export const tr: Messages = {
     open: 'Profili aç',
     wrong: 'Bu parola bu profili açmıyor.',
   },
+  keychain: {
+    eyebrow: 'MACOS ANAHTAR ZİNCİRİ',
+    title: 'Anahtarınız macOS Anahtar Zinciri’nde.',
+    text: 'Kaiki Chat bu profilin anahtarını orada saklar. Anahtarı başka bir Kaiki Chat programı kaydetti (komut satırı ya da uygulamanın önceki bir sürümü), bu yüzden macOS anahtarı bu uygulamaya vermeden önce bu Mac’e giriş yaptığınız parolayı soracak.',
+    hint: '“Her Zaman İzin Ver”i seçin; macOS bir daha sormaz.',
+    go: 'Devam',
+    waiting: 'macOS bekleniyor…',
+    denied: 'macOS anahtarı Kaiki Chat’e vermedi. Devam’a basın ve “Her Zaman İzin Ver”i seçin.',
+  },
   wizard: {
     step: (n, of) => `Adım ${n} / ${of}`,
   },

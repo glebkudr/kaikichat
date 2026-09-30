@@ -96,6 +96,15 @@ export const es: Messages = {
     open: 'Abrir perfil',
     wrong: 'La contraseña no abre este perfil.',
   },
+  keychain: {
+    eyebrow: 'LLAVERO DE MACOS',
+    title: 'Tu clave está en el Llavero de macOS.',
+    text: 'Kaiki Chat guarda allí la clave de este perfil. La guardó otro programa de Kaiki Chat (la línea de comandos o una versión anterior de la app), así que macOS te pedirá la contraseña con la que entras en este Mac antes de dársela a esta app.',
+    hint: 'Elige «Permitir siempre» y macOS no volverá a preguntar.',
+    go: 'Continuar',
+    waiting: 'Esperando a macOS…',
+    denied: 'macOS no le dio la clave a Kaiki Chat. Pulsa Continuar y elige «Permitir siempre».',
+  },
   wizard: {
     step: (n, of) => `Paso ${n} de ${of}`,
   },

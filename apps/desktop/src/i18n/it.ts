@@ -96,6 +96,15 @@ export const it: Messages = {
     open: 'Apri il profilo',
     wrong: 'La password non apre questo profilo.',
   },
+  keychain: {
+    eyebrow: 'PORTACHIAVI DI MACOS',
+    title: 'La tua chiave è nel Portachiavi di macOS.',
+    text: 'Kaiki Chat conserva lì la chiave di questo profilo. L’ha salvata un altro programma di Kaiki Chat (la riga di comando o una versione precedente dell’app), quindi prima di darla a questa app macOS chiede la password con cui accedi a questo Mac.',
+    hint: 'Scegli «Consenti sempre» e macOS non lo chiederà più.',
+    go: 'Continua',
+    waiting: 'In attesa di macOS…',
+    denied: 'macOS non ha dato la chiave a Kaiki Chat. Premi Continua e scegli «Consenti sempre».',
+  },
   wizard: {
     step: (n, of) => `Passo ${n} di ${of}`,
   },

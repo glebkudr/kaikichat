@@ -96,6 +96,15 @@ export const pt: Messages = {
     open: 'Abrir perfil',
     wrong: 'Esta senha não abre este perfil.',
   },
+  keychain: {
+    eyebrow: 'ACESSO ÀS CHAVES DO MACOS',
+    title: 'Sua chave está no Acesso às Chaves do macOS.',
+    text: 'O Kaiki Chat guarda ali a chave deste perfil. Outro programa do Kaiki Chat a salvou (a linha de comando ou uma versão anterior do app), então o macOS vai pedir a senha com que você entra neste Mac antes de entregá-la a este app.',
+    hint: 'Escolha “Permitir Sempre” e o macOS não perguntará de novo.',
+    go: 'Continuar',
+    waiting: 'Aguardando o macOS…',
+    denied: 'O macOS não entregou a chave ao Kaiki Chat. Clique em Continuar e escolha “Permitir Sempre”.',
+  },
   wizard: {
     step: (n, of) => `Passo ${n} de ${of}`,
   },

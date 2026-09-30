@@ -22,6 +22,13 @@ pub type Result<T> = crate::Result<T>;
 pub trait SecretStore: Send + Sync {
     fn get(&self, account: &str) -> Result<Option<Zeroizing<Vec<u8>>>>;
     fn set(&self, account: &str, secret: &[u8]) -> Result<()>;
+    /// Whether reading `account` makes the system ask the owner first (on
+    /// macOS: another program saved the keychain item, and this one is not
+    /// yet trusted with it). Shows nothing itself; a store that never asks
+    /// says no.
+    fn asks_first(&self, _account: &str) -> Result<bool> {
+        Ok(false)
+    }
 }
 pub struct KeychainStore {
     service: String,
@@ -49,6 +56,53 @@ impl SecretStore for KeychainStore {
         keyring::Entry::new(&self.service, account)?.set_secret(secret)?;
         Ok(())
     }
+    /// Reads the item with the keychain's dialogs off: a refusal the dialog
+    /// would lift means macOS asks when the item is read for real.
+    #[cfg(target_os = "macos")]
+    fn asks_first(&self, account: &str) -> Result<bool> {
+        let entry = keyring::Entry::new(&self.service, account)?;
+        let quiet =
+            security_framework::os::macos::keychain::SecKeychain::disable_user_interaction()?;
+        let read = entry.get_secret().map(Zeroizing::new);
+        drop(quiet);
+        match read {
+            Ok(_) | Err(keyring::Error::NoEntry) => Ok(false),
+            Err(error) if needs_dialog(&error) => Ok(true),
+            Err(error) => Err(error.into()),
+        }
+    }
+}
+
+/// Whether the keychain refused a read with its dialogs off where the
+/// dialog would have let it through: the item does not trust this program
+/// (errSecAuthFailed) or the keychain waits to be unlocked
+/// (errSecInteractionNotAllowed).
+#[cfg(target_os = "macos")]
+fn needs_dialog(error: &keyring::Error) -> bool {
+    const AUTH_FAILED: i32 = -25293;
+    const INTERACTION_NOT_ALLOWED: i32 = -25308;
+    match error {
+        keyring::Error::PlatformFailure(inner) | keyring::Error::NoStorageAccess(inner) => inner
+            .downcast_ref::<security_framework::base::Error>()
+            .is_some_and(|error| matches!(error.code(), AUTH_FAILED | INTERACTION_NOT_ALLOWED)),
+        _ => false,
+    }
+}
+
+/// The keychain account of the profile in `data_dir` (canonical): the
+/// SHA-256 of its database's path.
+fn profile_account(data_dir: &Path) -> String {
+    let profile = data_dir.join("profile.db");
+    hex::encode(Sha256::digest(profile.as_os_str().as_encoded_bytes()))
+}
+
+/// Whether opening the profile in `data_dir` makes the system ask the owner
+/// before `vault` gives its secret: the window explains that first, the CLI
+/// says so. A profile not made yet has no secret to read; a store that
+/// cannot tell is read as before.
+pub fn asks_before_opening(data_dir: &Path, vault: &dyn SecretStore) -> bool {
+    fs::canonicalize(data_dir)
+        .is_ok_and(|dir| vault.asks_first(&profile_account(&dir)).unwrap_or(false))
 }
 #[derive(Clone)]
 pub struct HostConfig {
@@ -132,7 +186,7 @@ impl DesktopHost {
             }
         }
         let profile = config.data_dir.join("profile.db");
-        let account = hex::encode(Sha256::digest(profile.as_os_str().as_encoded_bytes()));
+        let account = profile_account(&config.data_dir);
         let secret =
             match vault.get(&account)? {
                 Some(value) if value.len() == 64 => value,
@@ -273,9 +327,7 @@ impl DesktopHost {
             return Ok(None);
         };
         let socket = data_dir.join("node.sock");
-        let profile = data_dir.join("profile.db");
-        let account = hex::encode(Sha256::digest(profile.as_os_str().as_encoded_bytes()));
-        let Some(secret) = vault.get(&account)? else {
+        let Some(secret) = vault.get(&profile_account(&data_dir))? else {
             return Ok(None);
         };
         if secret.len() != 64 {
@@ -817,5 +869,36 @@ mod network_status_tests {
             (Some(10), Some(true)),
             "{status}"
         );
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod keychain_dialog_tests {
+    use super::needs_dialog;
+    use apple_native_keyring_store::keychain::decode_error;
+    use security_framework::base::Error;
+
+    /// What the keyring crate hands over when the keychain answers with its
+    /// dialogs off: a refusal the dialog would lift (this program is not
+    /// trusted by the item, errSecAuthFailed; or the keychain waits to be
+    /// unlocked, errSecInteractionNotAllowed) needs the dialog; no other
+    /// answer does.
+    #[test]
+    fn only_refusals_the_dialog_would_lift_need_it() {
+        for code in [-25293, -25308] {
+            assert!(
+                needs_dialog(&decode_error(Error::from_code(code))),
+                "{code}"
+            );
+        }
+        // No item yet (a new profile), no keychain at all, and another
+        // platform failure the keyring crate passes on the same way as the
+        // refusals (a cancelled dialog): nothing the dialog would lift.
+        for code in [-25300, -25294, -128] {
+            assert!(
+                !needs_dialog(&decode_error(Error::from_code(code))),
+                "{code}"
+            );
+        }
     }
 }

@@ -1,6 +1,7 @@
 import {networkFixture} from './network-fixture';
 // UI-only visual fixture. Never imported by the production entry point.
-// `?state=locked|new|stopped|onboarding|coins|elsewhere|again|home` shows the profile gates
+// `?state=locked|new|keychain|stopped|onboarding|coins|elsewhere|again|home` shows the profile gates
+// (`keychain`: a key another program saved, which macOS asks about first)
 // (`?release=newer|download|failed` a newer release;
 // `?autostart=off|blocked|none` opening at login)
 // (`elsewhere`: the login's account already got its coins on another device;
@@ -76,7 +77,8 @@ if(state==='elsewhere')Object.assign(balance,{books:[],remaining:0,lastClaim:nul
 let network=networkFixture();
 // The routes the network's preset gave this start: the empty bootstrap field shows them in grey.
 network.status.bootstrap.routes=['/ip4/51.91.126.3/udp/4105/quic-v1/p2p/12D3KooWGPvcE8WPX139xDitAhdHp3XekNpcFbcY4ZazCdgr2B9x','/ip4/51.91.126.3/udp/4108/quic-v1/p2p/12D3KooWPRHv7BSByJKYzBGtEoGikJbJzRzNTgTHCJLX56T2YXgN'];
-const status=():ProfileStatus=>state==='locked'?{state:'locked',secrets:'file',newProfile:false}:state==='new'?{state:'locked',secrets:'file',newProfile:true}:{state:'connected',secrets:'keychain'};
+let keychain=state==='keychain';
+const status=():ProfileStatus=>state==='locked'?{state:'locked',secrets:'file',newProfile:false}:state==='new'?{state:'locked',secrets:'file',newProfile:true}:keychain?{state:'keychain',secrets:'keychain'}:{state:'connected',secrets:'keychain'};
 let locked=state==='locked'||state==='new';let stopped=state==='stopped';
 /** kaikichat.com's preset as `?preset=` shows it: current (default),
  * unavailable, switch or update. */
@@ -103,6 +105,8 @@ const api:DesktopApi={
   profileStatus:async()=>status(),
   unlockProfile:async()=>{locked=false;return {state:'connected',secrets:'file'};},
   reconnect:async()=>{stopped=false;return {state:'connected',secrets:'keychain'};},
+  // macOS's own dialog never shows here: going on opens the profile.
+  openKeychain:async()=>{keychain=false;return {state:'connected',secrets:'keychain'};},
   networkPreset:async()=>networkPreset(),
   refreshNetwork:async({switch:move})=>{presetState=move?'moved':'current';return networkPreset();},
   release:async()=>structuredClone(release),
@@ -113,7 +117,7 @@ const api:DesktopApi={
   autostart:async()=>autostartState==='none'?null:{state:autostartState as Autostart['state'],path:loginItem},
   setAutostart:async({on})=>({state:!on?'off':autostartState==='blocked'?'blocked':'on',path:loginItem}),
   openLoginItems:async()=>{},
-  snapshot:async()=>locked?refusal('profile_locked','locked'):stopped?refusal('daemon_unavailable','stopped',true):structuredClone(snapshot),
+  snapshot:async()=>locked?refusal('profile_locked','locked'):keychain?refusal('keychain_consent','keychain'):stopped?refusal('daemon_unavailable','stopped',true):structuredClone(snapshot),
   conversationHistory:async({conversationId})=>({conversationId,messages:structuredClone(snapshot.conversations.find(c=>c.id===conversationId)?.messages??[]),nextBefore:null}),
   networkSettings:async()=>structuredClone(network),
   configureNetwork:async(request)=>{network={...network,revision:network.revision+1,preferences:request.preferences};return structuredClone(network);},

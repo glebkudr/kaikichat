@@ -38,5 +38,9 @@ dirs = "6.0.0"
 agentic-store = { path = "../store", features = ["test-probes"] }
 rusqlite.workspace = true
 tempfile.workspace = true
+[target.'cfg(target_os = "macos")'.dependencies]
+security-framework = "3.7.0"
+[target.'cfg(target_os = "macos")'.dev-dependencies]
+apple-native-keyring-store = { version = "1.0.2", features = ["keychain"] }
 [lints]
 workspace = true

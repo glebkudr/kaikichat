@@ -96,6 +96,15 @@ export const nl: Messages = {
     open: 'Profiel openen',
     wrong: 'Dit wachtwoord opent dit profiel niet.',
   },
+  keychain: {
+    eyebrow: 'MACOS-SLEUTELHANGER',
+    title: 'Je sleutel staat in de macOS-sleutelhanger.',
+    text: 'Kaiki Chat bewaart daar de sleutel van dit profiel. Een ander programma van Kaiki Chat heeft hem bewaard (de opdrachtregel of een eerdere versie van de app), dus vraagt macOS het wachtwoord waarmee je op deze Mac inlogt voordat het de sleutel aan deze app geeft.',
+    hint: 'Kies ‘Sta altijd toe’ en macOS vraagt het niet meer.',
+    go: 'Doorgaan',
+    waiting: 'Wachten op macOS…',
+    denied: 'macOS heeft Kaiki Chat de sleutel niet gegeven. Klik op Doorgaan en kies ‘Sta altijd toe’.',
+  },
   wizard: {
     step: (n, of) => `Stap ${n} van ${of}`,
   },

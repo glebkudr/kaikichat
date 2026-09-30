@@ -6,8 +6,11 @@ use super::*;
 use agentic_desktop::{ProfileConfig, Secrets};
 use agentic_desktop_host::autostart::{Approval, Autostart, Launch, Manager, Place};
 use agentic_desktop_host::network_preset::{PresetSource, public_key, sign};
+use agentic_desktop_host::stop_profile;
+use std::collections::HashMap;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering::SeqCst};
 
 const PASSWORD: &str = "correct horse battery staple";
 
@@ -436,6 +439,156 @@ async fn a_keychain_profile_opens_without_asking_for_a_password() {
     let refused = w.refused("unlock_profile", json!({"request":{"password":PASSWORD}}));
     assert_eq!(refused["code"], "invalid_request", "{refused}");
     assert!(!p.data().join("secrets.json").exists());
+}
+
+/// The owner's answer to macOS's keychain dialog.
+#[derive(Clone, Copy, PartialEq)]
+enum DialogAnswer {
+    Deny,
+    /// Gives the key this once: the next read asks again.
+    Allow,
+    /// Trusts this app with the item from now on.
+    AlwaysAllow,
+}
+
+/// The macOS keychain, as far as the window sees it: a program reads the
+/// items it saved itself at once; an item another program saved (the CLI,
+/// an older build) makes macOS show its dialog first, answered with
+/// `answer`.
+struct Keychain {
+    /// Each account's secret and whether this app may read it unasked.
+    items: Mutex<HashMap<String, (Vec<u8>, bool)>>,
+    answer: Mutex<DialogAnswer>,
+    dialogs: AtomicUsize,
+}
+
+impl Keychain {
+    fn new() -> Self {
+        Self {
+            items: Mutex::default(),
+            answer: Mutex::new(DialogAnswer::Deny),
+            dialogs: AtomicUsize::new(0),
+        }
+    }
+    /// Every item as if another program had saved it.
+    fn saved_elsewhere(&self) {
+        for item in self.items.lock().unwrap().values_mut() {
+            item.1 = false;
+        }
+    }
+    fn answer(&self, answer: DialogAnswer) {
+        *self.answer.lock().unwrap() = answer;
+    }
+    fn dialogs(&self) -> usize {
+        self.dialogs.load(SeqCst)
+    }
+}
+
+impl SecretStore for Keychain {
+    fn get(&self, account: &str) -> Result<Option<Zeroizing<Vec<u8>>>> {
+        let mut items = self.items.lock().unwrap();
+        let Some((secret, trusted)) = items.get_mut(account) else {
+            return Ok(None);
+        };
+        if !*trusted {
+            self.dialogs.fetch_add(1, SeqCst);
+            match *self.answer.lock().unwrap() {
+                DialogAnswer::Deny => {
+                    return Err("the owner denied access to the keychain item".into());
+                }
+                DialogAnswer::Allow => {}
+                DialogAnswer::AlwaysAllow => *trusted = true,
+            }
+        }
+        Ok(Some(Zeroizing::new(secret.clone())))
+    }
+    fn set(&self, account: &str, secret: &[u8]) -> Result<()> {
+        self.items
+            .lock()
+            .unwrap()
+            .insert(account.into(), (secret.to_vec(), true));
+        Ok(())
+    }
+    fn asks_first(&self, account: &str) -> Result<bool> {
+        let items = self.items.lock().unwrap();
+        Ok(items.get(account).is_some_and(|(_, trusted)| !trusted))
+    }
+}
+
+/// A key another program saved (the CLI made the profile, or an older
+/// build): macOS asks before this app reads it. The window explains that
+/// first and touches the key only when the owner goes on, each time with
+/// one dialog: a denial keeps the explanation, "Allow" opens the profile
+/// for this launch, "Always Allow" for good.
+#[tokio::test]
+async fn a_key_another_program_saved_is_read_only_after_the_window_explains_the_dialog() {
+    let p = Profile::new();
+    let keychain = Arc::new(Keychain::new());
+    let w = p.window_with(Secrets::Store(keychain.clone())).await;
+    assert_eq!(w.ok("profile_status")["state"], "connected");
+    let identity = w
+        .call("create_identity", json!({"request":{"name":"Dana"}}))
+        .unwrap();
+    drop(w);
+    stop_profile(&p.data(), keychain.as_ref()).await.unwrap();
+    wait_until("the daemon stopped", || p.daemons() == 0);
+    assert_eq!(keychain.dialogs(), 0, "the app's own new key never asks");
+    keychain.saved_elsewhere();
+
+    let w = p.window_with(Secrets::Store(keychain.clone())).await;
+    let status = w.ok("profile_status");
+    assert_eq!(
+        (status["state"].as_str(), status["secrets"].as_str()),
+        (Some("keychain"), Some("keychain")),
+        "{status}"
+    );
+    for method in ["snapshot", "reconnect"] {
+        let refused = w.refused(method, json!({}));
+        assert_eq!(refused["code"], "keychain_consent", "{method}: {refused}");
+    }
+    assert_eq!(
+        keychain.dialogs(),
+        0,
+        "macOS asked before the owner read why"
+    );
+    assert_eq!(p.daemons(), 0, "nothing starts before the key is read");
+
+    let refused = w.refused("open_keychain", json!({}));
+    assert_eq!(refused["code"], "keychain_denied", "{refused}");
+    assert_eq!(keychain.dialogs(), 1);
+    assert_eq!(w.ok("profile_status")["state"], "keychain");
+    assert_eq!(p.daemons(), 0);
+
+    keychain.answer(DialogAnswer::Allow);
+    let opened = w.call("open_keychain", json!({})).unwrap();
+    assert_eq!(opened["state"], "connected", "{opened}");
+    assert_eq!(
+        keychain.dialogs(),
+        2,
+        "one dialog per time the owner goes on"
+    );
+    assert_eq!(w.ok("snapshot")["identity"], identity);
+    drop(w);
+
+    // Allowed once only: the next launch explains again, joins the daemon
+    // after "Always Allow", and the launch after it opens at once.
+    keychain.answer(DialogAnswer::AlwaysAllow);
+    let w = p.window_with(Secrets::Store(keychain.clone())).await;
+    assert_eq!(w.ok("profile_status")["state"], "keychain");
+    assert_eq!(keychain.dialogs(), 2);
+    let opened = w.call("open_keychain", json!({})).unwrap();
+    assert_eq!(opened["state"], "connected", "{opened}");
+    assert_eq!(keychain.dialogs(), 3);
+    drop(w);
+    let w = p.window_with(Secrets::Store(keychain.clone())).await;
+    assert_eq!(w.ok("profile_status")["state"], "connected");
+    assert_eq!(w.ok("snapshot")["identity"], identity);
+    assert_eq!(
+        keychain.dialogs(),
+        3,
+        "an always allowed app is not asked again"
+    );
+    assert_eq!(p.daemons(), 1);
 }
 
 /// The window tells an agent how to reach this profile: the owner CLI beside

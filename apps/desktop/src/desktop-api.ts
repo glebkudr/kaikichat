@@ -9,6 +9,7 @@ export function createDesktopApi(core:CoreTransport):DesktopApi {
   return {
     profileStatus:()=>transport.invoke('profile_status') as Promise<ProfileStatus>,
     unlockProfile:request=>transport.invoke('unlock_profile',{request}) as Promise<ProfileStatus>,
+    openKeychain:()=>transport.invoke('open_keychain') as Promise<ProfileStatus>,
     reconnect:()=>transport.invoke('reconnect') as Promise<ProfileStatus>,
     networkPreset:()=>transport.invoke('network_preset') as Promise<NetworkPreset>,
     refreshNetwork:request=>transport.invoke('refresh_network',{request}) as Promise<NetworkPreset>,

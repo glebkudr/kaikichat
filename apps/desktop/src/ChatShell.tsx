@@ -6,7 +6,7 @@ import {ContactsPanel} from './ContactsPanel';
 import {GroupPanel,NewGroupPanel} from './GroupPanel';
 import {WalletPanel} from './WalletPanel';
 import {DiscoverPanel} from './DiscoverPanel';
-import {Onboarding,UnlockScreen} from './Onboarding';
+import {KeychainScreen,Onboarding,UnlockScreen} from './Onboarding';
 import {StartHere} from './StartHere';
 import {RecommendedPending} from './Recommended';
 import {DeliveryBadge} from './DeliveryBadge';
@@ -20,7 +20,7 @@ import {LanguageSelect,LocaleProvider,useDescribe,useT,type Locale} from './i18n
 import type {DesktopApi,Follow,Group,ProfileStatus,Snapshot} from './types';
 
 type Panel='chat'|'contacts'|'new-group'|'group'|'agents'|'wallet'|'network'|'discover';
-type Gate={kind:'loading'}|{kind:'locked';status:ProfileStatus}|{kind:'stopped'}|{kind:'failed'}|{kind:'ready'};
+type Gate={kind:'loading'}|{kind:'locked';status:ProfileStatus}|{kind:'keychain'}|{kind:'stopped'}|{kind:'failed'}|{kind:'ready'};
 
 /** The owner's window, in the language the owner chose (English at first). */
 export function ChatShell({api,locale}:{api:DesktopApi;locale?:Locale}) {
@@ -59,7 +59,8 @@ function Shell({api}:{api:DesktopApi}) {
       if(isCode(err,'profile_locked')) {
         try {const status=await api.profileStatus();if(current===generation.current)setGate({kind:'locked',status});}
         catch(inner){setError(errorText(inner));setGate({kind:'failed'});}
-      } else if(isCode(err,'daemon_unavailable'))setGate({kind:'stopped'});
+      } else if(isCode(err,'keychain_consent'))setGate({kind:'keychain'});
+      else if(isCode(err,'daemon_unavailable'))setGate({kind:'stopped'});
       else {setError(errorText(err));setGate(previous=>previous.kind==='ready'?previous:{kind:'failed'});}
     }
   },[api,errorText]);
@@ -128,6 +129,7 @@ function Shell({api}:{api:DesktopApi}) {
       {error&&<div className="error-banner" role="alert">{error}</div>}
       {notice}
       {gate.kind==='locked'?<UnlockScreen api={api} status={gate.status} onOpened={()=>void reload()}/>:
+      gate.kind==='keychain'?<KeychainScreen api={api} onOpened={()=>void reload()}/>:
       gate.kind==='stopped'?<section className="empty"><span className="eyebrow">{t.shell.stoppedEyebrow}</span><h2>{t.shell.stoppedTitle}</h2><p>{t.shell.stoppedText}</p><button disabled={busy} onClick={()=>void restart()}>{busy?t.shell.starting:t.shell.startNode}</button></section>:
       !ready?<section className="empty"><span className="eyebrow">{t.shell.coreEyebrow}</span><h2>{gate.kind==='failed'?t.shell.coreUnavailable:t.shell.coreConnecting}</h2><p>{t.shell.coreHint}</p>{gate.kind==='failed'&&<button onClick={()=>{setError('');void reload();}}>{t.shell.retryConnect}</button>}</section>:
       !identity?null:

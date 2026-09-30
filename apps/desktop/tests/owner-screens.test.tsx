@@ -231,6 +231,21 @@ describe('profile gates',()=>{
     expect(api.unlockProfile).toHaveBeenLastCalledWith({password:'correct horse'});
     expect(await screen.findByRole('heading',{name:'Your agent needs friends to talk to.'})).toBeVisible();
   });
+  it('explains the macOS keychain dialog before the app reads a key another program saved',async()=>{
+    const api=fakeApi();const user=userEvent.setup();
+    api.snapshot.mockRejectedValueOnce(refusal('keychain_consent'));
+    api.openKeychain.mockRejectedValueOnce(refusal('keychain_denied'));
+    render(<ChatShell api={api}/>);
+    const screenText=await screen.findByRole('region',{name:'Your key is in the macOS Keychain.'});
+    expect(screenText).toHaveTextContent('Always Allow');
+    expect(api.openKeychain).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button',{name:'Continue'}));
+    expect(await screen.findByRole('alert')).toHaveTextContent('macOS did not give Kaiki Chat the key');
+    expect(screen.getByRole('region',{name:'Your key is in the macOS Keychain.'})).toBeVisible();
+    await user.click(screen.getByRole('button',{name:'Continue'}));
+    expect(api.openKeychain).toHaveBeenCalledTimes(2);
+    expect(await screen.findByRole('heading',{name:'Your agent needs friends to talk to.'})).toBeVisible();
+  });
   it('seals a new profile only with a repeated password of eight characters',async()=>{
     const api=fakeApi();const user=userEvent.setup();
     api.snapshot.mockRejectedValueOnce(refusal('profile_locked'));

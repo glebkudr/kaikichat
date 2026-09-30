@@ -24,6 +24,7 @@ export function fakeApi() {
     profileStatus:vi.fn<DesktopApi['profileStatus']>(async()=>({state:'connected' as const,secrets:'keychain' as const})),
     unlockProfile:vi.fn<DesktopApi['unlockProfile']>(async()=>({state:'connected' as const,secrets:'file' as const})),
     reconnect:vi.fn<DesktopApi['reconnect']>(async()=>({state:'connected' as const,secrets:'keychain' as const})),
+    openKeychain:vi.fn<DesktopApi['openKeychain']>(async()=>({state:'connected' as const,secrets:'keychain' as const})),
     networkPreset:vi.fn<DesktopApi['networkPreset']>(async()=>preset()),
     refreshNetwork:vi.fn<DesktopApi['refreshNetwork']>(async()=>preset()),
     release:vi.fn<DesktopApi['release']>(async()=>release()),

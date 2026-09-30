@@ -96,6 +96,15 @@ export const id: Messages = {
     open: 'Buka profil',
     wrong: 'Kata sandi ini tidak membuka profil ini.',
   },
+  keychain: {
+    eyebrow: 'RANTAI KUNCI MACOS',
+    title: 'Kunci Anda ada di Rantai Kunci macOS.',
+    text: 'Kaiki Chat menyimpan kunci profil ini di sana. Program Kaiki Chat lain yang menyimpannya (baris perintah atau versi aplikasi sebelumnya), jadi sebelum memberikannya ke aplikasi ini, macOS akan meminta kata sandi yang Anda pakai untuk masuk ke Mac ini.',
+    hint: 'Pilih “Selalu Izinkan”, maka macOS tidak akan bertanya lagi.',
+    go: 'Lanjutkan',
+    waiting: 'Menunggu macOS…',
+    denied: 'macOS tidak memberikan kunci kepada Kaiki Chat. Tekan Lanjutkan dan pilih “Selalu Izinkan”.',
+  },
   wizard: {
     step: (n, of) => `Langkah ${n} dari ${of}`,
   },

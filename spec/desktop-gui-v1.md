@@ -24,6 +24,15 @@ project; the bundle identifier and the data directory stay
     password. For a new profile the password given there seals it.
   - The password goes from the window to the native side once and is never
     returned.
+  - A keychain key another program saved (the CLI, an older build) makes
+    macOS ask the owner before it gives it. The native side finds that
+    without asking (a read with the keychain's dialogs off) and reads
+    nothing: the profile is in the state `keychain`, and the window explains
+    the dialog ("Always Allow") on one screen. `open_keychain` then reads the
+    key, macOS asking once, and opens the profile; a denied dialog is
+    `keychain_denied` and the explanation stays. The app and `kaiki` are one
+    program for the keychain (the same Developer ID and identifier), so a
+    key either saved opens silently in the other.
 - **The daemon.** The window and the CLI start the daemon the same way: under
   the profile's start lock, the first one starts `agentic-node serve` with the
   flags saved in `daemon.json` (listen addresses, bootstrap peers, chain,
@@ -86,7 +95,7 @@ signing seed or the password.
 
 | Screen | Commands |
 |---|---|
-| Profile | `profile_status`, `unlock_profile`, `reconnect`, `snapshot`, `desktop_overview`, `create_identity` |
+| Profile | `profile_status`, `unlock_profile`, `open_keychain`, `reconnect`, `snapshot`, `desktop_overview`, `create_identity` |
 | Chats | `conversation_history`, `send_message` |
 | Contacts | `request_contact`, `intro_requests`, `accept_intro_request`, `reject_intro_request`, `intro_policy`, `set_intro_policy`, `create_invitation`, `add_contact` |
 | Groups | `groups`, `group`, `create_group`, `change_group`, `follows`, `follow_group`, `unfollow_group`, `join_group`, `door_requests`, `door_decide`, `channel_storage`, `channel_subscribe` |
@@ -98,7 +107,8 @@ signing seed or the password.
 | Start at login | `autostart_status`, `set_autostart`, `open_login_items` |
 
 - A refusal is `{code, message, retryable}`: the daemon's code, or
-  `profile_locked`, `secrets_locked`, `daemon_unavailable`, `unsafe_link`,
+  `profile_locked`, `secrets_locked`, `keychain_consent`, `keychain_denied`,
+  `daemon_unavailable`, `unsafe_link`,
   `unknown_payment`, `cli_unavailable` from the native side. Retryable are `chain_pending`,
   `claim_pending`, `network_unavailable`, `card_pending`, `group_busy` and
   `daemon_unavailable`.

@@ -58,11 +58,11 @@ it('maps the owner screens to their own commands and turns refusals into coded e
   const api=createDesktopApi({invoke,listen:async()=>()=>{}});
   await api.requestContact({networkId:'ain1x',name:'Bob',operationId:'op'});await api.setIntroPolicy({mode:'manual',dailyLimit:3,allowed:[]});
   await api.changeGroup({groupId:'g',remove:['ain1y'],operationId:'op2'});await api.coinsBuy();await api.claimCoins({provider:'github'});
-  await api.openPayment({book:'0xb',step:'approve'});await api.unlockProfile({password:'pw'});await api.installSkill({skill:'kaiki',host:'codex'});
+  await api.openPayment({book:'0xb',step:'approve'});await api.unlockProfile({password:'pw'});await api.openKeychain();await api.installSkill({skill:'kaiki',host:'codex'});
   expect(invoke.mock.calls).toEqual([
     ['request_contact',{request:{networkId:'ain1x',name:'Bob',operationId:'op'}}],['set_intro_policy',{request:{mode:'manual',dailyLimit:3,allowed:[]}}],
     ['change_group',{request:{groupId:'g',remove:['ain1y'],operationId:'op2'}}],['coins_buy'],['claim_coins',{request:{provider:'github'}}],
-    ['open_payment',{request:{book:'0xb',step:'approve'}}],['unlock_profile',{request:{password:'pw'}}],['install_skill',{request:{skill:'kaiki',host:'codex'}}],
+    ['open_payment',{request:{book:'0xb',step:'approve'}}],['unlock_profile',{request:{password:'pw'}}],['open_keychain'],['install_skill',{request:{skill:'kaiki',host:'codex'}}],
   ]);
   invoke.mockRejectedValueOnce({code:'card_pending',message:'looking',retryable:true});
   await expect(api.requestContact({networkId:'ain1x',name:'Bob',operationId:'op'})).rejects.toMatchObject({code:'card_pending',retryable:true,message:'looking'});

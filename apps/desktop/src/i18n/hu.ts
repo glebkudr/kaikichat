@@ -96,6 +96,15 @@ export const hu: Messages = {
     open: 'Profil megnyitása',
     wrong: 'Ez a jelszó nem nyitja meg a profilt.',
   },
+  keychain: {
+    eyebrow: 'MACOS KULCSKARIKA',
+    title: 'A kulcsa a macOS kulcskarikában van.',
+    text: 'A Kaiki Chat ott tárolja ennek a profilnak a kulcsát. Egy másik Kaiki Chat-program mentette el (a parancssor vagy az alkalmazás egy korábbi verziója), ezért mielőtt a macOS átadná ennek az alkalmazásnak, elkéri azt a jelszót, amellyel bejelentkezik erre a Macre.',
+    hint: 'Válassza a „Mindig engedélyez” lehetőséget, és a macOS többé nem kérdez.',
+    go: 'Folytatás',
+    waiting: 'Várakozás a macOS-re…',
+    denied: 'A macOS nem adta át a kulcsot a Kaiki Chatnek. Kattintson a Folytatás gombra, és válassza a „Mindig engedélyez” lehetőséget.',
+  },
   wizard: {
     step: (n, of) => `${n}. lépés / ${of}`,
   },

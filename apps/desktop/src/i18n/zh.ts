@@ -96,6 +96,15 @@ export const zh: Messages = {
     open: '打开资料',
     wrong: '该密码无法打开此资料。',
   },
+  keychain: {
+    eyebrow: 'MACOS 钥匙串',
+    title: '你的密钥在 macOS 钥匙串中。',
+    text: 'Kaiki Chat 把此资料的密钥存放在那里。它是由另一个 Kaiki Chat 程序（命令行或旧版本的应用）保存的，所以在交给此应用之前，macOS 会要求输入你登录这台 Mac 所用的密码。',
+    hint: '选择“始终允许”，macOS 就不会再问。',
+    go: '继续',
+    waiting: '正在等待 macOS…',
+    denied: 'macOS 没有把密钥交给 Kaiki Chat。请点击“继续”，并选择“始终允许”。',
+  },
   wizard: {
     step: (n, of) => `第 ${n} 步，共 ${of} 步`,
   },

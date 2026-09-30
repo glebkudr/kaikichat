@@ -79,6 +79,7 @@ fn owner_commands(someone: &str) -> Vec<(&'static str, Value)> {
         ),
         ("profile_status", json!({})),
         ("unlock_profile", json!({"request":{"password":"guess"}})),
+        ("open_keychain", json!({})),
         ("reconnect", json!({})),
         ("network_preset", json!({})),
         ("refresh_network", json!({"request":{"switch":true}})),

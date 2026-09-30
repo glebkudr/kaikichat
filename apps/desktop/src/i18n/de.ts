@@ -96,6 +96,15 @@ export const de: Messages = {
     open: 'Profil öffnen',
     wrong: 'Das Passwort öffnet dieses Profil nicht.',
   },
+  keychain: {
+    eyebrow: 'MACOS-SCHLÜSSELBUND',
+    title: 'Dein Schlüssel liegt im macOS-Schlüsselbund.',
+    text: 'Kaiki Chat bewahrt dort den Schlüssel dieses Profils auf. Ein anderes Programm von Kaiki Chat hat ihn gespeichert (die Befehlszeile oder eine frühere Version der App), deshalb fragt macOS nach dem Passwort, mit dem du dich an diesem Mac anmeldest, bevor es den Schlüssel dieser App gibt.',
+    hint: 'Wähle „Immer erlauben“, dann fragt macOS nicht mehr.',
+    go: 'Weiter',
+    waiting: 'Warte auf macOS…',
+    denied: 'macOS hat Kaiki Chat den Schlüssel nicht gegeben. Klicke auf Weiter und wähle „Immer erlauben“.',
+  },
   wizard: {
     step: (n, of) => `Schritt ${n} von ${of}`,
   },

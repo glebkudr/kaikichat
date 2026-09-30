@@ -9,6 +9,8 @@ export type DesktopOverview = Snapshot & {nextAfter:string|null};
 export interface DesktopApi {
   profileStatus():Promise<ProfileStatus>;
   unlockProfile(request:{password:string}):Promise<ProfileStatus>;
+  /** Reads the keychain key macOS guards with its dialog, once the owner goes on. */
+  openKeychain():Promise<ProfileStatus>;
   reconnect():Promise<ProfileStatus>;
   networkPreset():Promise<NetworkPreset>;
   refreshNetwork(request:{switch:boolean}):Promise<NetworkPreset>;
@@ -98,7 +100,7 @@ export type Release = {current:string;latest:string|null;available:boolean;skipp
  * its preset: a channel is followed, a group joined. */
 export type Recommended = {kind:string;ref:string;owner:string;name:string};
 export type NetworkPreset = {source:'preset'|'manual'|'off';state:'current'|'cached'|'unavailable'|'switch'|'update'|'manual'|'off';network:string|null;name:string|null;serial:number|null;checkedAt:number|null;offered:{network:string;name:string;serial:number}|null;required:string|null;error:string|null;recommended?:Recommended[]};
-export type ProfileStatus = {state:'connected'|'locked'|'unavailable';secrets:'keychain'|'file';newProfile?:boolean;error?:{code:string;message:string}|null};
+export type ProfileStatus = {state:'connected'|'locked'|'keychain'|'unavailable';secrets:'keychain'|'file';newProfile?:boolean;error?:{code:string;message:string}|null};
 export type IntroMode = 'all'|'list'|'manual';
 export type IntroPolicy = {mode:IntroMode;dailyLimit:number;allowed:string[]};
 export type IntroRequest = {requestId:string;networkId:string;name:string;receivedAt:number;group?:string};

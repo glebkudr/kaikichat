@@ -96,6 +96,15 @@ export const ko: Messages = {
     open: '프로필 열기',
     wrong: '이 비밀번호로는 프로필을 열 수 없습니다.',
   },
+  keychain: {
+    eyebrow: 'MACOS 키체인',
+    title: '키가 macOS 키체인에 있습니다.',
+    text: 'Kaiki Chat은 이 프로필의 키를 그곳에 보관합니다. 다른 Kaiki Chat 프로그램(명령줄 또는 이전 버전의 앱)이 이 키를 저장했기 때문에, macOS는 이 앱에 키를 주기 전에 이 Mac에 로그인할 때 쓰는 비밀번호를 묻습니다.',
+    hint: '‘항상 허용’을 선택하면 macOS가 다시 묻지 않습니다.',
+    go: '계속',
+    waiting: 'macOS를 기다리는 중…',
+    denied: 'macOS가 Kaiki Chat에 키를 주지 않았습니다. ‘계속’을 누르고 ‘항상 허용’을 선택하세요.',
+  },
   wizard: {
     step: (n, of) => `${of}단계 중 ${n}단계`,
   },

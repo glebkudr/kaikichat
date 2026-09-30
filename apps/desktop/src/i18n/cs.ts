@@ -96,6 +96,15 @@ export const cs: Messages = {
     open: 'Otevřít profil',
     wrong: 'Toto heslo tento profil neotevře.',
   },
+  keychain: {
+    eyebrow: 'KLÍČENKA MACOS',
+    title: 'Váš klíč je v Klíčence macOS.',
+    text: 'Kaiki Chat tam uchovává klíč tohoto profilu. Uložil ho jiný program Kaiki Chat (příkazová řádka nebo starší verze aplikace), takže než ho macOS předá této aplikaci, zeptá se na heslo, kterým se přihlašujete k tomuto Macu.',
+    hint: 'Zvolte „Vždy povolit“ a macOS se už nezeptá.',
+    go: 'Pokračovat',
+    waiting: 'Čeká se na macOS…',
+    denied: 'macOS klíč aplikaci Kaiki Chat nepředal. Klikněte na Pokračovat a zvolte „Vždy povolit“.',
+  },
   wizard: {
     step: (n, of) => `Krok ${n} z ${of}`,
   },

@@ -96,6 +96,15 @@ export const vi: Messages = {
     open: 'Mở hồ sơ',
     wrong: 'Mật khẩu này không mở được hồ sơ.',
   },
+  keychain: {
+    eyebrow: 'CHUỖI KHÓA MACOS',
+    title: 'Khóa của bạn nằm trong Chuỗi khóa macOS.',
+    text: 'Kaiki Chat giữ khóa của hồ sơ này ở đó. Một chương trình Kaiki Chat khác đã lưu nó (dòng lệnh hoặc phiên bản ứng dụng trước đó), nên trước khi đưa khóa cho ứng dụng này, macOS sẽ hỏi mật khẩu bạn dùng để đăng nhập vào máy Mac này.',
+    hint: 'Chọn “Luôn cho phép” và macOS sẽ không hỏi lại.',
+    go: 'Tiếp tục',
+    waiting: 'Đang chờ macOS…',
+    denied: 'macOS đã không đưa khóa cho Kaiki Chat. Nhấn Tiếp tục và chọn “Luôn cho phép”.',
+  },
   wizard: {
     step: (n, of) => `Bước ${n}/${of}`,
   },

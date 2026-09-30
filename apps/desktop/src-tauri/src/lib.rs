@@ -7,14 +7,15 @@ use agentic_desktop_host::network_preset::{
 };
 use agentic_desktop_host::update::{self, UpdateError};
 use agentic_desktop_host::{
-    DesktopHost, PasswordFileStore, SKILL_ROOTS, SecretStore, SecretsLocked, connect_profile,
-    discover, owner_skill, platform_data_dir, restart_profile, stop_profile,
+    DesktopHost, PasswordFileStore, SKILL_ROOTS, SecretStore, SecretsLocked, asks_before_opening,
+    connect_profile, discover, owner_skill, platform_data_dir, restart_profile, stop_profile,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 use tauri::{Emitter, Manager, Runtime, State, WebviewWindow};
 use zeroize::Zeroizing;
@@ -135,6 +136,36 @@ struct Link {
     host: Option<Arc<DesktopHost>>,
     /// Why the daemon could not be opened.
     failure: Option<CommandError>,
+    /// A keychain whose item macOS guards with a dialog (another program
+    /// saved it): nothing reads it until the owner has read why and goes on.
+    consent: Option<Arc<dyn SecretStore>>,
+}
+
+/// The store as `open_keychain` reads it: it remembers whether a read was
+/// refused, which tells a denied dialog from a daemon that did not start.
+struct Watched {
+    store: Arc<dyn SecretStore>,
+    refused: AtomicBool,
+}
+
+impl SecretStore for Watched {
+    fn get(&self, account: &str) -> agentic_desktop_host::Result<Option<Zeroizing<Vec<u8>>>> {
+        let read = self.store.get(account);
+        if read.is_err() {
+            self.refused.store(true, Ordering::SeqCst);
+        }
+        read
+    }
+    fn set(&self, account: &str, secret: &[u8]) -> agentic_desktop_host::Result<()> {
+        self.store.set(account, secret)
+    }
+}
+
+fn keychain_consent() -> CommandError {
+    CommandError::new(
+        "keychain_consent",
+        "macOS asks before this app reads the profile's key: go on from the window",
+    )
 }
 
 pub struct NativeBridge {
@@ -230,9 +261,48 @@ impl NativeBridge {
         }
         if let Some(vault) = vault {
             let mut link = bridge.link.lock().await;
-            bridge.start(&mut link, vault).await;
+            let guarded = bridge
+                .profile
+                .as_ref()
+                .is_some_and(|profile| asks_before_opening(&profile.data_dir, vault.as_ref()));
+            if guarded {
+                link.consent = Some(vault);
+            } else {
+                bridge.start(&mut link, vault).await;
+            }
         }
         bridge
+    }
+
+    /// Reads the keychain key the window explained (macOS shows its dialog
+    /// now) and opens the profile; a denied dialog keeps the explanation.
+    async fn open_keychain(&self) -> Answer {
+        let mut link = self.link.lock().await;
+        let Some(vault) = link.consent.clone() else {
+            drop(link);
+            return Ok(self.status().await);
+        };
+        let watched = Arc::new(Watched {
+            store: vault.clone(),
+            refused: AtomicBool::new(false),
+        });
+        let failure = self.start(&mut link, watched.clone()).await;
+        if failure.is_some() && watched.refused.load(Ordering::SeqCst) {
+            *link = Link {
+                consent: Some(vault),
+                ..Link::default()
+            };
+            return Err(CommandError::new(
+                "keychain_denied",
+                "macOS did not give this app the profile's key",
+            ));
+        }
+        link.vault = Some(vault);
+        if let Some(error) = failure {
+            return Err(error);
+        }
+        drop(link);
+        Ok(self.status().await)
     }
 
     /// Opens the daemon with `vault`; a store that does not open is dropped.
@@ -251,7 +321,7 @@ impl NativeBridge {
                 *link = Link {
                     vault: Some(vault),
                     host: Some(Arc::new(host)),
-                    failure: None,
+                    ..Link::default()
                 };
                 None
             }
@@ -262,8 +332,8 @@ impl NativeBridge {
                 let failure = CommandError::new("daemon_unavailable", error.to_string());
                 *link = Link {
                     vault: Some(vault),
-                    host: None,
                     failure: Some(failure.clone()),
+                    ..Link::default()
                 };
                 Some(failure)
             }
@@ -274,6 +344,9 @@ impl NativeBridge {
     pub async fn request(&self, method: &str, request: Value) -> Answer {
         let host = {
             let link = self.link.lock().await;
+            if link.consent.is_some() {
+                return Err(keychain_consent());
+            }
             match (&link.host, &link.vault, &self.profile) {
                 (Some(host), _, _) => host.clone(),
                 (None, None, Some(profile)) if profile.file => {
@@ -319,6 +392,9 @@ impl NativeBridge {
     async fn status(&self) -> Value {
         let (connected, locked, failure, secrets) = {
             let link = self.link.lock().await;
+            if link.consent.is_some() {
+                return json!({"state":"keychain","secrets":"keychain"});
+            }
             let file = self.profile.as_ref().is_some_and(|p| p.file);
             (
                 link.host.clone(),
@@ -371,6 +447,9 @@ impl NativeBridge {
             return Err(CommandError::invalid("This window cannot start the daemon"));
         }
         let mut link = self.link.lock().await;
+        if link.consent.is_some() {
+            return Err(keychain_consent());
+        }
         let Some(vault) = link.vault.clone() else {
             return Err(CommandError::new(
                 "profile_locked",
@@ -536,6 +615,9 @@ impl NativeBridge {
             return Err(CommandError::invalid("This window cannot start the daemon"));
         };
         let mut link = self.link.lock().await;
+        if link.consent.is_some() {
+            return Err(keychain_consent());
+        }
         let Some(vault) = link.vault.clone() else {
             return Err(CommandError::new(
                 "profile_locked",
@@ -556,7 +638,7 @@ impl NativeBridge {
                 *link = Link {
                     vault: Some(vault),
                     host: Some(Arc::new(host)),
-                    failure: None,
+                    ..Link::default()
                 };
             }
             Err(error) if error.downcast_ref::<NoNetworkOffer>().is_some() => {
@@ -1167,6 +1249,14 @@ async fn unlock_profile<R: Runtime>(
     bridge.unlock(Zeroizing::new(request.password)).await
 }
 #[tauri::command]
+async fn open_keychain<R: Runtime>(
+    window: WebviewWindow<R>,
+    bridge: State<'_, NativeBridge>,
+) -> Answer {
+    owner_window(&window)?;
+    bridge.open_keychain().await
+}
+#[tauri::command]
 async fn reconnect<R: Runtime>(
     window: WebviewWindow<R>,
     bridge: State<'_, NativeBridge>,
@@ -1268,6 +1358,7 @@ pub fn configure<R: Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<R> {
     builder.invoke_handler(tauri::generate_handler![
         profile_status,
         unlock_profile,
+        open_keychain,
         reconnect,
         network_preset,
         refresh_network,

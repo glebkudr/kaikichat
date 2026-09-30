@@ -7,8 +7,8 @@ mod owner {
     use agentic_node::discover::{self, handles_from};
     use agentic_node::host::{
         DaemonFlags, DesktopHost, KeychainStore, SERVICE, SKILL_ROOTS, SecretStore, SecretsBackend,
-        connect_profile, default_data_dir, network_status, owner_skill, password_from_env,
-        platform_data_dir, restart_profile, stop_profile,
+        asks_before_opening, connect_profile, default_data_dir, network_status, owner_skill,
+        password_from_env, platform_data_dir, restart_profile, stop_profile,
     };
     use agentic_node::network_preset::{self, NoNetworkOffer, PresetSource, ReleaseStatus};
     use agentic_node::secrets_file::{PasswordFileStore, SecretsLocked};
@@ -724,7 +724,17 @@ mod owner {
             None => SecretsBackend::chosen(),
         };
         match backend {
-            SecretsBackend::Keychain => Ok(Box::new(KeychainStore::new(SERVICE))),
+            SecretsBackend::Keychain => {
+                let store = KeychainStore::new(SERVICE);
+                // Another program saved the key: macOS asks the owner before
+                // it gives it, with a window of its own; say so first.
+                if asks_before_opening(data_dir, &store) {
+                    eprintln!(
+                        "macOS will ask for the password you log in to this Mac with: another Kaiki Chat program (the app or an earlier kaiki) saved this profile's key in the Keychain. Choose \"Always Allow\" so it does not ask again."
+                    );
+                }
+                Ok(Box::new(store))
+            }
             SecretsBackend::File => {
                 let password = password_from_env().ok_or_else(|| {
                     Output::invalid(

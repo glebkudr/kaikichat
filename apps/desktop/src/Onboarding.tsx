@@ -32,6 +32,28 @@ export function UnlockScreen({api,status,onOpened}:{api:DesktopApi;status:Profil
   </form>;
 }
 
+/** A key another program saved in the macOS Keychain: macOS asks the
+ * owner before this app reads it, so the window says why first and reads
+ * the key only when the owner goes on. */
+export function KeychainScreen({api,onOpened}:{api:DesktopApi;onOpened:()=>void}) {
+  const t=useT();const describe=useDescribe();
+  const [busy,setBusy]=useState(false);const [error,setError]=useState('');
+  async function open() {
+    if(busy)return;setBusy(true);setError('');
+    try {await api.openKeychain();onOpened();}
+    catch(e){setError(isCode(e,'keychain_denied')?t.keychain.denied:describe(e));}
+    finally {setBusy(false);}
+  }
+  return <section className="empty onboarding" aria-labelledby="keychain-title">
+    <span className="eyebrow">{t.keychain.eyebrow}</span>
+    <h2 id="keychain-title">{t.keychain.title}</h2>
+    <p>{t.keychain.text}</p>
+    <p>{t.keychain.hint}</p>
+    {error&&<div className="error-banner inline-error" role="alert">{error}</div>}
+    <button disabled={busy} onClick={()=>void open()}>{busy?t.keychain.waiting:t.keychain.go}</button>
+  </section>;
+}
+
 type Step='welcome'|'name'|'login'|'recommended'|'agent'|'invite';
 const steps:Step[]=['welcome','name','login','recommended','agent','invite'];
 

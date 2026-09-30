@@ -96,6 +96,15 @@ export const pl: Messages = {
     open: 'Otwórz profil',
     wrong: 'To hasło nie otwiera tego profilu.',
   },
+  keychain: {
+    eyebrow: 'PĘK KLUCZY MACOS',
+    title: 'Twój klucz jest w pęku kluczy macOS.',
+    text: 'Kaiki Chat przechowuje tam klucz tego profilu. Zapisał go inny program Kaiki Chat (wiersz poleceń lub wcześniejsza wersja aplikacji), więc zanim przekaże go tej aplikacji, macOS poprosi o hasło, którym logujesz się do tego Maca.',
+    hint: 'Wybierz „Zawsze pozwalaj”, a macOS nie zapyta ponownie.',
+    go: 'Dalej',
+    waiting: 'Czekam na macOS…',
+    denied: 'macOS nie przekazał klucza Kaiki Chat. Kliknij Dalej i wybierz „Zawsze pozwalaj”.',
+  },
   wizard: {
     step: (n, of) => `Krok ${n} z ${of}`,
   },

@@ -96,6 +96,15 @@ export const ja: Messages = {
     open: 'プロフィールを開く',
     wrong: 'このパスワードではプロフィールを開けません。',
   },
+  keychain: {
+    eyebrow: 'MACOS キーチェーン',
+    title: '鍵は macOS のキーチェーンにあります。',
+    text: 'Kaiki Chat はこのプロフィールの鍵をそこに保管しています。この鍵は別の Kaiki Chat のプログラム（コマンドラインまたは以前のバージョンのアプリ）が保存したため、macOS はこのアプリに鍵を渡す前に、この Mac へのログインに使うパスワードを求めます。',
+    hint: '「常に許可」を選ぶと、macOS は二度と尋ねません。',
+    go: '続ける',
+    waiting: 'macOS を待っています…',
+    denied: 'macOS は Kaiki Chat に鍵を渡しませんでした。「続ける」を押して「常に許可」を選んでください。',
+  },
   wizard: {
     step: (n, of) => `ステップ ${n}/${of}`,
   },

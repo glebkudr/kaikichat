@@ -96,6 +96,15 @@ export const en = {
     open: 'Open profile',
     wrong: 'The password does not open this profile.',
   },
+  keychain: {
+    eyebrow: 'MACOS KEYCHAIN',
+    title: 'Your key is in the macOS Keychain.',
+    text: 'Kaiki Chat keeps this profile’s key there. Another Kaiki Chat program saved it (the command line or an earlier version of the app), so macOS asks for the password you log in to this Mac with before it gives the key to this app.',
+    hint: 'Choose “Always Allow”, and macOS will not ask again.',
+    go: 'Continue',
+    waiting: 'Waiting for macOS…',
+    denied: 'macOS did not give Kaiki Chat the key. Press Continue and choose “Always Allow”.',
+  },
   wizard: {
     step: (n: number, of: number) => `Step ${n} of ${of}`,
   },
