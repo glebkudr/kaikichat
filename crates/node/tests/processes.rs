@@ -107,6 +107,13 @@ impl Node {
         )
         .unwrap();
         self.child = Some(child);
+        // A wildcard address binds a listener on every interface, as the
+        // owner's daemon does: ready once each transport listens, and kept
+        // as given for the next start.
+        let wildcard = self
+            .listeners
+            .iter()
+            .any(|l| l.starts_with("/ip4/0.0.0.0/"));
         let deadline = Instant::now() + Duration::from_secs(20);
         loop {
             if let Some(status) = self.child.as_mut().unwrap().try_wait().unwrap() {
@@ -119,7 +126,17 @@ impl Node {
                 && let Some(info) = response.get("result")
             {
                 let addrs = info["listeners"].as_array().unwrap();
-                if addrs.len() == self.listeners.len() {
+                let bound = if wildcard {
+                    self.listeners.iter().all(|spec| {
+                        let quic = spec.contains("/quic-v1");
+                        addrs
+                            .iter()
+                            .any(|a| a.as_str().unwrap().contains("/quic-v1") == quic)
+                    })
+                } else {
+                    addrs.len() == self.listeners.len()
+                };
+                if bound {
                     let peer = info["peerId"].as_str().unwrap().to_owned();
                     if !self.peer.is_empty() {
                         assert_eq!(peer, self.peer, "transport identity changed after restart");
@@ -131,17 +148,19 @@ impl Node {
                         );
                     }
                     self.peer = peer;
-                    self.listeners = addrs
-                        .iter()
-                        .map(|a| {
-                            a.as_str()
-                                .unwrap()
-                                .split("/p2p/")
-                                .next()
-                                .unwrap()
-                                .to_string()
-                        })
-                        .collect();
+                    if !wildcard {
+                        self.listeners = addrs
+                            .iter()
+                            .map(|a| {
+                                a.as_str()
+                                    .unwrap()
+                                    .split("/p2p/")
+                                    .next()
+                                    .unwrap()
+                                    .to_string()
+                            })
+                            .collect();
+                    }
                     break;
                 }
             }

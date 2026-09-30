@@ -1496,3 +1496,416 @@ fn native_closed_channel() {
     });
     println!("native-closed-channel {report}");
 }
+
+/// `to`'s invitation, added by `from`: a contact made without cards.
+fn invite(from: &Node, to: &Node, name: &str) -> String {
+    let invitation = to.call("create_invitation", json!({"addresses": null}));
+    let contact = from.call(
+        "add_contact",
+        json!({"name": name, "invitation": invitation}),
+    );
+    let id = contact["id"].as_str().unwrap().to_owned();
+    until(Duration::from_secs(60), "the contact joined", || {
+        to.snapshot()["conversations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|c| c["id"] == id.as_str())
+    });
+    id
+}
+
+/// The delivery phase of `node`'s own message `text`.
+fn phase(node: &Node, conversation: &str, text: &str) -> String {
+    node.snapshot()["conversations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["id"] == conversation)
+        .and_then(|c| {
+            c["messages"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|m| m["own"] == true && m["text"] == text)
+                .map(|m| {
+                    m["delivery"]["phase"]
+                        .as_str()
+                        .unwrap_or_default()
+                        .to_owned()
+                })
+        })
+        .unwrap_or_default()
+}
+
+/// The peers `node` verified by their signed records and is connected to.
+fn verified(node: &Node) -> Vec<String> {
+    info(node)["bootstrap"]["verifiedPeers"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|p| p["peerId"].as_str().unwrap().to_owned())
+        .collect()
+}
+
+/// `flags` with another chain RPC and these bootstrap routes.
+fn with_routes(flags: &[String], rpc: &str, bootstrap: &[String]) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut given = flags.iter();
+    while let Some(flag) = given.next() {
+        match flag.as_str() {
+            "--chain-rpc" => {
+                given.next();
+                out.extend(["--chain-rpc".to_owned(), rpc.to_owned()]);
+            }
+            "--bootstrap" => {
+                given.next();
+            }
+            _ => out.push(flag.clone()),
+        }
+    }
+    for route in bootstrap {
+        out.extend(["--bootstrap".to_owned(), route.clone()]);
+    }
+    out
+}
+
+/// Kaiki without the Internet (README, "How it compares"): contacts on one
+/// LAN, all online, while the chain RPC hangs, the holders are gone and
+/// every bootstrap route swallows its packets. The daemons start at once;
+/// the owners turn on local discovery as the settings panel does; the nodes
+/// find each other over mDNS and messages go both ways directly, paid with
+/// books their recipients read while online. A book the recipient never
+/// read cannot be checked offline: that message stays queued until the
+/// recipient reads the chain again.
+#[test]
+#[ignore = "needs anvil, forge and cast; run through the build wrapper"]
+fn native_lan_without_internet() {
+    let mut net = network("native-lan-without-internet");
+    let (mut alice, mut bob, mut carol) = (net.join(), net.join(), net.join());
+    for (name, node) in [("Alice", &alice), ("Bob", &bob), ("Carol", &carol)] {
+        node.profile(name);
+        net.fund(node);
+    }
+    for node in [&alice, &bob, &carol] {
+        net.directory(node);
+    }
+    let ab = invite(&alice, &bob, "Bob");
+    let cb = invite(&carol, &bob, "Bob");
+    // Online, Alice and Bob write each other and Bob writes Carol; Carol
+    // never writes Bob, so Bob never reads her book.
+    alice.send(&ab, "online from Alice", "a-1");
+    bob.send(&ab, "online from Bob", "b-1");
+    bob.send(&cb, "online from Bob to Carol", "b-2");
+    until(Duration::from_secs(120), "the online messages read", || {
+        texts(&bob, &ab, false) == ["online from Alice"]
+            && texts(&alice, &ab, false) == ["online from Bob"]
+            && texts(&carol, &cb, false) == ["online from Bob to Carol"]
+    });
+    until(
+        Duration::from_secs(120),
+        "the books read, outboxes empty",
+        || {
+            [&alice, &bob, &carol].iter().all(|node| {
+                let info = info(node);
+                info["pendingOutbox"] == 0 && info["chain"]["learned"].as_u64() >= Some(1)
+            })
+        },
+    );
+    let online_chain = [&alice, &bob, &carol].map(|node| info(node)["chain"].clone());
+
+    // The Internet goes: the holders stop, the chain RPC takes connections
+    // and never answers, and the bootstrap routes are UDP ports that drop
+    // every packet, as a router without an uplink does.
+    let hanging_rpc = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let rpc_url = format!("http://{}", hanging_rpc.local_addr().unwrap());
+    let silent: Vec<std::net::UdpSocket> = (0..4)
+        .map(|_| std::net::UdpSocket::bind("127.0.0.1:0").unwrap())
+        .collect();
+    let bootstrap: Vec<String> = silent
+        .iter()
+        .zip(&net.holders)
+        .map(|(socket, holder)| {
+            format!(
+                "/ip4/127.0.0.1/udp/{}/quic-v1/p2p/{}",
+                socket.local_addr().unwrap().port(),
+                holder.peer
+            )
+        })
+        .collect();
+    for holder in &mut net.holders {
+        holder.kill();
+    }
+    let offline = with_routes(&net.flags, &rpc_url, &bootstrap);
+    let mut starts = vec![];
+    for node in [&mut alice, &mut bob, &mut carol] {
+        node.kill();
+        node.arguments = offline.clone();
+        // The owner's daemon listens on every interface.
+        node.listeners = vec![
+            "/ip4/0.0.0.0/udp/0/quic-v1".to_owned(),
+            "/ip4/0.0.0.0/tcp/0".to_owned(),
+        ];
+        let begun = Instant::now();
+        node.launch();
+        starts.push(begun.elapsed().as_secs_f64());
+    }
+    // Local discovery is off by default; each owner turns it on in the
+    // settings, which send every preference back with the change.
+    let turned_on = Instant::now();
+    for node in [&alice, &bob, &carol] {
+        let settings = node.call("network_settings", json!({}));
+        let mut preferences = settings["preferences"].clone();
+        assert_eq!(preferences["lanDiscovery"], false, "{settings}");
+        preferences["lanDiscovery"] = json!(true);
+        let saved = node.call(
+            "configure_network",
+            json!({"expectedRevision": settings["revision"], "preferences": preferences}),
+        );
+        assert_eq!(saved["status"]["lanDiscovery"]["active"], true, "{saved}");
+    }
+    let found = || {
+        let (a, b, c) = (verified(&alice), verified(&bob), verified(&carol));
+        a.contains(&bob.peer)
+            && b.contains(&alice.peer)
+            && b.contains(&carol.peer)
+            && c.contains(&bob.peer)
+    };
+    while !found() && turned_on.elapsed() < Duration::from_secs(120) {
+        thread::sleep(Duration::from_millis(250));
+    }
+    let discovered = turned_on.elapsed();
+    assert!(
+        found(),
+        "LAN peers verified within 120 s: {:?}",
+        [&alice, &bob, &carol].map(|node| {
+            let info = info(node);
+            json!({"lan": info["lanDiscovery"], "bootstrap": info["bootstrap"],
+                "connections": info["peerConnections"]})
+        })
+    );
+    let lan_info = [&alice, &bob, &carol].map(|node| {
+        let info = info(node);
+        json!({"lanDiscovery": info["lanDiscovery"], "bootstrap": info["bootstrap"],
+            "advertisedAddresses": info["advertisedAddresses"], "transportsUsed": info["transportsUsed"]})
+    });
+
+    // Both online on the LAN: both ways, directly.
+    alice.send(&ab, "offline from Alice", "a-2");
+    bob.send(&ab, "offline from Bob", "b-3");
+    let exchanged = until(Duration::from_secs(120), "read both ways offline", || {
+        texts(&bob, &ab, false).last().map(String::as_str) == Some("offline from Alice")
+            && texts(&alice, &ab, false).last().map(String::as_str) == Some("offline from Bob")
+    });
+    let receipted = until(Duration::from_secs(60), "both delivered", || {
+        phase(&alice, &ab, "offline from Alice") == "delivered"
+            && phase(&bob, &ab, "offline from Bob") == "delivered"
+    });
+    // Past the idle timeout of a connection nothing uses.
+    thread::sleep(Duration::from_secs(75));
+    alice.send(&ab, "after a pause from Alice", "a-3");
+    bob.send(&ab, "after a pause from Bob", "b-4");
+    let after_pause = until(
+        Duration::from_secs(120),
+        "read both ways after a pause",
+        || {
+            texts(&bob, &ab, false).last().map(String::as_str) == Some("after a pause from Alice")
+                && texts(&alice, &ab, false).last().map(String::as_str)
+                    == Some("after a pause from Bob")
+        },
+    );
+
+    // Bob never read Carol's book: her message waits; his goes.
+    let rejected_before = info(&bob)["rejectedFrames"].as_u64().unwrap();
+    carol.send(&cb, "offline from Carol", "c-1");
+    bob.send(&cb, "offline from Bob to Carol", "b-5");
+    let carol_read = until(Duration::from_secs(120), "Carol reads Bob offline", || {
+        texts(&carol, &cb, false).last().map(String::as_str) == Some("offline from Bob to Carol")
+    });
+    let book_failed = until(
+        Duration::from_secs(60),
+        "Bob fails to read her book",
+        || info(&bob)["chain"]["absentBooks"].as_u64() >= Some(1),
+    );
+    thread::sleep(Duration::from_secs(30));
+    assert!(
+        texts(&bob, &cb, false).is_empty(),
+        "{:?}",
+        texts(&bob, &cb, false)
+    );
+    assert_eq!(phase(&carol, &cb, "offline from Carol"), "queued");
+    let waiting = json!({
+        "carolPhase": phase(&carol, &cb, "offline from Carol"),
+        "carolPendingOutbox": info(&carol)["pendingOutbox"],
+        "carolFailureKinds": info(&carol)["mailboxSwarm"]["failureKinds"],
+        "bobRejectedFrames": info(&bob)["rejectedFrames"].as_u64().unwrap() - rejected_before,
+        "bobChain": info(&bob)["chain"],
+    });
+    assert!(
+        waiting["bobRejectedFrames"].as_u64() >= Some(1),
+        "{waiting}"
+    );
+
+    // The Internet comes back for Bob alone (the holders stay gone): he
+    // reads her book and her queued message arrives over the LAN.
+    bob.kill();
+    bob.arguments = with_routes(&net.flags, &net.chain.url, &bootstrap);
+    bob.launch();
+    let recovered = until(
+        Duration::from_secs(180),
+        "Bob reads Carol with the chain",
+        || texts(&bob, &cb, false) == ["offline from Carol"],
+    );
+    let report = json!({
+        "holders": HOLDERS,
+        "seconds": {
+            "directoryComplete": net.directory.as_secs_f64(),
+            "offlineStarts": starts,
+            "lanPeersVerifiedAfterTurnedOn": discovered.as_secs_f64(),
+            "sinceTurnedOn": turned_on.elapsed().as_secs_f64(),
+            "offlineReadBothWays": exchanged.as_secs_f64(),
+            "offlineDeliveredBothWays": receipted.as_secs_f64(),
+            "readBothWaysAfterPause": after_pause.as_secs_f64(),
+            "bobToCarolOffline": carol_read.as_secs_f64(),
+            "bobBookReadFailed": book_failed.as_secs_f64(),
+            "carolDeliveredOnceBobReadsChain": recovered.as_secs_f64(),
+        },
+        "onlineChain": online_chain,
+        "lan": lan_info,
+        "unknownBookWhileOffline": waiting,
+        "failureKinds": ([&alice, &bob, &carol].map(|node| info(node)["mailboxSwarm"]["failureKinds"].clone())),
+    });
+    drop((hanging_rpc, silent));
+    println!("native-lan-without-internet {report}");
+}
+
+/// How long local discovery takes to verify every pair of daemons on this
+/// host's LAN, round after round, with `AIN_LAN_SILENT` (default 4)
+/// bootstrap routes that drop every packet. No chain: discovery only.
+#[test]
+#[ignore = "manual: multicast DNS on this host's LAN"]
+fn lan_discovery_rounds() {
+    let rounds: usize = std::env::var("AIN_LAN_ROUNDS").map_or(5, |v| v.parse().unwrap());
+    let count: usize = std::env::var("AIN_LAN_SILENT").map_or(4, |v| v.parse().unwrap());
+    let silent: Vec<std::net::UdpSocket> = (0..count)
+        .map(|_| std::net::UdpSocket::bind("127.0.0.1:0").unwrap())
+        .collect();
+    let mut flags = vec![];
+    for socket in &silent {
+        let peer = libp2p::identity::Keypair::generate_ed25519()
+            .public()
+            .to_peer_id();
+        flags.extend([
+            "--bootstrap".to_owned(),
+            format!(
+                "/ip4/127.0.0.1/udp/{}/quic-v1/p2p/{peer}",
+                socket.local_addr().unwrap().port()
+            ),
+        ]);
+    }
+    let wildcard = ["/ip4/0.0.0.0/udp/0/quic-v1", "/ip4/0.0.0.0/tcp/0"];
+    // With `AIN_LAN_DEAD` peers the profiles met online and that are gone
+    // now, as the holders are when the Internet goes.
+    let dead: usize = std::env::var("AIN_LAN_DEAD").map_or(0, |v| v.parse().unwrap());
+    let mut kept: Vec<Node> = vec![];
+    if dead > 0 {
+        let tcp = ["/ip4/127.0.0.1/tcp/0"];
+        let mut peers = vec![Node::start(&tcp)];
+        let hub = route(&peers[0]);
+        for _ in 1..dead {
+            peers.push(Node::start_with_args(
+                &tcp,
+                vec!["--bootstrap".to_owned(), hub.clone()],
+            ));
+        }
+        kept = (0..3)
+            .map(|_| Node::start_with_args(&tcp, vec!["--bootstrap".to_owned(), hub.clone()]))
+            .collect();
+        let met = until(Duration::from_secs(60), "records cached", || {
+            kept.iter()
+                .all(|node| info(node)["bootstrap"]["cachedHints"].as_u64() >= Some(1))
+        });
+        thread::sleep(Duration::from_secs(20));
+        println!(
+            "met in {met:?}: cached {:?}",
+            kept.iter()
+                .map(|node| info(node)["bootstrap"]["cachedHints"].clone())
+                .collect::<Vec<_>>()
+        );
+        drop(peers);
+    }
+    let mut times = vec![];
+    for round in 0..rounds {
+        let nodes: Vec<Node> = if dead > 0 {
+            for node in &mut kept {
+                node.kill();
+                node.arguments = flags.clone();
+                node.listeners = wildcard.map(String::from).to_vec();
+                node.launch();
+            }
+            std::mem::take(&mut kept)
+        } else {
+            (0..3)
+                .map(|_| Node::start_with_args(&wildcard, flags.clone()))
+                .collect()
+        };
+        for node in &nodes {
+            let settings = node.call("network_settings", json!({}));
+            let mut preferences = settings["preferences"].clone();
+            preferences["lanDiscovery"] = json!(true);
+            node.call(
+                "configure_network",
+                json!({"expectedRevision": settings["revision"], "preferences": preferences}),
+            );
+        }
+        let begun = Instant::now();
+        let all = || {
+            nodes.iter().all(|node| {
+                let own = verified(node);
+                nodes
+                    .iter()
+                    .all(|other| other.peer == node.peer || own.contains(&other.peer))
+            })
+        };
+        while !all() && begun.elapsed() < Duration::from_secs(120) {
+            thread::sleep(Duration::from_millis(250));
+        }
+        let done = all();
+        times.push(if done {
+            begun.elapsed().as_secs_f64()
+        } else {
+            -1.0
+        });
+        println!("round {round}: verified={done} after {:?}", begun.elapsed());
+        if !done {
+            for node in &nodes {
+                let info = info(node);
+                println!(
+                    "  {} lan={} bootstrap={} conns={}",
+                    node.peer, info["lanDiscovery"], info["bootstrap"], info["peerConnections"]
+                );
+                println!(
+                    "  stderr: {}",
+                    fs::read_to_string(node.root.path().join("stderr.log"))
+                        .unwrap_or_default()
+                        .lines()
+                        .rev()
+                        .take(20)
+                        .collect::<Vec<_>>()
+                        .join(" | ")
+                );
+            }
+        }
+        if dead > 0 {
+            kept = nodes;
+        }
+    }
+    println!(
+        "lan-discovery-rounds silent={count} dead={dead} {}",
+        json!(times)
+    );
+    assert!(
+        times.iter().all(|t| (0.0..=30.0).contains(t)),
+        "every round verified within 30 s"
+    );
+}
