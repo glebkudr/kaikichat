@@ -144,11 +144,12 @@ mcp
     changed; a save of the window in between is read again. They answer
     the new state. A choice the profile already has saves nothing.
   - Like every saved network preference, the choice is kept in the profile
-    and overrides the daemon's flags from then on; so do the other
-    preferences it saves with it, the bootstrap routes of a profile that
-    follows the preset included (the preset's route changes no longer
-    apply; [the design](../Docs/V1_NETWORK_PRESET_2026_09_28_RU.md),
-    "Limitation").
+    and overrides the daemon's flags from then on. It pins no bootstrap
+    routes: unless the owner named routes in the window, the daemon keeps
+    taking its `--bootstrap` flags, so a profile that follows the preset
+    gets the routes of a newer preset, and of a network it switches to
+    ([node-runtime-v1.md](node-runtime-v1.md#start-and-secrets),
+    [the design](../Docs/V1_NETWORK_PRESET_2026_09_28_RU.md#bootstrap-routes-and-saved-settings)).
 - **Updates** ([the design](../Docs/V1_NETWORK_PRESET_2026_09_28_RU.md#releases-and-updates)):
   the preset names the latest release, its builds and their SHA-256. A
   daemon start learns it; a command that joins the daemon also asks

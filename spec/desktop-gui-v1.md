@@ -247,7 +247,9 @@ the app's own scripts.
   USDC.
 - **Settings:** theme, language, opening at login, who can write by ID (the policy: `all` with
   a daily limit, `list`, `manual`, and its list), and the network (listeners,
-  relays, bootstrap peers).
+  relays, bootstrap peers). An empty bootstrap field is the network's own
+  nodes, shown in grey, and is saved without `bootstrapPeers`; addresses
+  typed there replace them until the field is cleared.
 
 ## Distribution
 

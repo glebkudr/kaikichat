@@ -80,8 +80,7 @@ With it on, messages between two contacts there can go directly, also while
 the Internet is down; groups and channels still need the Internet. It also
 tells every device on that network that this node is there, so run `kaiki
 network lan on` or `off` only when the owner asks. The choice is kept, and
-it keeps the node's other network settings as they are now, even when the
-network's preset later changes its routes.
+the node keeps taking its routes from the network's preset.
 
 When a newer Kaiki Chat is out, every answer carries `"update": {"current",
 "latest"}`. Tell the owner, and run `kaiki update` only when they agree: it

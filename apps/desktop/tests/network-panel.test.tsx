@@ -71,7 +71,7 @@ async function edit(user:ReturnType<typeof userEvent.setup>) {
 describe('network preferences for the owner',()=>{
   it('loads real settings, applies only an explicit save, and reports pending routes honestly',async()=>{
     const api=client();const user=userEvent.setup();const saved=settings();
-    saved.revision=4;saved.preferences={relays:[relay],relayOnly:true,autoNatPeers:[verifier],bootstrapPeers:[],lanDiscovery:false,dhtServer:false};saved.status.holePunchEnabled=false;
+    saved.revision=4;saved.preferences={relays:[relay],relayOnly:true,autoNatPeers:[verifier],lanDiscovery:false,dhtServer:false};saved.status.holePunchEnabled=false;
     api.configureNetwork.mockResolvedValue(saved);
     render(<NetworkPanel api={api} onBack={()=>{}}/>);
     await screen.findByRole('textbox',{name:'Relay providers'});
@@ -79,13 +79,13 @@ describe('network preferences for the owner',()=>{
     await edit(user);expect(api.configureNetwork).not.toHaveBeenCalled();
     await user.click(save());
     await screen.findByRole('status');
-    expect(api.configureNetwork).toHaveBeenCalledExactlyOnceWith({expectedRevision:3,preferences:{relays:[relay],relayOnly:true,autoNatPeers:[verifier],bootstrapPeers:[],lanDiscovery:false,dhtServer:false}});
+    expect(api.configureNetwork).toHaveBeenCalledExactlyOnceWith({expectedRevision:3,preferences:{relays:[relay],relayOnly:true,autoNatPeers:[verifier],lanDiscovery:false,dhtServer:false}});
     expect(screen.getByText('Relay: 0 of 1')).toBeVisible();
     expect(screen.queryByText('Address verified')).not.toBeInTheDocument();
     expect(save()).toBeDisabled();
   });
   it('retains the exact save intent after a lost reply even if status reports a newer revision',async()=>{
-    const api=client();const user=userEvent.setup();const committed=settings();committed.revision=4;committed.preferences={relays:[relay],relayOnly:true,autoNatPeers:[verifier],bootstrapPeers:[],lanDiscovery:false,dhtServer:false};
+    const api=client();const user=userEvent.setup();const committed=settings();committed.revision=4;committed.preferences={relays:[relay],relayOnly:true,autoNatPeers:[verifier],lanDiscovery:false,dhtServer:false};
     api.configureNetwork.mockRejectedValueOnce(new Error('The core reply was lost')).mockResolvedValueOnce(committed);
     render(<NetworkPanel api={api} onBack={()=>{}}/>);await edit(user);await user.click(save());
     expect(await screen.findByRole('alert')).toHaveTextContent('The core reply was lost');
@@ -99,7 +99,7 @@ describe('network preferences for the owner',()=>{
   });
   it('updates diagnostics without replacing the form, and explicitly reloads after a stale conflict',async()=>{
     const api=client();const user=userEvent.setup();render(<NetworkPanel api={api} onBack={()=>{}}/>);await edit(user);
-    const newer=settings();newer.revision=5;newer.preferences={relays:[verifier],relayOnly:false,autoNatPeers:[],bootstrapPeers:[],lanDiscovery:false,dhtServer:false};newer.status.autoNat.status='public';newer.status.autoNat.publicAddress='/ip4/203.0.113.44/tcp/4200';
+    const newer=settings();newer.revision=5;newer.preferences={relays:[verifier],relayOnly:false,autoNatPeers:[],lanDiscovery:false,dhtServer:false};newer.status.autoNat.status='public';newer.status.autoNat.publicAddress='/ip4/203.0.113.44/tcp/4200';
     api.networkSettings.mockResolvedValue(newer);act(()=>api.update());
     expect(await screen.findByText('Address verified')).toBeVisible();
     expect(screen.getByRole('textbox',{name:'Relay providers'})).toHaveValue(relay);
@@ -172,11 +172,45 @@ it('bounds bootstrap entries and explains relay-only blocked hints without inven
   expect(save()).toBeDisabled();expect(screen.getByText('Give at most 4 addresses in each list.')).toBeVisible();
   expect(api.configureNetwork).not.toHaveBeenCalled();
   await user.clear(input);expect(save()).toBeEnabled();
-  const cleared={...initial,revision:4,preferences:{...initial.preferences,bootstrapPeers:[],lanDiscovery:false,dhtServer:false}};
+  const cleared={...initial,revision:4,preferences:{relays:[relay],relayOnly:true,autoNatPeers:[],lanDiscovery:false,dhtServer:false}};
   api.configureNetwork.mockResolvedValue(cleared);await user.click(save());await screen.findByRole('status');
-  expect(api.configureNetwork.mock.calls[0][0].preferences.bootstrapPeers).toEqual([]);expect(save()).toBeDisabled();
+  // An empty field gives the routes back to the network.
+  expect(api.configureNetwork.mock.calls[0][0].preferences).not.toHaveProperty('bootstrapPeers');expect(save()).toBeDisabled();
 });
 
+it('saves other settings over the network routes without naming them, and keeps named routes untouched',async()=>{
+  const api=client();const user=userEvent.setup();const initial=settings();initial.status.bootstrap.routes=[relay,verifier];
+  api.networkSettings.mockResolvedValue(initial);
+  render(<NetworkPanel api={api} onBack={()=>{}}/>);
+  const input=await screen.findByRole('textbox',{name:'Nodes to join the network'});
+  // The network's routes are shown, not put into the field as the owner's.
+  expect(input).toHaveValue('');expect(input).toHaveAttribute('placeholder',`${relay}\n${verifier}`);
+  await user.click(screen.getByRole('checkbox',{name:'Find nodes on the local network'}));
+  const lan=structuredClone(initial);lan.revision=4;lan.preferences.lanDiscovery=true;
+  api.configureNetwork.mockResolvedValueOnce(lan);await user.click(save());await screen.findByRole('status');
+  expect(api.configureNetwork.mock.calls[0][0]).toEqual({expectedRevision:3,preferences:{relays:[],relayOnly:false,autoNatPeers:[],lanDiscovery:true,dhtServer:false}});
+  expect(api.configureNetwork.mock.calls[0][0].preferences).not.toHaveProperty('bootstrapPeers');
+  await user.type(input,verifier);
+  const named=structuredClone(lan);named.revision=5;named.preferences.bootstrapPeers=[verifier];named.status.bootstrap.routes=[verifier];
+  api.configureNetwork.mockResolvedValueOnce(named);await user.click(save());
+  await waitFor(()=>expect(api.configureNetwork).toHaveBeenCalledTimes(2));
+  expect(api.configureNetwork.mock.calls[1][0]).toEqual({expectedRevision:4,preferences:{relays:[],relayOnly:false,autoNatPeers:[],bootstrapPeers:[verifier],lanDiscovery:true,dhtServer:false}});
+  await waitFor(()=>expect(save()).toBeDisabled());expect(input).toHaveValue(verifier);
+  await user.click(screen.getByRole('checkbox',{name:'Help the network find nodes'}));
+  api.configureNetwork.mockResolvedValueOnce({...named,revision:6,preferences:{...named.preferences,dhtServer:true}});await user.click(save());
+  await waitFor(()=>expect(api.configureNetwork).toHaveBeenCalledTimes(3));
+  expect(api.configureNetwork.mock.calls[2][0]).toEqual({expectedRevision:5,preferences:{relays:[],relayOnly:false,autoNatPeers:[],bootstrapPeers:[verifier],lanDiscovery:true,dhtServer:true}});
+});
+
+it('saves an empty field as the network routes, also over an empty list an earlier version saved',async()=>{
+  const api=client();const user=userEvent.setup();const initial=settings();initial.preferences.bootstrapPeers=[];
+  api.networkSettings.mockResolvedValue(initial);render(<NetworkPanel api={api} onBack={()=>{}}/>);
+  await user.click(await screen.findByRole('checkbox',{name:'Help the network find nodes'}));
+  api.configureNetwork.mockResolvedValue({...initial,revision:4,preferences:{...settings().preferences,dhtServer:true}});
+  await user.click(save());await screen.findByRole('status');
+  expect(api.configureNetwork.mock.calls[0][0]).toEqual({expectedRevision:3,preferences:{relays:[],relayOnly:false,autoNatPeers:[],lanDiscovery:false,dhtServer:true}});
+  expect(api.configureNetwork.mock.calls[0][0].preferences).not.toHaveProperty('bootstrapPeers');
+});
 
 it('requires an explicit LAN opt-in, preserves its retry across polling, and explains relay policy',async()=>{
   const api=client();const user=userEvent.setup();render(<NetworkPanel api={api} onBack={()=>{}}/>);

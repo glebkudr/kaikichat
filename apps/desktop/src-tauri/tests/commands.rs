@@ -483,7 +483,7 @@ async fn only_local_owner_can_inspect_and_change_live_network_preferences() {
     assert_eq!(initial["revision"], 0);
     assert_eq!(
         initial["preferences"],
-        json!({"relays":[],"relayOnly":false,"autoNatPeers":[],"bootstrapPeers":[],"lanDiscovery":false,"dhtServer":false})
+        json!({"relays":[],"relayOnly":false,"autoNatPeers":[],"lanDiscovery":false,"dhtServer":false})
     );
     assert_eq!(initial["status"]["routing"]["mode"], "client");
     let other = tauri::WebviewWindowBuilder::new(

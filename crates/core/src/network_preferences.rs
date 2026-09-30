@@ -9,8 +9,11 @@ pub struct NetworkPreferences {
     pub relays: Vec<String>,
     pub relay_only: bool,
     pub auto_nat_peers: Vec<String>,
-    #[serde(default)]
-    pub bootstrap_peers: Vec<String>,
+    /// Routes the owner named; none takes the daemon's `--bootstrap` flags
+    /// (the network preset's). Kept without the key then, which an older
+    /// daemon on the same profile reads as no routes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bootstrap_peers: Option<Vec<String>>,
     #[serde(default)]
     pub lan_discovery: bool,
     #[serde(default)]
@@ -18,16 +21,17 @@ pub struct NetworkPreferences {
 }
 impl NetworkPreferences {
     fn validate(&self) -> Result<(), CoreError> {
+        let bootstrap = self.bootstrap_peers.as_deref().unwrap_or_default();
         if self.relays.len() > 4
             || self.auto_nat_peers.len() > 4
-            || self.bootstrap_peers.len() > 4
+            || bootstrap.len() > 4
             || (self.relay_only && self.relays.is_empty())
         {
             return Err(CoreError::InvalidInput);
         }
         valid_addresses(&self.relays)?;
         valid_addresses(&self.auto_nat_peers)?;
-        valid_addresses(&self.bootstrap_peers)
+        valid_addresses(bootstrap)
     }
 }
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]

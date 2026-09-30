@@ -222,6 +222,9 @@ struct Runtime {
     transport_key: identity::Keypair,
     preferences: NetworkPreferences,
     network_revision: u64,
+    /// The `--bootstrap` flags: the network's routes, used while the owner
+    /// names none in `preferences`.
+    network_routes: Vec<String>,
     listen_specs: Vec<Multiaddr>,
     listen_ids: HashMap<ListenerId, usize>,
     listen_retry: Instant,
@@ -314,11 +317,10 @@ pub async fn run(mut config: NodeConfig) -> Result<()> {
     let core = AppCore::new(store, NETWORK_DOMAIN)?;
     let saved = core.network_preferences()?;
     let network_revision = saved.as_ref().map_or(0, |saved| saved.revision);
-    if let Some(saved) = saved {
-        config.relays = saved.preferences.relays;
+    if let Some(saved) = &saved {
+        config.relays = saved.preferences.relays.clone();
         config.relay_only = saved.preferences.relay_only;
-        config.autonat_peers = saved.preferences.auto_nat_peers;
-        config.bootstrap = saved.preferences.bootstrap_peers;
+        config.autonat_peers = saved.preferences.auto_nat_peers.clone();
         config.lan_discovery = saved.preferences.lan_discovery;
         config.dht_server = saved.preferences.dht_server;
     }
@@ -326,11 +328,20 @@ pub async fn run(mut config: NodeConfig) -> Result<()> {
         relays: config.relays.clone(),
         relay_only: config.relay_only,
         auto_nat_peers: config.autonat_peers.clone(),
-        bootstrap_peers: config.bootstrap.clone(),
+        bootstrap_peers: saved.and_then(|saved| saved.preferences.bootstrap_peers),
         lan_discovery: config.lan_discovery,
         dht_server: config.dht_server,
     };
-    let discovery = Discovery::new(&config.bootstrap, key.public().to_peer_id())?;
+    // The `--bootstrap` flags are the network's routes: they apply while the
+    // owner names none.
+    let network_routes = std::mem::take(&mut config.bootstrap);
+    let discovery = Discovery::new(
+        preferences
+            .bootstrap_peers
+            .as_deref()
+            .unwrap_or(&network_routes),
+        key.public().to_peer_id(),
+    )?;
     let public_routes = public_routes(&config.public_addresses, key.public().to_peer_id())?;
     let relays = RelayReservation::validate(&config.relays, config.relay_only)?;
     let nat = NatStatus::new(key.public().to_peer_id(), &config)?;
@@ -378,6 +389,7 @@ pub async fn run(mut config: NodeConfig) -> Result<()> {
         transport_key: key,
         preferences,
         network_revision,
+        network_routes,
         listen_specs,
         listen_ids,
         listen_retry: clock::instant(),

@@ -119,7 +119,7 @@ export async function nativeNetworkScenario({Client,until,nodeBinary,temporary,s
         const settings=await client.invoke('network_settings');
         return settings.status.relayRoutes.length===1&&settings.status.autoNat.status==='public'?settings:null;
       });
-      assert.equal(ready.revision,client===a?2:1);assert.deepEqual(ready.preferences,{relays:[relay.route],relayOnly:true,autoNatPeers:[relay.route],bootstrapPeers:client===a?[relay.route]:[],lanDiscovery:true,dhtServer:false});
+      assert.equal(ready.revision,client===a?2:1);assert.deepEqual(ready.preferences,{relays:[relay.route],relayOnly:true,autoNatPeers:[relay.route],...(client===a?{bootstrapPeers:[relay.route]}:{}),lanDiscovery:true,dhtServer:false});
       assert.deepEqual(ready.status.lanDiscovery,{enabled:true,active:false,blockedByPolicy:true,peers:[]});
       assert.equal(ready.status.holePunchEnabled,false);
       assert.deepEqual(ready.status.advertisedAddresses,ready.status.relayRoutes);

@@ -77,12 +77,12 @@ export type RuntimeInfo = Omit<ProvisionRuntimeRequest,'operationId'> & {grantId
 export type RuntimeCommand = {command:string;args:string[]};
 export type RuntimeSetup = {runtime:RuntimeInfo;credentialsPath:string;mcpConfig:{mcpServers:Record<string,RuntimeCommand>};cliConfig:RuntimeCommand};
 
-export type NetworkPreferences = {relays:string[];relayOnly:boolean;autoNatPeers:string[];bootstrapPeers:string[];lanDiscovery:boolean;dhtServer:boolean};
+export type NetworkPreferences = {relays:string[];relayOnly:boolean;autoNatPeers:string[];bootstrapPeers?:string[];lanDiscovery:boolean;dhtServer:boolean};
 export type NetworkSettings = {revision:number;preferences:NetworkPreferences;status:{
   peerId:string;listeners:string[];relayRoutes:string[];advertisedAddresses:string[];
   routing:{enabled:boolean;mode:'client'|'server'|'disabled';blockedByPolicy:boolean};
   lanDiscovery:{enabled:boolean;active:boolean;blockedByPolicy:boolean;peers:string[]};connectedPeers:number;holePunchEnabled:boolean;listening:boolean;
-  bootstrap:{state:'connected'|'bootstrap-needed';action:string;networkDomain:string;verifiedPeers:{peerId:string;rootId:string}[];candidateHints:number;cachedHints:number;policyBlockedHints:number;inFlight:number;failedAttempts:number;rejectedRecords:number;rateLimitedRequests:number};
+  bootstrap:{state:'connected'|'bootstrap-needed';action:string;routes:string[];networkDomain:string;verifiedPeers:{peerId:string;rootId:string}[];candidateHints:number;cachedHints:number;policyBlockedHints:number;inFlight:number;failedAttempts:number;rejectedRecords:number;rateLimitedRequests:number};
   autoNat:{status:'unknown'|'public'|'private';publicAddress:string|null;serverEnabled:boolean;probeIntervalSeconds:number;configuredPeers:string[];successfulProbes:number;failedProbes:number;refusedProbes:number;inboundProbes:number;deniedProbes:number};
 }};
 

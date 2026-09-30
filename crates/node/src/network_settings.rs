@@ -110,7 +110,11 @@ impl Runtime {
             .map_err(invalid)?;
         let relay_server = self.relay_server.recreated();
         let discovery = Discovery::new(
-            &input.preferences.bootstrap_peers,
+            input
+                .preferences
+                .bootstrap_peers
+                .as_deref()
+                .unwrap_or(&self.network_routes),
             *self.swarm.local_peer_id(),
         )
         .map_err(invalid)?;

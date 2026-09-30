@@ -19,7 +19,7 @@ export function NetworkPanel({api,onBack,embedded=false}:{api:DesktopApi;onBack:
   const adopt=useCallback((value:NetworkSettings)=>{
     baselineRef.current=value;setBaseline(value);
     setRelays(value.preferences.relays.join('\n'));setVerifiers(value.preferences.autoNatPeers.join('\n'));
-    setBootstrap(value.preferences.bootstrapPeers.join('\n'));
+    setBootstrap((value.preferences.bootstrapPeers??[]).join('\n'));
     setLanDiscovery(value.preferences.lanDiscovery);
     setDhtServer(value.preferences.dhtServer);
     setRelayOnly(value.preferences.relayOnly);
@@ -42,8 +42,10 @@ export function NetworkPanel({api,onBack,embedded=false}:{api:DesktopApi;onBack:
     const timer=setInterval(()=>void load(),1500);
     return()=>{mounted.current=false;++generation.current;clearInterval(timer);stop();};
   },[api,load]);
-  const preferences:NetworkPreferences={relays:addresses(relays),relayOnly,autoNatPeers:addresses(verifiers),bootstrapPeers:addresses(bootstrap),lanDiscovery,dhtServer};
-  const tooMany=preferences.relays.length>4||preferences.autoNatPeers.length>4||preferences.bootstrapPeers.length>4;
+  // An empty field leaves the routes to the network: the node takes its preset's.
+  const bootstrapPeers=addresses(bootstrap);
+  const preferences:NetworkPreferences={relays:addresses(relays),relayOnly,autoNatPeers:addresses(verifiers),...(bootstrapPeers.length?{bootstrapPeers}:{}),lanDiscovery,dhtServer};
+  const tooMany=preferences.relays.length>4||preferences.autoNatPeers.length>4||bootstrapPeers.length>4;
   const missingRelay=relayOnly&&preferences.relays.length===0;
   const changed=Boolean(baseline&&(
     preferences.lanDiscovery!==baseline.preferences.lanDiscovery||
@@ -51,7 +53,7 @@ export function NetworkPanel({api,onBack,embedded=false}:{api:DesktopApi;onBack:
     preferences.relayOnly!==baseline.preferences.relayOnly||
     preferences.relays.join('\n')!==baseline.preferences.relays.join('\n')||
     preferences.autoNatPeers.join('\n')!==baseline.preferences.autoNatPeers.join('\n')||
-    preferences.bootstrapPeers.join('\n')!==baseline.preferences.bootstrapPeers.join('\n')
+    bootstrapPeers.join('\n')!==(baseline.preferences.bootstrapPeers??[]).join('\n')
   ));
   async function save() {
     if(!baseline||busy||!changed||tooMany||missingRelay)return;
@@ -79,11 +81,11 @@ export function NetworkPanel({api,onBack,embedded=false}:{api:DesktopApi;onBack:
         <p className="network-help">{t.network.dhtHelp}</p>
         <label className="check-row" htmlFor="network-lan"><input id="network-lan" type="checkbox" checked={lanDiscovery} disabled={busy} onChange={e=>{setLanDiscovery(e.target.checked);setNotice('');}}/>{t.network.lan}</label>
         <p className="network-help">{t.network.lanHelp}</p>
-        <label htmlFor="network-bootstrap">{t.network.bootstrap}<textarea id="network-bootstrap" aria-label={t.network.bootstrap} value={bootstrap} disabled={busy} onChange={e=>{setBootstrap(e.target.value);setNotice('');}} rows={3} maxLength={1100} spellCheck={false} aria-describedby="network-bootstrap-help"/><small id="network-bootstrap-help">{t.network.bootstrapHelp}</small></label>
-        <label htmlFor="network-relays">{t.network.relays}<textarea id="network-relays" aria-label={t.network.relays} value={relays} disabled={busy} onChange={e=>{setRelays(e.target.value);setNotice('');}} rows={3} maxLength={1100} spellCheck={false} aria-describedby="network-relays-help"/><small id="network-relays-help">{t.network.relaysHelp}</small></label>
+        <label htmlFor="network-bootstrap">{t.network.bootstrap}<textarea id="network-bootstrap" aria-label={t.network.bootstrap} value={bootstrap} placeholder={observed?.status.bootstrap.routes.join('\n')} disabled={busy} onChange={e=>{setBootstrap(e.target.value);setNotice('');}} rows={3} maxLength={1100} spellCheck={false} dir="ltr" aria-describedby="network-bootstrap-help"/><small id="network-bootstrap-help">{t.network.bootstrapHelp}</small></label>
+        <label htmlFor="network-relays">{t.network.relays}<textarea id="network-relays" aria-label={t.network.relays} value={relays} disabled={busy} onChange={e=>{setRelays(e.target.value);setNotice('');}} rows={3} maxLength={1100} spellCheck={false} dir="ltr" aria-describedby="network-relays-help"/><small id="network-relays-help">{t.network.relaysHelp}</small></label>
         <label className="check-row" htmlFor="network-relay-only"><input id="network-relay-only" type="checkbox" checked={relayOnly} disabled={busy} onChange={e=>{setRelayOnly(e.target.checked);setNotice('');}}/>{t.network.relayOnly}</label>
         <p className="network-help">{t.network.relayOnlyHelp}</p>
-        <label htmlFor="network-verifiers">{t.network.verifiers}<textarea id="network-verifiers" aria-label={t.network.verifiers} value={verifiers} disabled={busy} onChange={e=>{setVerifiers(e.target.value);setNotice('');}} rows={3} maxLength={1100} spellCheck={false} aria-describedby="network-verifiers-help"/><small id="network-verifiers-help">{t.network.verifiersHelp}</small></label>
+        <label htmlFor="network-verifiers">{t.network.verifiers}<textarea id="network-verifiers" aria-label={t.network.verifiers} value={verifiers} disabled={busy} onChange={e=>{setVerifiers(e.target.value);setNotice('');}} rows={3} maxLength={1100} spellCheck={false} dir="ltr" aria-describedby="network-verifiers-help"/><small id="network-verifiers-help">{t.network.verifiersHelp}</small></label>
         {tooMany&&<p className="network-validation">{t.network.tooMany}</p>}
         {missingRelay&&<p className="network-validation">{t.network.needsRelay}</p>}
         {observed&&observed.revision!==baseline.revision&&<p className="network-validation">{t.network.changedElsewhere}</p>}

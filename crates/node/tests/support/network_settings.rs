@@ -67,7 +67,7 @@ fn owner_network_settings_apply_real_relay_and_autonat_then_survive_daemon_resta
     let original = a.call("node_info", json!({}));
     assert_eq!(
         core_settings(&a),
-        json!({"revision":0,"preferences":{"relays":[],"relayOnly":false,"autoNatPeers":[],"bootstrapPeers":[],"lanDiscovery":false,"dhtServer":false}})
+        json!({"revision":0,"preferences":{"relays":[],"relayOnly":false,"autoNatPeers":[],"lanDiscovery":false,"dhtServer":false}})
     );
     let prefs = preferences(&provider, true, true);
     for node in [&a, &b] {

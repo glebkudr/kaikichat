@@ -2,6 +2,7 @@
 //! starts, stops and restarts the daemon from its own secrets file, creates
 //! the identity, and two profiles talk through it. Secrets live in the
 //! password-sealed file, never the system keychain.
+use super::bootstrap::RecordPeer;
 use super::*;
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -371,14 +372,15 @@ impl PresetServer {
     /// Serves the network `network` at `serial`: one route to a peer that
     /// is not there, and the identity server `identity`.
     fn serve(&self, network: &str, serial: u64, identity: &str) {
-        let peer = libp2p::identity::Keypair::generate_ed25519()
-            .public()
-            .to_peer_id();
+        self.serve_routes(network, serial, identity, &[&nobody()]);
+    }
+    /// Serves the network `network` at `serial` with the bootstrap `routes`.
+    fn serve_routes(&self, network: &str, serial: u64, identity: &str, routes: &[&str]) {
         let preset = json!({
             "network": network,
             "name": format!("Network {network}"),
             "serial": serial,
-            "bootstrap": [format!("/ip4/127.0.0.1/tcp/9/p2p/{peer}")],
+            "bootstrap": routes,
             "identityServer": identity,
         });
         *self.body.lock().unwrap() =
@@ -603,6 +605,105 @@ fn an_owner_turns_local_discovery_on_and_off_and_keeps_the_other_network_setting
             .is_some_and(|text| text.contains("kaiki network lan on")),
         "the skill lacks `kaiki network lan on`"
     );
+}
+
+/// Whether the daemon asked `peer` for its node record: it dialed that
+/// bootstrap route.
+fn dialed(peer: &RecordPeer) -> bool {
+    !peer.requests.lock().unwrap().is_empty()
+}
+
+/// The profile's network preferences with the bootstrap `routes` the owner
+/// names (none: the key left out, as the window saves an empty field),
+/// saved over the owner IPC as the window's settings panel saves them.
+fn window_routes(owner: &Owner, routes: Option<Value>) -> Value {
+    let settings = window_call(owner, "network_settings", json!({}));
+    let mut preferences = settings["preferences"].clone();
+    match routes {
+        Some(routes) => preferences["bootstrapPeers"] = routes,
+        None => {
+            preferences
+                .as_object_mut()
+                .unwrap()
+                .remove("bootstrapPeers");
+        }
+    }
+    window_call(
+        owner,
+        "configure_network",
+        json!({"expectedRevision": settings["revision"], "preferences": preferences}),
+    )
+}
+
+/// Saving a network setting that is not about routes (here local
+/// discovery, spec/owner-cli-v1.md) keeps a profile on its network's
+/// bootstrap routes: the daemon dials the route a newer preset gives.
+/// Routes the owner names in the window replace the network's until the
+/// owner clears them.
+#[test]
+fn saved_network_settings_keep_the_presets_routes_until_the_owner_names_others() {
+    let server = PresetServer::start();
+    let identity = closed_identity_server();
+    let first = RecordPeer::start(6);
+    server.serve_routes("net-a", 1, &identity, &[&first.address]);
+    let alice = server.owner();
+    // Loopback only: local discovery announces nothing on the real network.
+    alice.start();
+    wait("the preset's route is dialed", || dialed(&first));
+
+    assert_eq!(alice.ok(&["network", "lan", "on"], None)["enabled"], true);
+    let settings = window_call(&alice, "network_settings", json!({}));
+    assert_eq!(settings["revision"], 1, "{settings}");
+    assert!(
+        settings["preferences"].get("bootstrapPeers").is_none(),
+        "the network's routes are not saved as the owner's: {settings}"
+    );
+    assert_eq!(
+        settings["status"]["bootstrap"]["routes"],
+        json!([first.address]),
+        "{settings}"
+    );
+
+    // The network moves its route: a fresh look at the preset reaches the new one.
+    let second = RecordPeer::start(6);
+    server.serve_routes("net-a", 2, &identity, &[&second.address]);
+    alice.ok(&["network", "refresh"], None);
+    wait("the newer preset's route is dialed", || dialed(&second));
+    let lan = alice.ok(&["network", "lan"], None);
+    assert_eq!(
+        (&lan["enabled"], &lan["active"]),
+        (&json!(true), &json!(true)),
+        "{lan}"
+    );
+
+    // A route the owner names replaces the network's, also for a daemon
+    // started again with a newer preset's route.
+    let own = RecordPeer::start(6);
+    let named = window_routes(&alice, Some(json!([own.address])));
+    assert_eq!(named["preferences"]["bootstrapPeers"], json!([own.address]));
+    wait("the owner's route is dialed", || dialed(&own));
+    let third = RecordPeer::start(6);
+    server.serve_routes("net-a", 3, &identity, &[&third.address]);
+    alice.ok(&["network", "refresh"], None);
+    daemon_with(&alice, &format!("--bootstrap {}", third.address));
+    let settings = window_call(&alice, "network_settings", json!({}));
+    assert_eq!(
+        settings["status"]["bootstrap"]["routes"],
+        json!([own.address]),
+        "{settings}"
+    );
+
+    // Cleared, the running daemon takes the network's route again.
+    let cleared = window_routes(&alice, None);
+    assert!(
+        cleared["preferences"].get("bootstrapPeers").is_none(),
+        "{cleared}"
+    );
+    assert_eq!(
+        cleared["status"]["bootstrap"]["routes"],
+        json!([third.address])
+    );
+    wait("the network's route is dialed again", || dialed(&third));
 }
 
 /// A closed port: a node told to use it as its identity server keeps asking.

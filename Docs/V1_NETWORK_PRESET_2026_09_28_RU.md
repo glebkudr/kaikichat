@@ -154,10 +154,25 @@ All fields flow from the preset into the daemon flags. The daemon accepts no
 more than 4 bootstrap nodes, so on every start the client takes 4 random ones
 from the list, spreading the load across all nodes.
 
-Limitation: if the owner saved network settings in Settings (relay, bootstrap
-nodes, etc.), the node takes bootstrap nodes from there, not from the flags.
-This is how the node works today. For such a profile, node updates in the
-preset have no effect until the settings are reset.
+### Bootstrap routes and saved settings
+
+Saved network settings (Settings → Network, `kaiki network lan`) override
+the daemon's flags, but the bootstrap routes only when the owner named them:
+
+- The "Nodes to join the network" field is empty by default and shows the
+  routes in use in grey. The node then takes the `--bootstrap` flags of
+  this start, so after saving LAN discovery, the DHT role or relays a
+  profile still gets the routes of a newer preset and of a network it
+  switches to.
+- Addresses the owner types there replace the preset's routes, across
+  restarts and network switches, until the field is cleared. Any save with
+  the field empty returns the profile to the network's routes.
+- In the node's saved settings, following the flags is the absent
+  `bootstrapPeers` key (`null` in a request); `status.bootstrap.routes` of
+  `network_settings` shows the routes in use.
+- Settings saved by an earlier version keep the routes it saved (it saved
+  the routes shown with any setting) until the owner clears the field in
+  the window; `kaiki network lan` keeps them as it reads them.
 
 ## Network switch
 
@@ -381,8 +396,6 @@ on the production network right away; existing ones get an offer to switch.
   daemon start and via the button (releases are checked more often, see
   "Releases and updates").
 - Moving profile data between networks.
-- Separating "from preset" and "from Settings" bootstrap nodes in the node's
-  saved network settings.
 - A backup signing key and key revocation.
 
 ## Verification plan
@@ -396,7 +409,11 @@ on the production network right away; existing ones get an offer to switch.
   preset, and without one saved — `unavailable`; 4 distinct nodes are taken
   from the node list.
 - CLI as processes: `init` on an empty profile starts the daemon with the
-  preset flags; `kaiki network`, `refresh`, `switch`.
+  preset flags; `kaiki network`, `refresh`, `switch`; after `kaiki network
+  lan on` the daemon dials the route of a newer preset, and a route named
+  in the window replaces it until it is cleared
+  (`owner_cli.rs`,
+  `saved_network_settings_keep_the_presets_routes_until_the_owner_names_others`).
 - Window: the `network_preset` and `refresh_network` commands on a live
   daemon; banners and the Settings line in all 20 languages, screenshots.
 - The real `network.json` on kaikichat.com is verified with

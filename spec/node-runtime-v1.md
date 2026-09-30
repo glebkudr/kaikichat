@@ -18,8 +18,15 @@ desktop window and the scoped agent clients are its clients
   server, chain, identity server, directory. `kaiki daemon start` saves the
   listen, bootstrap, chain, identity-server and directory flags in
   `daemon.json`. Once the owner saves network preferences, they override the
-  flags for relays, relay-only, AutoNAT peers, bootstrap peers, LAN
-  discovery and the DHT role. The default listener is
+  flags for relays, relay-only, AutoNAT peers, LAN discovery and the DHT
+  role, and for bootstrap peers only when the owner named them:
+  preferences without `bootstrapPeers` (the key absent, or `null` in
+  `configure_network`) take the `--bootstrap` flags of this start, for a
+  profile that follows the network preset the preset's routes; a list,
+  `[]` included, replaces them. Such preferences are stored without the
+  key, which an older daemon on the same profile reads as no routes.
+  `network_settings.status.bootstrap.routes` (also in `node_info`) shows the
+  routes in use. The default listener is
   `/ip4/0.0.0.0/udp/0/quic-v1`; TCP with Noise and Yamux is supported too.
 - The secrets come as one JSON line of at most 4096 bytes on an anonymous
   stdin pipe, `{"masterKey", "ownerToken"}`, each 32 bytes in hex: the

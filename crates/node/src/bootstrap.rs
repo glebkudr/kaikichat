@@ -92,7 +92,14 @@ impl Runtime {
             .filter(|(peer, record)| record.expires_at > now && self.swarm.is_connected(peer))
             .map(|(_, record)| record)
             .collect();
+        // The routes in use: the owner's, else the network's.
+        let routes = self
+            .preferences
+            .bootstrap_peers
+            .as_ref()
+            .unwrap_or(&self.network_routes);
         json!({"state":if peers.is_empty() {"bootstrap-needed"} else {"connected"},
+            "routes":routes,
             "action":if peers.is_empty() {"Provide a reachable independent peer with --bootstrap <multiaddr>, or import a current contact invitation; unavailable hints retry automatically."} else {""},
             "networkDomain":hex::encode(NETWORK_DOMAIN),"verifiedPeers":peers,
             "candidateHints":self.discovery.schedule.len(),"cachedHints":self.discovery.cached,

@@ -16,10 +16,10 @@ fn preferences() -> NetworkPreferences {
             "/ip4/198.18.0.3/tcp/4001/p2p/12D3KooWFEdt8F5ncpmnTzgDhSRJDN9xvHT3DckF9zzRAU74Cmn1"
                 .into(),
         ],
-        bootstrap_peers: vec![
+        bootstrap_peers: Some(vec![
             "/ip4/198.18.0.4/tcp/4001/p2p/12D3KooWFEdt8F5ncpmnTzgDhSRJDN9xvHT3DckF9zzRAU74Cmn1"
                 .into(),
-        ],
+        ]),
     }
 }
 pub(super) fn snapshot(core: &AppCore) -> serde_json::Value {
@@ -107,7 +107,7 @@ fn stale_network_form_and_scoped_agent_cannot_replace_owner_preferences() {
         relays: vec![],
         relay_only: false,
         auto_nat_peers: vec![],
-        bootstrap_peers: vec![],
+        bootstrap_peers: Some(vec![]),
     };
     assert!(matches!(
         alice.save_network_preferences(direct.clone(), 0),
@@ -173,7 +173,7 @@ fn network_preference_storage_failure_keeps_saved_config_and_original_message_re
     let changed = NetworkPreferences {
         lan_discovery: false,
         relay_only: false,
-        bootstrap_peers: vec![],
+        bootstrap_peers: Some(vec![]),
         ..preferences()
     };
     assert!(alice.save_network_preferences(changed.clone(), 1).is_err());
@@ -214,11 +214,12 @@ fn legacy_network_preferences_load_without_rewrite_and_can_add_bootstrap_hints()
     let mut core = AppCore::new(store, DOMAIN).unwrap();
     let saved = core.network_preferences().unwrap().unwrap();
     assert_eq!(saved.revision, 1);
-    assert!(saved.preferences.bootstrap_peers.is_empty());
+    // Saved before bootstrap routes were a preference: the daemon's flags give them.
+    assert_eq!(saved.preferences.bootstrap_peers, None);
     assert!(!saved.preferences.lan_discovery);
     assert_eq!(
         serde_json::to_value(&saved.preferences).unwrap(),
-        json!({"relays":[],"relayOnly":false,"autoNatPeers":[],"bootstrapPeers":[],"lanDiscovery":false,"dhtServer":false})
+        json!({"relays":[],"relayOnly":false,"autoNatPeers":[],"lanDiscovery":false,"dhtServer":false})
     );
     assert_eq!(
         core.save_network_preferences(saved.preferences.clone(), 0)
@@ -259,7 +260,7 @@ fn bootstrap_preferences_reject_excess_or_unbounded_input_before_mutating_profil
     let mut core = profile(&root, "Owner");
     let first = core.save_network_preferences(preferences(), 0).unwrap();
     let before = snapshot(&core);
-    let valid = preferences().bootstrap_peers[0].clone();
+    let valid = preferences().bootstrap_peers.unwrap()[0].clone();
     for addresses in [
         vec![valid; 5],
         vec![String::new()],
@@ -267,7 +268,7 @@ fn bootstrap_preferences_reject_excess_or_unbounded_input_before_mutating_profil
         vec!["/ip4/127.0.0.1\n/tcp/4001".into()],
     ] {
         let mut bad = preferences();
-        bad.bootstrap_peers = addresses;
+        bad.bootstrap_peers = Some(addresses);
         assert!(matches!(
             core.save_network_preferences(bad, 1),
             Err(agentic_core::CoreError::InvalidInput)
@@ -293,7 +294,7 @@ fn lan_discovery_opt_in_alone_is_persistent_idempotent_and_can_be_disabled() {
     wanted.relay_only = false;
     wanted.relays.clear();
     wanted.auto_nat_peers.clear();
-    wanted.bootstrap_peers.clear();
+    wanted.bootstrap_peers = None;
     wanted.lan_discovery = false;
     let initial = core.save_network_preferences(wanted.clone(), 0).unwrap();
     wanted.lan_discovery = true;
@@ -337,4 +338,58 @@ fn lan_discovery_opt_in_alone_is_persistent_idempotent_and_can_be_disabled() {
     .unwrap();
     assert_eq!(core.network_preferences().unwrap().unwrap(), disabled);
     assert_eq!(snapshot(&core), before);
+}
+
+/// Bootstrap routes the owner never named follow the daemon's `--bootstrap`
+/// flags (the network preset's): such preferences are stored without the
+/// key, which an older daemon on the same profile still reads, while routes
+/// the owner named, none included, are kept as named.
+#[test]
+fn unnamed_bootstrap_routes_are_stored_apart_from_routes_the_owner_named() {
+    let root = TempDir::new().unwrap();
+    let mut core = profile(&root, "Owner");
+    let before = snapshot(&core);
+    let stored = |root: &TempDir| -> serde_json::Value {
+        let store = ProfileStore::open(root.path().join("profile.db"), &KEY).unwrap();
+        serde_json::from_slice(&store.state("network/preferences").unwrap().unwrap().bytes).unwrap()
+    };
+    let mut network = preferences();
+    network.relay_only = false;
+    network.bootstrap_peers = None;
+    let following = core.save_network_preferences(network.clone(), 0).unwrap();
+    assert_eq!(following.preferences, network);
+    drop(core);
+    let saved = stored(&root);
+    assert_eq!(saved["version"], 1);
+    assert!(
+        saved["preferences"].get("bootstrapPeers").is_none(),
+        "{saved}"
+    );
+    let mut core = AppCore::new(
+        ProfileStore::open(root.path().join("profile.db"), &KEY).unwrap(),
+        DOMAIN,
+    )
+    .unwrap();
+    assert_eq!(core.network_preferences().unwrap(), Some(following.clone()));
+
+    // No routes, named: a different preference that survives reopening.
+    let mut none = network.clone();
+    none.bootstrap_peers = Some(vec![]);
+    let named = core.save_network_preferences(none.clone(), 1).unwrap();
+    assert_eq!(named.revision, 2);
+    drop(core);
+    assert_eq!(stored(&root)["preferences"]["bootstrapPeers"], json!([]));
+    let mut core = AppCore::new(
+        ProfileStore::open(root.path().join("profile.db"), &KEY).unwrap(),
+        DOMAIN,
+    )
+    .unwrap();
+    assert_eq!(core.network_preferences().unwrap(), Some(named));
+
+    // Cleared again: back to the flags.
+    let cleared = core.save_network_preferences(network.clone(), 2).unwrap();
+    assert_eq!((cleared.revision, &cleared.preferences), (3, &network));
+    assert_eq!(snapshot(&core), before);
+    drop(core);
+    assert!(stored(&root)["preferences"].get("bootstrapPeers").is_none());
 }

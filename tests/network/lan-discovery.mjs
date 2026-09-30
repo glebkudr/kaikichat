@@ -38,7 +38,7 @@ export async function lanDiscoveryCase({network,container,start,fixture,call,inf
   assert.equal(found.bootstrap.verifiedPeers.find(p=>p.peerId===b.peer).rootId,(await snapshot(b)).identity.networkId);
   assert.deepEqual((await snapshot(a)).conversations,[]);
   assert.deepEqual((await snapshot(b)).conversations,[]);
-  assert.deepEqual((await call(a,'network_settings')).preferences.bootstrapPeers,[]);
+  assert.deepEqual((await call(a,'network_settings')).status.bootstrap.routes,[]);
   assert.ok((await fixture(a,'lan_sockets')).count>0);
   assert.equal((await fixture(silent,'lan_sockets')).count,0);
   assert.deepEqual((await info(silent)).bootstrap.verifiedPeers,[]);
