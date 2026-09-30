@@ -232,7 +232,7 @@ on a local chain ([evidence](evidence/reviews/mailbox-swarm-native-2026-09-27/))
 
 ## Since phase B (2026-09-28)
 
-- **Access by book** ([spec](spec/discovery-v1.md)): a holder serves only
+- **Access by book** ([spec](spec/access-by-book-v1.md)): a holder serves only
   units and peers that showed a pass signed daily by an active book's key
   (bought, or a grant within the `GrantIssuer` rules); 30 requests/s per
   book at each holder, a fair share between books under load, a separate

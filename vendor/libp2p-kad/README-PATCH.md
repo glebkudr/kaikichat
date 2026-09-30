@@ -28,15 +28,27 @@ Provenance:
   .cargo_vcs_info.json were copied from the existing registry source. Registry
   cache markers and the crate's independent Cargo.lock were not copied.
 
-The project regression lives in
-`crates/node/src/service_throughput_tests.rs`:
-`kad_resets_release_slots_and_same_connection_recovers_after_admission_window`.
-It uses the real handler, TCP/Noise/Yamux, normal admission and signed records;
-the test observer controls only when Reset is delivered. It is run as an
-`agentic-node` test, with the workspace's existing test dependencies.
+## Status (2026-09-30)
 
-See `Docs/kad-reset-verification.md` for commands, acceptance criteria and
-follow-up work. The patch has not been compiled or tested in the authoring task
-because the user requested instructions only for execution. Remove this vendor
-patch only after an upstream release contains the fix and the same regression,
-unchanged A04 and H11 pass with that release.
+The patch is in use: the node answers every Kad request it does not serve
+with Reset — FIND_NODE with a key over 64 bytes or over the lookup
+admission, and every GET_RECORD, PUT_RECORD and GET_PROVIDERS
+(`crates/node/src/routing.rs`, [spec/dht-roles-v1.md](../../spec/dht-roles-v1.md)).
+Without the wake, 32 such refusals on one connection would keep all its
+inbound slots.
+
+It is not covered by a test. Its regression test,
+`kad_resets_release_slots_and_same_connection_recovers_after_admission_window`,
+read signed service records; it was deleted with them on 2026-09-26, before
+this repository's first commit, and no record shows it was ever run. The
+native A04/H11 scenarios of the old verification plan are gone too.
+
+Before relying on the patch or removing it:
+
+1. Add a regression test on today's routing: more than 32 refused requests on
+   one real TCP/Noise/Yamux connection, then a lookup on the same connection
+   is still answered once the admission window refreshes. Check that it
+   fails without the `waker.wake()` call in `InboundSubstreamState::close`.
+2. Report the bug upstream with that minimal reproducer.
+3. Remove this vendor patch only after an upstream release contains the fix
+   and passes the same test.

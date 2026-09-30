@@ -1,17 +1,17 @@
 # Signed application document, V1
 
-Status: F02 first implementation slice, tests before code. This defines the shared signature wrapper, not all domain schemas or full F02 completion.
+The shared signature wrapper of every application document (`crates/protocol-types`). Body schemas belong to their consumers: [application-core-v1.md](../application-core-v1.md), [groups-v1.md](../groups-v1.md), [discovery-v1.md](../discovery-v1.md), [agent-grants-v1.md](../agent-grants-v1.md).
 
 The application document is a definite CBOR array `[unsigned_bytes, signature_bytes]`. `unsigned_bytes` is the exact deterministic CBOR encoding of a nine-element array:
 
 1. Network/genesis domain: 32-byte byte string.
 2. Protocol version: unsigned integer, 1.
-3. Kind: unsigned integer (Identity=1, Invitation=2, Message=3, GroupControl=4, Credential=5, ServiceCard=6, Job=7, Review=8, Resource=9, GroupRoster=10, GroupCommit=11, PublicPost=12, PublicRoster=13, Directory=14, Part=15, GroupDoor=16, GroupMember=17, ChannelKeys=18, ChannelSubscriber=19).
+3. Kind: unsigned integer (Identity=1, Invitation=2, Message=3, GroupControl=4, GroupRoster=10, GroupCommit=11, PublicPost=12, PublicRoster=13, Directory=14, Part=15, GroupDoor=16, GroupMember=17, ChannelKeys=18, ChannelSubscriber=19). Credential=5, ServiceCard=6, Review=8 and Resource=9 still decode but no current code signs or reads them; 7 (Job) is retired and, like any other number, rejected.
 4. Ed25519 author public key: 32-byte byte string.
 5. Authority epoch: unsigned u64.
 6. Issued-at: Unix seconds, unsigned u64.
 7. Expires-at: unsigned u64 or null. When present, strictly greater than issued-at.
-8. Application body: bytes, at most 49,152 bytes (a `Part`'s at most 65,344 bytes, so that it fills its envelope). Its own domain schema is a later layer.
+8. Application body: bytes, at most 49,152 bytes (a `Part`'s at most 65,344 bytes, so that it fills its envelope). Its schema is its kind's consumer's.
 9. Extensions: definite map from unsigned u16 to bytes. Keys are strictly increasing, unique. IDs 0..32767 are optional opaque extensions, preserved exactly. IDs 32768..65535 are critical, none are defined in this version and all are rejected. At most 16 extensions, each value at most 1024 bytes.
 
 All arrays/maps are definite; integer/length representations use the shortest RFC 8949 encoding. No trailing bytes, CBOR tags or alternate representations. The full document is at most 65,536 bytes. The decoder checks limits before allocation/expensive cryptography. A signed but noncanonical representation is rejected, not silently rewritten.

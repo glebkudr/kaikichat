@@ -1,17 +1,69 @@
-# Encrypted profile store: F04 / I01 slice
+# Encrypted profile store (V1)
 
-Implement real SQLCipher storage for a single local profile. The caller supplies a 32-byte master key. Acquisition of that key from OS credential storage is a later adapter; these tests do not validate keychain integration. The store must require SQLCipher, validate the key before schema writes, enable WAL + FULL synchronous mode + foreign keys, keep temporary pages in memory, and take a lifetime OS file lock per DB path. It must not save a plaintext copy of the master key.
+`ProfileStore` (`crates/store`) keeps one local profile in SQLCipher: its
+root key, versioned state, message history and outgoing work. The caller
+supplies the 32-byte master key (the daemon gets it on stdin,
+[node-runtime-v1.md](node-runtime-v1.md); the host keeps it in the keychain
+or a password-sealed file, [desktop-host-v1.md](desktop-host-v1.md)). Domain
+cryptography and authorization belong to its callers.
 
-The owner signing seed is generated from OS CSPRNG on first initialization inside the initialization transaction and stored encrypted. Public identity (`public_key`, `network_id`) survives reopen. `network_id` is `ain1` followed by lowercase hex SHA-256 of the Ed25519 public key. There is no OAuth-derived root. Signing is an internal application operation; it is not an exported UI/MCP unrestricted signing tool. Rust key material must not be exposed via Debug or logs.
+## Opening
 
-Store APIs expose immutable public identity, authenticated signed documents, opaque versioned state, ordered message records, and pending outgoing work. Domain cryptography/authorization are consumers' responsibility. SQLCipher storage of a test plaintext does not claim network E2EE.
+- SQLCipher is required and the key is checked by reading the existing pages
+  before any schema or journal write, so a wrong key never resets data. WAL,
+  `synchronous=FULL`, foreign keys, temporary pages in memory, and an
+  exclusive OS lock on a lock file beside the database for the store's
+  lifetime (a second writer gets `ProfileInUse`). No plaintext copy of the
+  key is saved.
+- The schema is version 2 (`user_version` and the `profile_schema` row:
+  version, supported read and write versions, migration step). A version-1
+  file is first copied to `<db>.migration-v1.bak` (after a WAL checkpoint,
+  still encrypted), then migrated in one transaction; any other version is
+  `InvalidProfile`.
+- On first open the owner's Ed25519 seed is drawn from the OS generator and
+  stored inside the same transaction. The public identity is the key and its
+  network id, `ain1` and the hex SHA-256 of the key. Signing is an internal
+  operation of the core, never an exported tool; key material has no
+  `Debug`.
 
-Atomic outgoing commit: operation ID + trusted application request hash + local message record + destination/wire bytes + 0..16 state changes. State changes use compare-and-swap revisions (missing=0, first committed revision=1). One transaction commits all states, the local message and outbox. If any write fails, none become visible. Duplicate state namespaces in one batch are rejected. Message data and state buffers have explicit limits. State revisions/timestamps use checked SQLite integer conversion.
+## Tables and commits
 
-An existing operation ID with the same request hash returns the original committed message and wire without advancing state, even if a retry prepared different ciphertext. A changed request hash returns IdempotencyConflict and changes nothing. Request hash is computed by the trusted application service from the command and actor, not accepted from an untrusted UI claim. Outbox ack removes pending transport work but preserves history and the operation dedup record. Retrying an acknowledged operation does not recreate pending work.
+- `states` (namespace, revision, bytes) with compare-and-swap revisions (a
+  missing state is revision 0, the first commit makes it 1);
+  `state_records` (fragments of a state keyed under its namespace, used for
+  MLS records, [mls-adapter-v1.md](mls-adapter-v1.md)); `messages` (one local
+  sequence for incoming and outgoing records, no network-wide order);
+  `operations` (operation id, request hash, message); `outbox` (message,
+  destination, wire).
+- **Outgoing commit:** operation id, the core's request hash, the local
+  message, destination and wire, and 0–16 state changes, all in one
+  transaction; if any write fails nothing is visible. Duplicate namespaces in
+  one batch are refused. The same operation id with the same hash returns
+  the original message (its wire stays as queued) and applies only the
+  caller's retry states (the agent broker's fence), not the new message's
+  state, even if the retry prepared other ciphertext; another hash is
+  `IdempotencyConflict`.
+  Acknowledging removes the outbox entry and keeps history and the
+  operation; retrying an acknowledged operation does not queue it again.
+- **Incoming commit:** a verified message and state changes. The same id with
+  the same content returns the first sequence and applies nothing; the same
+  id with other content is refused. Received messages never enter the
+  outbox.
+- Two expression indexes over the JSON event kind (`messages_by_event`,
+  `messages_by_event_sequence`) serve recent-text and unread queries; they
+  are created on open without rewriting any record, and opaque non-JSON
+  content stays valid.
 
-Atomic incoming commit: verified message record + state changes. Duplicate message ID with the same conversation/author/content/created_at/own flag returns the first cursor and applies no state changes. Changed message content for an existing ID is rejected. Received messages never enter outgoing transport work. Incoming and outgoing records share one monotonically increasing local sequence, but no global network ordering is claimed.
+## Limits
 
-Storage tables `states`, `messages`, `outbox` are exercised by test-only SQLite triggers that abort each write in turn. This is fault injection through the real DB, not a mocked store; assertions use public query APIs. Real SIGKILL/crash/fsync acceptance remains a separate F04/process harness gate. Exceptions/rollback tests do not claim it is complete.
+Message content ≤ 49 152 bytes, wire ≤ 1 MiB, each state value ≤ 32 MiB,
+≤ 16 state changes per commit, identifiers and namespaces 1–256 bytes, list
+pages of 1–1000. State records: ≤ 100 000 per state, keys ≤ 4096 bytes,
+≤ 32 MiB in all. Bounds are checked before writing; errors are typed, not
+panics.
 
-Limits: body/content <=49,152 bytes; wire <=1 MiB (bulk stream chunks may be larger than signed application documents); each state value <=32 MiB; <=16 state changes; identifiers/namespaces bounded to 256 bytes; list page size 1..1000. Bounds are validated before writes. Store methods return typed errors, not panic. File locks, SQLCipher and SQLite transactions are reused rather than reproduced in application code.
+## Tests
+
+`crates/store/tests` use test-only SQLite triggers that abort each write in
+turn: fault injection through the real database, checked through the public
+API. They do not claim crash or fsync safety of a whole process.

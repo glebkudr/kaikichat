@@ -1,21 +1,108 @@
-# Shared application service — first complete local conversation flow
+# Application core (V1)
 
-Scope: join the existing signed documents, real SQLCipher profile store, and staged OpenMLS into one Rust application service, used later by daemon/native IPC/MCP. This slice has no fake transport or fake delivery. Its tests explicitly pump actual signed/encrypted wire between independent profiles; separate processes, libp2p, native UI and MCP remain later integration gates. This service is a trusted Rust boundary; the capability broker and IPC authentication must wrap it before granting agent access.
+`AppCore` (`crates/core`) is the trusted Rust service behind every
+conversation: it joins the signed documents
+([wire/signed-document-v1.md](wire/signed-document-v1.md)), the encrypted
+profile store ([store-v1.md](store-v1.md)) and staged MLS
+([mls-adapter-v1.md](mls-adapter-v1.md)), and commits every change of crypto
+state together with the work it causes. The daemon runs it
+([node-runtime-v1.md](node-runtime-v1.md)); owners reach it through owner
+IPC, agents only through the broker ([agent-grants-v1.md](agent-grants-v1.md)).
+This file covers the profile, direct contacts and text messages; contacts by
+id, groups and channels build on it: [contact-by-id-v1.md](contact-by-id-v1.md),
+[groups-v1.md](groups-v1.md).
 
-`AppCore::new(ProfileStore, domain32)` loads a profile. Store's random root exists before onboarding; UI identity is None until `create_profile(name)` atomically saves the name and initial MLS snapshot. Creating the identical profile again is idempotent; a different name cannot silently reset/replace it. Profile root address remains `ain1` + SHA256(public key). A profile operation cannot reset an existing MLS session. Name 1..80 Unicode characters and <=320 UTF-8 bytes, no control characters. Metadata/MLS initialization errors roll back together.
+## Profile
 
-An invitation is `ain-invite1:` plus hex of a signed canonical document (kind Invitation, network domain, expiry <=7 days). Body deterministic CBOR array `[1, display_name, tls_key_package_bytes, endpoint_hints[], nonce32]`. Persist the issued invitation ID and new MLS KeyPackage state together before returning it. Package credential equals the root-derived network ID; validated MLS signature key is attested by the outer root signature. Endpoint hints: <=8 strings, each <=256 bytes; transport parses actual multiaddrs later. Invite possession permits exactly one initial session; a different Welcome cannot reuse a consumed invite. Duplicate network delivery of the same accepted Welcome is idempotent. No Google/Telegram identity needed.
+- `AppCore::new(ProfileStore, domain)` loads a profile. The store's root key
+  exists from the first open; the identity has no name until
+  `create_profile(name)` saves the name and the initial MLS state together.
+  The same name again is idempotent; another name is `profile_exists`.
+- A network id is `ain1` followed by the hex SHA-256 of the root public key.
+- Names: 1–80 characters, at most 320 UTF-8 bytes, no control characters,
+  not blank.
 
-Importing a peer invite verifies signature/domain/lifetime, validates KeyPackage and exact credential/root binding, then prepares a fresh group ID and MLS initial add. The initial creator commits its own initial membership; later edits require the group-control finalizer and are outside this slice. Store conversation metadata + MLS state + a signed Welcome in durable outbox atomically. Reimporting the identical invitation returns the existing conversation without duplicating its queue. Self-invites are rejected. Expired/foreign/tampered invites fail with no contact/crypto mutation.
+## Packets
 
-Welcome body CBOR `[2, group_id32, issued_invitation_id32, creator_display_name, tls_welcome]`, outer kind GroupControl. Receiver validates its persisted issued invite, expected group ID, both MLS member credentials and root-attested sender before accepting. A new profile/contact is not invented from an arbitrary application message. Consuming invite + conversation + MLS state + control-event dedup must be atomic.
+Every packet is a signed document of this network, root epoch 0, whose body
+is a definite CBOR array opening with its type:
 
-Application body CBOR `[3, group_id32, tls_private_message]`, outer kind Message. The trusted service computes operation request hash from actor/root, network, conversation and exact text; UI cannot supply that hash. Plaintext is UTF-8 text <=12,000 Unicode scalar values and <=48,000 bytes, nonblank. Mandatory MLS AAD is deterministic encoding of protocol/application domain and group ID. Signed outer author must equal the expected peer root and the authenticated MLS sender credential. Neither an outer signature alone nor an MLS credential string alone establishes root authority. Message IDs are the signed wire hashes.
+| Type | Body | Document kind |
+|---|---|---|
+| 1 Invitation | `[1, name, key_package, addresses, nonce32]` | Invitation |
+| 2 Welcome | `[2, group32, invitation_id32, name, welcome]` | GroupControl |
+| 3 Application | `[3, group32, mls_private_message]` | Message |
+| 4 Receipt | `[4, group32, accepted_message_id32]` | Message |
+| 5 Intro card | `[5, name, key_package, addresses, seal_key]` ([contact-by-id-v1.md](contact-by-id-v1.md)) | Invitation |
+| 6 Group Welcome, 7 Group commit, 8 Group tree, 9 Group application | [groups-v1.md](groups-v1.md) | GroupControl |
+| 10 Channel keys | [Docs/V1_LARGE_GROUPS_CHANNELS_2026_09_28.md](../Docs/V1_LARGE_GROUPS_CHANNELS_2026_09_28.md), part 10c | GroupControl |
 
-`send_message(conversation_id,text,operation_id,now)` atomically stores staged crypto, history and outbox, returning queued (0 actual storage replicas, target10). Same op + same command returns original result even after restart/lost response; changed text or recipient conflicts with no extra crypto advancement. Incoming duplicate delivery returns a fresh signed receipt for the original durable message and changes no history/crypto. Outbox is acknowledged only by a valid receipt signed by the expected recipient for an existing outgoing message in that conversation. Receipt body CBOR `[4, group_id32, accepted_message_id32]`, outer kind Message. Acknowledging removes pending work while keeping history and dedup. Received/sent messages do not become read without a separate read event. No storage receipts or replica count are fabricated.
+The MLS AAD of an application message is the CBOR array
+`["AgenticInternet/message/v1", domain, group]`. The signed author must be
+the expected peer root *and* the authenticated MLS sender: neither the outer
+signature nor the MLS credential alone establishes it. A message id is the
+SHA-256 of its signed wire.
 
-`receive(wire,now)` returns optional reply wire. Receipts are regenerated on duplicate delivery after durable commit; receipts themselves need no receipt. Outgoing controls use the same durable journal/outbox as application messages but are filtered from user message history. `outbox(limit)` returns pending wire + destination root + invitation endpoint hints. `snapshot()` serializes camelCase data matching desktop DTOs; it reports no connected peers until the real transport provides status. Network details are not inferred from having contacts.
+## Invitations
 
-Support extensions: ProfileStore `commit_states` reuses the existing CAS transaction helper for metadata-only writes; `message(id)` exposes read-only durable dedup lookup. The crypto crate's `inspect_key_package` reuses its existing validation path and returns verified credential/public key for root binding. Shared public-key→network ID conversion lives in protocol crate and is reused by store and core.
+- An invitation is `ain-invite1:` and the hex of a signed Invitation packet
+  living at most 7 days. Its KeyPackage credential is the issuer's network
+  id; the outer root signature attests the MLS signature key. At most 8
+  addresses of at most 256 bytes. Issuing it stores the invitation id and
+  the new KeyPackage state together.
+- Importing one checks signature, network, lifetime, the KeyPackage and its
+  binding to the root, then prepares a new group and its MLS add and stores
+  the contact, the MLS state and the signed Welcome in the outbox in one
+  transaction. The same invitation again returns the existing conversation;
+  a self-invitation, or an expired, foreign or altered one, changes nothing.
+- A Welcome naming an invitation the receiver issued is accepted only while
+  that invitation is unexpired and unused, for the expected group, with both
+  member credentials and the root-attested sender matching; a Welcome for any
+  other id is the answer to an intro card and follows the receiver's contact
+  policy ([contact-by-id-v1.md](contact-by-id-v1.md)). Consuming the
+  invitation, the contact, the MLS state and the control deduplication
+  commit together. A repeated
+  delivery of the accepted Welcome is idempotent; another Welcome for a
+  consumed invitation is refused. An arbitrary message never creates a
+  contact.
 
-Acceptance includes a two-profile invite/Welcome/text/reply/ack flow, restart, duplicate/retry/conflict, foreign/tampered/expired invitation, valid outer signature from the wrong author around another sender's MLS ciphertext, wrong recipient receipt, no plaintext on wire, and real SQLCipher failure before outgoing commit with retry. This slice does not close R=10/repair, group finality, agent scopes, credentials/jobs/economics, or full native E2E.
+## Sending and receiving
+
+- `send_message(conversation, text, operation_id, now)`: text non-blank, at
+  most 12 000 characters and 48 000 bytes. The request hash is computed by
+  the core from actor, network, conversation and text, never supplied by a
+  client. MLS state, history and outbox commit together. The same operation
+  with the same request returns the original message, also after a restart
+  or a lost answer; a changed text or recipient under it is a conflict and
+  advances nothing.
+- A message's delivery is `{phase, replicas, target}`: phase `queued` while
+  its outbox entry waits, `delivered` once the recipient's signed receipt or
+  a quorum of its mailbox holders acknowledged it. `replicas` and `target`
+  are fixed at 0 and 10 and carry no information.
+- `receive(wire, now)` returns an optional reply. A duplicate delivery
+  returns a fresh receipt for the stored original and changes nothing else.
+  A receipt removes the outbox entry only when the expected recipient signed
+  it for an existing outgoing message of that conversation; receipts need no
+  receipt. Neither receiving nor sending marks a message read; only an
+  explicit read event does, and the owner's own messages never count as
+  unread. Control packets use the same journal and outbox but never appear as
+  chat text.
+- Message order and gaps follow [mls-adapter-v1.md](mls-adapter-v1.md#receive-order).
+
+## Views
+
+`snapshot()` serializes the camelCase DTOs the desktop and CLI read
+(identity, network status, conversations with messages and delivery); the
+desktop's bounded views are in [desktop-history-v1.md](desktop-history-v1.md).
+`outbox(limit)` returns pending wire with its destination root and
+addresses.
+
+## Tests
+
+`crates/core/tests/conversations.rs` and its `support/` modules: two
+profiles over real signed and encrypted wire (invitation, Welcome, text,
+reply, receipt), restart, duplicates, retries and conflicts, foreign,
+altered and expired invitations, a valid signature from the wrong root
+around another sender's MLS message, receipts bound to the exact message
+and peer, and real SQLCipher failures before an outgoing commit and while
+accepting a Welcome.

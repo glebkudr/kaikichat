@@ -1,77 +1,88 @@
-# Bonded operator snapshots v1 — L02 prerequisite for N05/D03
+# Node registry: bonded holder units (V1)
 
-One immutable NodeRegistry deployment records fixed-price bond units, freezes epoch roots and
-binds each frozen snapshot to a specified future EVM block. No public deployment/genesis is
-selected by this implementation. Local fixtures exercise actual contract bytecode; they are
-not a production committee size, an independence claim or an authenticated finality source.
+`NodeRegistry` (`contracts/src/NodeRegistry.sol`) records holder units: one
+fixed bond per unit, owned by the address that paid it. Mailbox holders are
+the nodes whose unit is active ([Docs/V1_MAILBOX_SWARM_IMPLEMENTATION.md](../../Docs/V1_MAILBOX_SWARM_IMPLEMENTATION.md));
+`OperatorPool` pays them ([Docs/V1_OPERATOR_PAYOUTS_2026_09_29.md](../../Docs/V1_OPERATOR_PAYOUTS_2026_09_29.md)).
+A bond proves capital committed to a unit, not availability, independence
+or honesty; one operator may own many units.
 
-A bond is an opaque operator commitment, one exact unitBondWei per registry entry. Opening
-an entry for transport requires a role key, salt and owner binding:
-C=keccak256(abi.encode(keccak256("AgenticInternet/OperatorCommitment/v1"),domain,owner,nodeKey,salt)).
-The future transport consumer must verify this opening and proof of possession of nodeKey.
-The registry alone proves capital committed to an entry, not endpoint availability, physical
-independence or an honest operator. Copying a commitment under another owner cannot open it.
-An owner cannot reuse a commitment, even after exiting. Indices are append-only, never recycled.
-One fixed paid unit always has one count; no nonlinear per-key bonus or unbacked top-up exists.
-Multiple units may belong to one operator. Selection and diversity must disclose that fact.
+Deployed on Base mainnet (`deployments/base.json`, genesis
+`agentic-internet-base-v1`: a bond of 0.0001 ETH, hourly epochs, a
+two-hour admission lease, a seven-day obligation, a beacon five blocks
+ahead) and on the retired Base Sepolia testnet (`deployments/base-sepolia.json`).
 
-Configuration: nonzero genesis and chainId; unitBondWei:uint128>0; epochSeconds:uint32 in
-60..86400; snapshotLeaseSeconds:uint32 in epochSeconds..7days; maxObligationSeconds:uint32
-in1..366days; futureBlockDelay:uint16 in1..128. These are schema/resource bounds. The constructor
-records startedAt and deploymentChainId. The domain is immutable and includes chainId,
-contract address, genesis and keccak256(abi.encode(the five numerical parameters)). All mutations
-reject a changed chainId. A chain fork retaining its ID still needs external finality verification.
-No admin, proxy, pause, whitelist, confiscation or treasury withdrawal exists in this contract.
+## The unit commitment
 
-A32-level Merkle-sum tree authenticates all active bonded entries and their total count. Empty
-leaf hash=keccak256(abi.encode(EMPTY_TAG,domain)), count0. Active leaf hash=
-keccak256(abi.encode(LEAF_TAG,domain,index:uint32,owner:address,commitment:bytes32)), count1.
-Each parent hashes abi.encode(BRANCH_TAG,leftHash,leftCount:uint64,rightHash,rightCount:uint64)
-and sums counts. Tags are keccak256 of AgenticInternet/RegistryEmpty/v1, RegistryLeaf/v1,
-RegistryBranch/v1. Empty levels follow that same parent recurrence. Children remain ordered.
-Up to2^32 lifetime entries; nextIndex/count are uint64. Mutations touch only one32-level path.
-A proof consumer must verify both hashes/counts and the full range/ordinal, not a suggested subset.
-Historical proof construction requires an event index or historical state; a current tree query
-must not be represented as a proof for an old root.
+A unit's commitment is
 
-bond(commitment) takes exactly one unit price and assigns the caller as withdrawal owner.
-requestExit(index) is owner-only, removes the leaf from the mutable tree immediately and sets
-withdrawAfter=now+snapshotLeaseSeconds+maxObligationSeconds. Existing sealed snapshots remain
-unchanged and can only authorize new obligations until their signed/proven admissionUntil.
-Consumers must enforce that bound and maximum obligation duration: the delay cannot cover
-arbitrary later obligations. Exit cannot be undone. withdraw(index,recipient) is owner-only,
-requires a nonzero recipient and now>=withdrawAfter, pays exactly that unit once and applies
-state/accounting before the callback. Failed transfer reverts all changes; another owner remains
-usable. Total deposited=held+withdrawn; forced extra ETH creates no bond or withdrawal entitlement.
+`keccak256(keccak256("AIN_UNIT_V1") ‖ domain ‖ transport_key ‖ receipt)`
 
-currentEpoch=floor((now-startedAt)/epochSeconds)+1. Anyone may seal the current epoch once,
-only with a nonempty active tree. sealEpoch stores immutable domain/root/count/sealedAt/sealedBlock,
-beaconBlock=block.number+futureBlockDelay and admissionUntil=sealedAt+snapshotLeaseSeconds.
-New bonds/exits cannot change a sealed snapshot, including before beaconBlock arrives. Missing
-old epochs cannot be retrospectively filled. No seed is known/captured at seal time.
+with the network domain, the holder node's Ed25519 transport key and the
+Ethereum account that receives its payouts (`unit_commitment` in
+`crates/mailbox-swarm/src/directory.rs`; `OperatorPool` opens it the same
+way). A node reports its own commitment in `node_info` and, in the
+network's container, in `/data/published.json`; the operator bonds it.
 
-captureSeed(epoch) requires an existing snapshot and beaconBlock<block.number<=beaconBlock+256.
-The exact nonzero blockhash(beaconBlock) produces
-keccak256(abi.encode(SEED_TAG,domain,epoch:uint64,root,count:uint64,beaconBlock:uint64,blockHash)),
-where SEED_TAG=keccak256("AgenticInternet/RegistrySeed/evm-blockhash-v1"). Exact retries return the
-saved seed without changing it. Missed/withheld capture has no latest-block/time/caller fallback.
-Saved seeds remain historical data after lease expiry; seed presence is never current admission.
+## The contract
 
-This explicitly labelled EVM-blockhash profile is biasable/withholdable by the underlying block
-producer/sequencer. An attacker with g candidate outcomes can amplify a desirable event with
-baseline probability p to at most min(1,g*p) by a union bound; independence is not assumed.
-No numerical g bound or production safety is established here. Assignment commitments must
-precede the selected beacon and the consumer must authenticate the snapshot/finality; these
-N05/P04 gates remain required. Epoch root freezing alone does not prevent all assignment grinding.
+- **Configuration** (immutable): a nonzero genesis digest, `unitBondWei` > 0,
+  `epochSeconds` 60–86 400, `snapshotLeaseSeconds` from one epoch to 7 days,
+  `maxObligationSeconds` up to 366 days, `futureBlockDelay` 1–128. The
+  constructor records the start time and chain id; the domain is
+  `keccak256(abi.encode(keccak256("AgenticInternet/NodeRegistry/v1"), chainId, address, genesis, configHash))`.
+  Every mutation refuses another chain id. No admin, proxy, pause, allow
+  list, confiscation or withdrawal by anyone but a unit's owner.
+- **`bond(commitment)`** takes exactly one bond, refuses a zero commitment and
+  one the same owner already used (even after an exit), and appends the
+  unit; indices are never reused (up to 2^32).
+- **`requestExit(index)`** (owner only) removes the unit from the active set
+  at once and allows withdrawal after `snapshotLeaseSeconds +
+  maxObligationSeconds`; an exit cannot be undone. **`withdraw(index,
+  recipient)`** (owner only, nonzero recipient) pays the bond once, updating
+  state before the transfer; a failed transfer reverts everything. Deposits
+  equal held plus withdrawn; ETH forced in creates no entitlement.
+- **Reading:** `unit(index)` (owner, commitment, exit times, state `None`,
+  `Active`, `Exiting` or `Withdrawn`), `nextIndex()`, and
+  `activeUnits(start, limit)`: the commitments of active units among
+  positions `[start, start + limit)` and where the next page starts.
 
-Primary references: Solidity global variables document the256-block lookup horizon and producer
-influence (https://docs.soliditylang.org/en/latest/units-and-global-variables.html);
-Solidity security considerations describe callback/reentrancy and checks-effects-interactions
-(https://docs.soliditylang.org/en/latest/security-considerations.html). Checked2026-09-05.
+## What the node reads
 
-Required tests: exact funding/root/count/reference events; failed inputs conserve funds/state;
-post-seal deposits/exits leave prior snapshot unchanged; exact future block/capture horizon,
-missed capture without fallback; owner/early/duplicate exits and withdrawals; callback failures
-and reentrancy; independent-domain deployment; randomized multi-owner conservation/root updates;
-actual local Anvil restart/reorg and proof reconstruction. Passing this increment does not close
-L02/N05/D03, Rust authenticated registry proofs, actual keeper placement or full V1 acceptance.
+A node with `--registry` reads, at a block `--chain-confirmations` deep, the
+active commitments page by page (256 positions a call, at most 65 536
+positions) and, for payouts, `unit(index)` and `nextIndex()`. A unit
+record (transport key, receipt account, addresses, signed by the transport
+key) is taken into the holder directory only when its commitment is active;
+access and admission for units follow [access-by-book-v1.md](../access-by-book-v1.md).
+
+## Snapshots and seeds (unused)
+
+The contract also keeps a Merkle-sum tree of active units and can freeze it
+per epoch, built for the committee placement of the replaced storage path.
+No current code seals epochs or captures their seeds; `OperatorPool` draws
+its own seed. The mechanism stays in the deployed bytecode:
+
+- A 32-level tree over positions: an empty leaf is
+  `keccak256(abi.encode(EMPTY_TAG, domain))` with count 0, an active one
+  `keccak256(abi.encode(LEAF_TAG, domain, index, owner, commitment))` with
+  count 1, a parent `keccak256(abi.encode(BRANCH_TAG, leftHash, leftCount, rightHash, rightCount))`,
+  the tags being `keccak256` of `AgenticInternet/RegistryEmpty/v1`,
+  `RegistryLeaf/v1` and `RegistryBranch/v1`. `activeRoot()` returns the root
+  and the active count.
+- `currentEpoch() = (now − start) / epochSeconds + 1`. Anyone may call
+  `sealEpoch()` once per epoch with a nonempty tree; it stores the root,
+  count, time, block, `beaconBlock = block + futureBlockDelay` and
+  `admissionUntil = time + snapshotLeaseSeconds`. Later bonds and exits do
+  not change it; missed epochs stay empty.
+- `captureSeed(epoch)` works while `beaconBlock < block ≤ beaconBlock + 256`
+  and stores `keccak256(abi.encode(SEED_TAG, domain, epoch, root, count, beaconBlock, blockhash))`
+  with `SEED_TAG = keccak256("AgenticInternet/RegistrySeed/evm-blockhash-v1")`;
+  a repeat returns it, a missed window has no fallback. A block producer can
+  bias or withhold such a seed.
+
+Tests: `contracts/test/NodeRegistry.t.sol` (funding and accounting, exits
+and withdrawals, callback failures and reentrancy, sealing and the seed
+window, randomized roots); the holders' side in the node's mailbox swarm
+tests and `crates/node/tests/support/swarm_native.rs` (ten holders bonding
+on a local chain).

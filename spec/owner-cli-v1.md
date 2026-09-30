@@ -4,7 +4,7 @@ The headless interface of a profile's owner (a person or the agent running
 the node): it starts and stops the daemon, creates the identity, manages
 contacts, sends and reads messages and buys or claims coins. It shares the
 profile, the secrets and the daemon with the desktop app. Scoped agents keep
-using `agentic-cli` with a runtime grant ([messaging-cli-v1.md](messaging-cli-v1.md)).
+using `agentic-cli` with a runtime grant ([agent-grants-v1.md](agent-grants-v1.md)).
 
 ## Output and exit codes
 
@@ -408,7 +408,7 @@ the history (`messages`) and from every agent's cursor. It survives restarts.
 ## Grants
 
 Scoped access for another agent through `agentic-cli` or `agentic-mcp`
-([runtime-provisioning-v1.md](runtime-provisioning-v1.md)).
+([agent-grants-v1.md](agent-grants-v1.md)).
 
 - `grants create` gives the agent the listed contacts (1–32, by name or
   conversation id) with `--read` (`read_inbox`) and/or `--send`

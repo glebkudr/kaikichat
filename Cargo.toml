@@ -67,5 +67,5 @@ expect_used = "warn"
 
 [patch.crates-io]
 # Kad Reset must wake a sleeping inbound stream to release its handler slot.
-# See vendor/libp2p-kad/README-PATCH.md and Docs/kad-reset-verification.md.
+# See vendor/libp2p-kad/README-PATCH.md.
 libp2p-kad = { path = "vendor/libp2p-kad" }

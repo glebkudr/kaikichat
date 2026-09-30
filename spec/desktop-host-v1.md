@@ -1,13 +1,72 @@
-# Desktop host bootstrap
+# Profile host (V1)
 
-A reusable native Rust host connects the Tauri shell to the independent daemon. This module handles lifecycle and secrets; native WebView/command permissions, packaged .app and native E2E remain subsequent integration gates.
+The host starts or reuses a profile's daemon and hands its owner an
+authenticated client. It is `agentic_node::host` (`crates/node/src/host.rs`),
+shared by the owner CLI `kaiki` and the desktop app; `crates/desktop-host`
+re-exports it for the Tauri shell together with the E2E secret store. What
+the owner sees of it is in [owner-cli-v1.md](owner-cli-v1.md) (data and
+secrets) and [desktop-gui-v1.md](desktop-gui-v1.md) (one profile, one
+daemon).
 
-HostConfig contains a trusted data directory, a trusted node executable path, and direct listen addresses. The host creates a private data directory (0700), rejects an existing non-private directory, serializes bootstrap with a private lock, and computes a stable keychain account from the canonical profile location. Use one OS keychain entry per profile, exactly64 random bytes: SQLCipher master32 and owner IPC token32. Persist that entry before creating the profile DB or spawning the daemon. An existing DB without a keychain entry, inaccessible keychain, malformed entry or failed save is an error; never silently generate replacement keys. System Keychain on macOS is provided by keyring4.2.0, checked against current registry/docs before installation. No plaintext fallback. A narrow SecretStore trait permits deterministic failed/locked vault scenarios; one macOS test uses a unique actual OS entry and removes it.
+## The profile directory
 
-DesktopHost::connect returns a client after authenticated node_info succeeds and listeners are ready. A running authenticated daemon is reused; closing/dropping the client does not kill it. New daemon bootstrap sends secrets only over an anonymous stdin pipe. No keys in argv, environment, logs or profile files. Process startup failures clean up the newly spawned child. take_process transfers the child handle for lifecycle monitoring/testing; merely dropping a Child does not stop the daemon. Owner IPC uses the existing agentic-node client rather than another framing/auth implementation. Remote errors stay errors.
+Created private (0700); an existing directory with group or other access is
+refused, never chmodded. It holds:
 
-The host saves public listen endpoints in a private atomic synced JSON file after first bind, and reuses the actual assigned ports on restart. This preserves invitations when both desktop/daemon processes restart; mutable IPs, NAT and route replacement remain N02/N04. If a saved endpoint cannot bind, fail startup visibly; never silently invent a different reachable address. Stable root and libp2p keys remain encrypted in SQLCipher. Keychain/profile write recovery and installer signing remain broader V1 gates.
+| File | Purpose |
+|---|---|
+| `profile.db`, `profile.db.lock` | The SQLCipher store and its writer lock ([store-v1.md](store-v1.md)) |
+| `node.sock` | Owner IPC of the running daemon (the path must fit in 100 bytes) |
+| `.bootstrap.lock` | Serializes daemon starts and changes of the network and release files |
+| `daemon.json` | The daemon's saved flags (`kaiki daemon start`) |
+| `listen-addresses.json` | The listen addresses the daemon actually bound (1–8), reused on restart |
+| `network-preset.json`, `release.json` | The signed network presets as served with the last check, and the newest one fetched for the release it names ([Docs/V1_NETWORK_PRESET_2026_09_28_RU.md](../Docs/V1_NETWORK_PRESET_2026_09_28_RU.md)) |
+| `autostart.json` | The owner's start-at-login choices |
+| `secrets.json` | The password-sealed secret, with the `file` backend |
+| `node.log` | The daemon's output (mode 0600) |
+| `runtimes/` | Scoped agents' credentials ([agent-grants-v1.md](agent-grants-v1.md#credentials)) |
 
-Tests start actual daemon children and use RAII cleanup. They prove secret save-before-start, no plaintext secret artifacts, UI reopen reuses the running daemon, keychain locked/missing failure preserves exact existing DB bytes and restores original identity when access returns, failed secret save creates no unrecoverable DB, crash restart keeps root/PeerID/listen ports, independent profiles have distinct keys, and invalid owner methods/domain commands do not synthesize success. macOS keychain test uses a dedicated tests service and unique disposable account, no user credentials.
+## Secrets
 
-Run standalone host integration tests after `cargo build -p agentic-node`; workspace all-targets tests also build that binary. Added gates: both listeners ready with concrete ports/PeerID, concurrent bootstrap single secret/child, busy saved port fails without fallback and releases the other endpoint, malformed keychain data rejected, canonical-path aliases reuse accounts, missing directories private and existing shared directories rejected without chmod. A secret-save observation hook asserts no DB/socket exists before initial keychain save.
+- One secret per profile, exactly 64 bytes: the SQLCipher master key and the
+  owner IPC token. Its account is the hex SHA-256 of the canonical
+  `profile.db` path, so aliases of one path share it.
+- Backends behind the `SecretStore` trait: the system keychain (`keyring`
+  4.2.0: macOS Keychain, Linux Secret Service, service
+  `net.agenticinternet.desktop`), the password-sealed file (Argon2id and
+  XChaCha20-Poly1305), and for automated tests only the `E2eFileStore` of
+  the `e2e` feature, which a release build refuses to compile.
+- A new profile's secret is drawn and saved before the database exists or the
+  daemon starts. A database without its secret, a secret of the wrong size or
+  a store that cannot be read is an error; a replacement key is never made
+  up. The existing database is left as it is, so the identity comes back
+  once the secret does.
+
+## Starting and reusing
+
+- Under `.bootstrap.lock` (waiting up to 20 seconds for another start), the
+  host asks `node_info` over `node.sock`. A running daemon whose listeners
+  are ready is reused.
+- Otherwise it starts `agentic-node serve --profile … --ipc … --secrets-stdin`
+  with the saved listen addresses and flags (taking the network from the
+  signed preset when the profile has none), writes the secret as one JSON
+  line on the child's stdin and removes the password variables from its
+  environment. No secret goes into arguments, the environment, logs or
+  profile files.
+- It waits up to 10 seconds for `node_info` with the configured listeners
+  bound, saves the actually assigned addresses and returns the client. A
+  child that exits or never gets ready is killed. A saved address that can
+  no longer be bound fails the start visibly; no other address is invented.
+- Closing or dropping the client leaves the daemon running. Owner calls go
+  through the daemon's own IPC client; remote errors stay errors.
+
+## Tests
+
+`crates/desktop-host/tests/bootstrap.rs` starts real daemons: the secret is
+saved before any database or socket exists, reopening reuses the running
+daemon, a locked or missing secret keeps the database bytes and the identity
+returns with access, a crash restart keeps root, peer id and listen ports,
+concurrent starts make one secret and one child, a busy saved port fails
+without fallback, and invalid owner methods never succeed. They use an
+in-memory secret store; the real keychain round trip is a separate test,
+ignored unless run on purpose.

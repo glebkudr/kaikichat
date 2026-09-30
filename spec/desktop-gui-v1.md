@@ -133,7 +133,9 @@ signing seed or the password.
   as `claim_coins` (`unsafe_link` otherwise) and answers the code its page
   shows; `discover_publish {kind, groupId?, about, tags, langs}` pays ten.
 - The main window is told `core:changed` when the daemon's view changes
-  (`desktop_revision`), including when the daemon stops.
+  (`desktop_revision`), including when the daemon stops. The bounded history
+  views `desktop_overview` and `conversation_history` are in
+  [desktop-history-v1.md](desktop-history-v1.md).
 
 ## Rendering
 
@@ -231,7 +233,8 @@ the app's own scripts.
   and closed.
 - **Agents:** the agent's instructions as in the onboarding; limited grants
   for other agents (contacts, read and send, lifetime, size), their CLI and
-  MCP settings and credentials path, revoking; installing a skill.
+  MCP settings and credentials path, revoking; installing a skill
+  ([agent-grants-v1.md](agent-grants-v1.md#the-owners-window)).
 - **Wallet:** coins left and books; the same two ways: the login buttons, and
   topping up with crypto: a book priced in USD, paid in ETH at the rate or in
   USDC.
@@ -246,3 +249,9 @@ the app's own scripts.
 - Linux x86_64: a `.deb` named after the product (`kaiki-chat`) with the
   same binaries; it depends on WebKitGTK 4.1
   and GTK 3.
+- The `e2e` feature (windows driven through `tauri-plugin-wdio-webdriver`
+  1.3.0, hidden on macOS, and the isolated E2E secret store) exists only in
+  debug builds; a release build with it does not compile.
+  `scripts/check-native.mjs` builds the debug bundle with it and runs the
+  macOS native checks; with `--full` it also runs `scripts/check.sh` and
+  checks that the signed release bundle carries no automation plugin.

@@ -1,5 +1,10 @@
 # Local owner desktop history
 
+The owner's bounded history views behind the desktop window
+([desktop-gui-v1.md](desktop-gui-v1.md)); code in
+`crates/core/src/desktop_history.rs` and the store's event indexes
+([store-v1.md](store-v1.md)).
+
 The desktop must show recent messages after a conversation exceeds 1000 stored
 events, and provide explicit access to earlier text. Full-message snapshots are
 not suitable for periodic UI polling or multi-conversation previews.
@@ -46,11 +51,13 @@ is still reachable. Prepending older messages preserves the scroll position;
 until the owner explicitly loads an older page, live updates replace the bounded
 recent window rather than accumulating the entire log. Already loaded older
 queued messages refresh their delivery status through bounded history requests.
-initial history, successful local sends and live arrivals at the bottom scroll
+Initial history, successful local sends and live arrivals at the bottom scroll
 to the latest message. No transport/control event appears as chat text.
 
-Acceptance uses actual MLS events, SQLCipher reopen, mixed existing control events,
-large Unicode bodies, permission denials, and a hidden WKWebView scenario with
-1051 actual native messages, recipient daemon restart, all 22 UI pages with exact
-IDs/text, and a reply. This does not claim missing-range authenticity, R10 storage
-placement/repair, or full V1 completion.
+Tests: `crates/core/tests/support/desktop_history.rs` (over 1000 real MLS
+messages paged across a restart, large Unicode bodies, scoped cursors, no
+read or agent-inbox side effects, overview pagination) and `apps/desktop/tests/chat-shell.test.tsx` (separate
+recent and older pages, retries without duplicates, overlapping live pages,
+no mixing after switching conversations, delivery refresh of older
+messages). The 2026-09 native run over 1051 messages is no longer part of
+the native checks.

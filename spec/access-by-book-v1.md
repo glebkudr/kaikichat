@@ -1,10 +1,12 @@
-# Access by book (V1, before the public testnet)
+# Access by book (V1)
 
 Holders serve the mailbox protocol only to registry units and to peers that
 showed a pass of an active stamp book. Reads, directory pulls, proofs and
 notary requests are free, but not free for anyone: a peer id costs nothing,
-a book costs a purchase or a Google account. Decision and rationale:
-[Docs/V1_DISCOVERY_2026_09_27.md](../Docs/V1_DISCOVERY_2026_09_27.md), part 1.
+a book costs a purchase or a Google or GitHub account. Decision and
+rationale: [Docs/V1_DISCOVERY_2026_09_27.md](../Docs/V1_DISCOVERY_2026_09_27.md),
+part 1. Admission of other peers and protocols:
+[node-capacity-v1.md](node-capacity-v1.md).
 
 ## The pass
 

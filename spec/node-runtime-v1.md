@@ -1,17 +1,121 @@
-# N01 / F03 first runtime integration
+# Node runtime (V1)
 
-This slice produces a real independent `agentic-node serve` process using the shared Rust core and SQLCipher. It is an incremental part of V1, not acceptance of all N01/N02/I02 or E01–E26. Scope: direct QUIC and TCP+Noise, invitation routes, encrypted durable delivery/retry, root/transport binding, owner-only local IPC. Relay/NAT traversal, group finality/control priority, R=10 storage/repair, capability grants, native UI, MCP and economic modules remain required later.
+`agentic-node serve` is the daemon of one profile: it holds the profile's
+encrypted store ([store-v1.md](store-v1.md)), runs the shared application
+core ([application-core-v1.md](application-core-v1.md)) and the libp2p
+swarm, and serves its owner over a local socket. The owner CLI `kaiki`, the
+desktop window and the scoped agent clients are its clients
+([owner-cli-v1.md](owner-cli-v1.md), [desktop-gui-v1.md](desktop-gui-v1.md),
+[agent-grants-v1.md](agent-grants-v1.md)). Code: `crates/node/src/main.rs`,
+`lib.rs`, `runtime.rs`, `network_settings.rs`, `ipc.rs`, `bootstrap*.rs`,
+`crates/core/src/transport_binding.rs`.
 
-Node key is an independently generated libp2p Ed25519 identity stored inside the encrypted profile state before starting the core. It survives process crashes. No master key or admin token in command arguments, environment, logs or plaintext profile files: bootstrap is one bounded JSON line on anonymous stdin with `masterKey` and `ownerToken` (32 bytes each in hex). Production OS keychain integration follows with native desktop. The Unix IPC socket must reside in an owner-private directory and have mode 0600. Windows named pipe and platform-specific tests remain separate gates.
+## Start and secrets
 
-A signed NodeRecord has outer kind Identity, network domain and root epoch0, lifetime at most86400 seconds, body canonical CBOR `[1, peer_id_string, endpoint_hints[]]`. Verify the signature, lifetime, domain, exact canonical body, and equality with the actual Noise/QUIC authenticated PeerID. Envelope author must equal NodeRecord root. Peer ID is bounded128 bytes; at most8 hints, each256 bytes. The runtime parses libp2p PeerID and supported multiaddrs and requires each route's final `/p2p/` component to match that peer. The shared core treats peer strings as opaque; it accepts the actual authenticated session ID only from trusted runtime code. Initial Welcome persists signed reverse routes atomically with invitation consumption, contact and MLS state. Invalid binding cannot mutate state. Mobile route replacement and device grants are later scoped modules.
+- `agentic-node serve --profile DB --ipc SOCKET --secrets-stdin [flags]`
+  (`agentic-node serve --help`): listen and public addresses, bootstrap
+  peers, relays, relay-only, AutoNAT, relay server, LAN discovery, DHT
+  server, chain, identity server, directory. `kaiki daemon start` saves the
+  listen, bootstrap, chain, identity-server and directory flags in
+  `daemon.json`. Once the owner saves network preferences, they override the
+  flags for relays, relay-only, AutoNAT peers, bootstrap peers, LAN
+  discovery and the DHT role. The default listener is
+  `/ip4/0.0.0.0/udp/0/quic-v1`; TCP with Noise and Yamux is supported too.
+- The secrets come as one JSON line of at most 4096 bytes on an anonymous
+  stdin pipe, `{"masterKey", "ownerToken"}`, each 32 bytes in hex: the
+  SQLCipher key and the owner IPC token. The daemon never puts them into
+  arguments, the environment, logs or its profile; keeping them is its
+  launcher's job (the keychain or a sealed file for `kaiki` and the window,
+  [desktop-host-v1.md](desktop-host-v1.md); the network's own holders keep a
+  plain `secrets.json` beside each profile in their container,
+  `deploy/node/run-nodes.sh`).
+- The profile's root key is created inside the store. The libp2p Ed25519
+  transport key is generated separately and kept in the encrypted state
+  `transport/identity`, so the peer id survives restarts and crashes.
+- The network domain is SHA-256 of `AgenticInternet/network/v1`
+  (`ae2e3182ade817a3e726c29ef308eed15c6ec267ffc01a68da990e576fa0df18`,
+  `NETWORK_DOMAIN`); every signed document names it.
 
-Network RPC uses libp2p request-response CBOR with protocol `/agentic-internet/delivery/1`, request `{nodeRecord: bytes, envelope: bytes}`, response `{nodeRecord: bytes, envelope: bytes}`; empty response envelope is rejection, never a delivery acknowledgment. Total RPC frame cap131072, individual signed envelopes max65536, NodeRecord cap4096, request timeout5s. Outgoing delivery is removed only by the core's recipient-signed valid receipt, after durable incoming acceptance. Lost responses keep work queued; retry is idempotent. Unknown protocol is rejected by libp2p negotiation. Bounded concurrent streams and connections apply; control-priority reservation is a later N01 acceptance item, not claimed here.
+## Node records
 
-Owner IPC: big-endian u32 length plus JSON `{token,method,request}`; one request/response per connection. Before allocating body enforce max1MiB, 5s total read timeout, bounded32 accepted connections and64 queued commands. Authenticate a fixed32-byte token with constant-time comparison before dispatch. Responses `{result: value}` or `{error: {code,message}}`, <=16MiB. Methods: node_info, snapshot, create_identity, create_invitation, add_contact, send_message. No arbitrary signing or remote file execution. Unknown method returns unknown_method. Invalid token returns unauthorized without mutation. Closing a client leaves daemon running. `node_info` returns actual peerId, actual listeners (with /p2p/id), transportsUsed and bounded operational counters, no secrets. Snapshot connectedPeers reflects real connections. create_invitation uses own listener hints by default; owner may supply alternate supported routes for the same PeerID. Supplied invitation routes are validated before add_contact mutates core state.
+A node record binds the root to its transport key: a signed document of kind
+`Identity`, root epoch 0, living at most 86 400 seconds, at most 4096 bytes,
+body `[1, peer_id, addresses]` or `[2, peer_id, addresses, sequence]` with a
+sequence of 1 or more. It carries at most 8 addresses of at most 256 bytes;
+each must end in the same `/p2p/` peer id. A record is accepted only when its
+peer id equals the one the Noise or QUIC session authenticated and its author
+is the expected root; an invalid record changes nothing. The first Welcome
+stores the peer's signed routes together with the contact and its MLS state.
 
-Tests are black-box child processes with distinct private profile paths; peers receive only public invitations. TCP and QUIC exchanges exercise actual MLS and signed receipts. Tests kill/restart both daemons on the same listening ports, assert stable PeerID, queued delivery and exactly one message for an operation retry, then a subsequent ratchet message. A dead UDP hint followed by live TCP must deliver once over actual TCP. Local owner auth, unknown method, oversized prefix and partial reader isolation are checked with an independent UnixStream framing client. Core tests separately assert binding failure leaves raw SQL crypto/contact revisions unchanged and inject a real SQL transaction failure before retry.
+## Protocols
 
-Default network domain: SHA256(UTF-8 `AgenticInternet/network/v1`) = ae2e3182ade817a3e726c29ef308eed15c6ec267ffc01a68da990e576fa0df18. Raw-peer tests independently exercise signature/actual PeerID mismatch, frame bounds, then valid Welcome, duplicate and MLS message over the same network behavior.
+| Protocol | Use |
+|---|---|
+| `/agentic-internet/delivery/1` | Direct delivery between online peers: request and response `{nodeRecord, envelope, stamped?}` in CBOR, frames of at most 131 072 bytes, 5-second timeout, 16 concurrent streams |
+| `/agentic-internet/bootstrap/1` | Exchange of signed node records with bootstrap peers |
+| `/agentic-internet/mailbox/1` | The mailbox swarm ([access-by-book-v1.md](access-by-book-v1.md), [Docs/V1_MAILBOX_SWARM_IMPLEMENTATION.md](../Docs/V1_MAILBOX_SWARM_IMPLEMENTATION.md)) |
+| `/agentic-internet/kad/1` | Peer routing only ([dht-roles-v1.md](dht-roles-v1.md)) |
+| `/agentic-internet/1` | Identify (feeds hole punching; never becomes a signed route) |
 
-Additional test gates after critic review: well-formed but wrong owner token, actual codec-level oversized RPC failure, runtime rejection of malformed/mixed-PeerID invitation routes before any contact/outbox write, root-signed invalid NodeRecord lifetime/canonicality, and a direct libp2p receiver that returns a corrupt acknowledgment then drops a response. The daemon must retry the identical saved ciphertext until a valid receipt, with one durable receiver message. Logs checked on both stdout and stderr.
+Circuit Relay v2 (client, optionally server), AutoNAT and DCUtR run beside
+them; an optional mDNS finds peers on a LAN. Connections time out after
+6 seconds and close after 60 idle seconds. Admission and processing limits
+are in [node-capacity-v1.md](node-capacity-v1.md).
+
+- An `envelope` carries a control message (a Welcome, a receipt) or an
+  unpaid message; `stamped` carries an application message paid like a
+  swarm store, so one stamp pays for both the direct and the mailbox path.
+  A response with neither is a refusal, never an acknowledgment.
+- A queued message leaves the outbox only on a valid receipt signed by its
+  recipient or on a quorum of holder receipts. A lost response keeps it
+  queued; retries resend the same saved ciphertext and the receiver keeps
+  one copy.
+- Delivery dials with a new outbound port, so a quick restart does not hit
+  the old TCP tuple (`AddrInUse` on macOS); listeners keep their ports.
+
+## Owner IPC
+
+- A Unix socket in an owner-only (0700) directory, mode 0600; one request
+  and one response per connection, each a big-endian u32 length and JSON.
+  The owner sends `{token, method, request}`; the scoped agents' `{proof}`
+  envelope is in [agent-grants-v1.md](agent-grants-v1.md).
+- Bounds: a request's length prefix is checked (≤ 1 MiB) before its body is
+  read; 32 connections at a time; 64 commands queued for the daemon; 5
+  seconds for the whole exchange; responses ≤ 16 MiB.
+- The 32-byte token is compared in constant time before dispatch; a wrong
+  one is `unauthorized` and changes nothing. Answers are `{result}` or
+  `{error: {code, message}}`; an unknown method is `unknown_method`.
+  Closing a client leaves the daemon running.
+- The methods are the owner's commands of `kaiki` and the desktop window.
+  `node_info` reports the peer id, listeners, transports and bounded
+  counters of every subsystem (routing, bootstrap, relay, mailbox swarm,
+  capacity), never secrets.
+
+## Shutdown
+
+On SIGTERM the daemon removes its listeners, disconnects its peers and keeps
+the transport running for at most 500 ms, so QUIC close packets leave before
+the process exits; no application request is served meanwhile. A remote peer
+then drops the connection promptly instead of waiting for the QUIC idle
+timeout. Process tests (`crates/node/tests/support/shutdown.rs`) stop a node
+with SIGTERM within five seconds, require the survivors to drop it within two
+and restart it on the same endpoint and identity for three cycles with one
+copy of every message, over TCP and QUIC. Nothing is promised for a crashed
+machine or a lossy network.
+
+## Bootstrap schedule
+
+- At most 4 explicit bootstrap hints (a fifth is refused before the network
+  starts), up to 64 cached signed records and 32 LAN hints; 4 exchanges at a
+  time.
+- After a successful exchange a peer is refreshed in 30 seconds. A failure
+  retries after 500 ms, doubling up to 30 seconds.
+- Losing the last connection to a verified peer that is idle and healthy
+  moves its next attempt to 500 ms, once: repeated closes do not reset
+  failure backoff, free a slot or add hints. Without this a client behind
+  NAT with only a bootstrap route waited out the 30-second refresh after
+  its bootstrap peer restarted.
+- Tests: `bootstrap_limits_tests.rs` for the schedule, and the process tests
+  `bootstrap_{tcp,quic}_reconnects_after_verified_provider_restart_without_message_trigger`.
+- In relay-only mode only hints with a circuit address are dialed; the
+  others are counted as blocked.
