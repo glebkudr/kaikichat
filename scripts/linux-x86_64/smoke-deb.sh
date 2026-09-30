@@ -25,6 +25,8 @@ for _ in $(seq 120); do [ -S "$AGENTIC_DATA_DIR/node.sock" ] && break; sleep 1; 
 sleep 8
 import -window root "$out/linux-release-onboarding.png"
 cli daemon status | tee "$out/status-before.json"
+cli network | tee "$out/network.json"
+grep -q '"state":"current"' "$out/network.json" || { echo "the app did not load its signed network preset" >&2; exit 1; }
 cli init --name "Linux smoke" | tee "$out/init.json"
 sleep 5
 import -window root "$out/linux-release-after-cli-init.png"
