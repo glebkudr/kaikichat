@@ -32,6 +32,16 @@
 # The same container runs the network's welcome agent (deploy/node/welcome.py),
 # its profile in /data/welcome; `welcome-kaiki` is `kaiki` for it, and its
 # welcome.json is what the network preset's `welcome` names.
+#
+# `monitor`: watches the RPC the nodes read the chain at and the nodes' own
+# reads, and alerts the owner in Telegram (deploy/monitor/monitor.py).
+# TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are Coolify secrets. It does not
+# wait for the nodes' health, so that it can tell when they fail. It mounts
+# only the nodes' `monitor` directory: their sockets and owner tokens (full
+# rights over each node's IPC), none of their keys. run-nodes.sh makes the
+# directory, and it must exist before the monitor starts: on a new volume
+# make it first (`mkdir -m 700 /data/monitor` in the nodes' container), or
+# the deployment fails. What it has told is in `chat-monitor-base`.
 services:
   site:
     build:
@@ -166,8 +176,36 @@ services:
       start_period: 180s
       retries: 3
 
+  monitor:
+    build:
+      context: .
+      dockerfile: deploy/monitor/Dockerfile
+    restart: unless-stopped
+    environment:
+      # The nodes' RPC: the same Coolify variable and default.
+      CHAIN_RPC: "${CHAIN_RPC:-https://base-rpc.publicnode.com}"
+      CHAIN_ID: "8453"
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
+      TELEGRAM_CHAT_ID: "${TELEGRAM_CHAT_ID}"
+      STATE_FILE: "/state/alerts.json"
+    volumes:
+      - type: volume
+        source: chat-nodes-base
+        target: /nodes
+        read_only: true
+        volume:
+          subpath: monitor
+      - chat-monitor-base:/state
+    mem_limit: 64m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   chat-nodes-base:
   chat-identity-base:
   chat-directory-base:
   chat-downloads:
+  chat-monitor-base:

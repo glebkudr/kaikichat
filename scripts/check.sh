@@ -9,6 +9,7 @@ cargo test --locked --workspace --all-targets
 scripts/check-evm.sh
 python3 -m unittest discover -s tests/site -p 'test_*.py'
 python3 -m unittest discover -s tests/welcome -p 'test_*.py'
+python3 -m unittest discover -s tests/monitor -p 'test_*.py'
 cd apps/desktop
 "$node_bin" node_modules/vitest/vitest.mjs run
 "$node_bin" node_modules/typescript/bin/tsc --noEmit

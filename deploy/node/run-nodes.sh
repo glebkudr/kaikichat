@@ -21,6 +21,12 @@ chain=(--chain-rpc "$CHAIN_RPC" --chain-id "$CHAIN_ID" --book-shop "$BOOK_SHOP"
 umask 077
 # Published anew by this run; the health check waits for it.
 rm -f /data/published.json
+# The monitor (deploy/monitor) asks every node for node_info. Its container
+# mounts only this directory: the nodes' sockets (hard links) and owner
+# tokens, none of their keys. Links of an earlier run go: a node started
+# below links its own again.
+mkdir -p /data/monitor
+rm -f /data/monitor/node-*
 pids=()
 trap 'kill -TERM "${pids[@]}" ${welcome:-} 2>/dev/null; wait' TERM INT
 
@@ -60,6 +66,9 @@ print(json.dumps({"masterKey": secrets.token_hex(32), "ownerToken": secrets.toke
     node-info.py "$dir" "$PUBLIC_IP" "$port" >"$dir/info.json"
     python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["route"])' \
         "$dir/info.json" >"$dir/route"
+    ln -f "$dir/ipc.sock" "/data/monitor/node-$n.sock"
+    python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["ownerToken"])' \
+        "$dir/secrets.json" >"/data/monitor/node-$n.token"
 }
 
 start 1
