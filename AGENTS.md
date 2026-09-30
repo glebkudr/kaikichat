@@ -7,6 +7,14 @@ toolchains, keys, servers and what the owner allows without asking; where it
 is more specific than this file, it wins. Never commit it, and never copy its
 contents into tracked files.
 
+**Never delete recursively outside the working directory.** No `rm -rf`
+outside the repository checkout or the worktree the task runs in: not in
+`/tmp`, the home directory, other checkouts or other volumes. The same holds
+for any other recursive deletion (`rm -r`, `find … -delete`,
+`shutil.rmtree` and the like). Leave temporary files outside the working
+directory in place, or ask the owner. State this rule in the task of every
+subagent you start.
+
 # Storage and builds
 
 Every build and check goes through `scripts/build-storage.py`: it checks where
