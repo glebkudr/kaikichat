@@ -156,6 +156,23 @@ and what needs the owner's agreement are in `AGENTS.local.md`. Spending on
 the blockchain (deployments, bonds, purchases, gas top-ups) always needs the
 owner.
 
+Every macOS binary of a release is signed with the owner's Developer ID
+before it is published, never only with the linker's ad-hoc signature:
+
+- the desktop app: `scripts/macos-notarize.sh` signs it inside-out,
+  notarizes and staples it;
+- the command line that `scripts/publish-cli.sh macos-arm64` packs (`kaiki`,
+  `agentic-node`, `agentic-cli`, `agentic-mcp`): each one
+  `codesign --force --options runtime --timestamp --identifier net.agenticinternet.<name> --sign <Developer ID>`.
+  The explicit identifier stays the same from release to release (without it
+  codesign makes one from the file name and a hash), so the Keychain keeps
+  trusting an updated binary.
+
+Before publishing, `codesign --verify --strict` passes on every one and
+`codesign -dv` shows `Authority=Developer ID Application` and the team, not
+`Signature=adhoc`. The identity and the notary profile are in
+`AGENTS.local.md`.
+
 ## Placement rules
 
 - Rust target, npm node_modules, frontend dist, Tauri binaries/gen/permissions,
