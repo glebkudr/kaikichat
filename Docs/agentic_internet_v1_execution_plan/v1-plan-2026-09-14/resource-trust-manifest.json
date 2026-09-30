@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "v1-testnet-resource-trust-2026-09-14",
+  "scope": "v1-code-and-testnet",
+  "protocolLimits": {
+    "signedDocumentBytes": {"value": 65536, "source": "crates/protocol-types/src/lib.rs:MAX_DOCUMENT_BYTES"},
+    "signedBodyBytes": {"value": 49152, "source": "crates/protocol-types/src/lib.rs:MAX_BODY_BYTES"},
+    "mlsStateBytes": {"value": 33554432, "source": "crates/crypto/src/lib.rs:MAX_STATE"},
+    "mlsControlBytes": {"value": 1048576, "source": "crates/crypto/src/lib.rs:MAX_CONTROL"},
+    "mlsWireBytes": {"value": 65536, "source": "crates/crypto/src/lib.rs:MAX_WIRE"},
+    "mailboxRecordBytes": {"value": 4096, "source": "crates/crypto/src/mailbox.rs:MAX_RECORD_BYTES"},
+    "custodyPacketBytes": {"value": 48000, "source": "crates/crypto/src/custody.rs:MAX_PACKET_BYTES"},
+    "historyEntries": {"value": 128, "source": "crates/crypto/src/custody_history.rs:MAX_ENTRIES"},
+    "historyWireBytes": {"value": 32768, "source": "crates/crypto/src/custody_history.rs:MAX_HISTORY_BYTES"},
+    "pendingBodyEntries": {"value": 256, "source": "crates/core/src/custody_pending_body.rs:MAX_ENTRIES"},
+    "pendingBodyBytes": {"value": 8388608, "source": "crates/core/src/custody_pending_body.rs:MAX_BODY_BYTES"},
+    "processingSlots": {"value": [16, 48], "source": "crates/node/src/processing_budget.rs:SLOTS"},
+    "processingByteLimit": {"value": 67112960, "source": "crates/node/src/processing_budget.rs:BYTE_LIMIT"}
+  },
+  "economicParameters": {
+    "targetReplicas": {"value": 10, "source": "V1 custody scope / paid resource class"},
+    "minimumPrimaryCopies": {"value": 1, "source": "crates/postage-spend/src/placement.rs:placement admission"},
+    "repairAllowanceSource": "funded resource class only",
+    "subsidyPool": "decision_required_before_live_economic_gate",
+    "royaltySplit": "decision_required_before_live_economic_gate"
+  },
+  "trustModel": {
+    "checkpoint": "authenticated checkpoint and explicit finality policy",
+    "funding": "issuer profile + EIP-1186 proof + trusted state root",
+    "registry": "authenticated registry snapshot/member proof at the same checkpoint",
+    "custody": "paid obligation, operator binding, current lease and bounded resource",
+    "failurePolicy": "fail closed; no fallback to an earlier root, authority or resource"
+  },
+  "externalDecisions": [
+    "testnet chain/deployment genesis and code hashes",
+    "subsidy campaign pool, caps and cutoff",
+    "operator fee/royalty split",
+    "independent operator/failure-domain inventory"
+  ]
+}

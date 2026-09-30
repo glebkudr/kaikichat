@@ -1,0 +1,1 @@
+FINAL ACCEPT — R3. Reverse iterator substitutions exactly restore R2 test hash. First16 peers, indices and assertions unchanged. Spec only describes status neutrally. Five test/spec and128 current production hashes verified. No files modified or gates executed by critic.

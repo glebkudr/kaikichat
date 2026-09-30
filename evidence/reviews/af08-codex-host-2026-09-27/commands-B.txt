@@ -1,0 +1,37 @@
+$ /bin/zsh -lc 'cat ./.agents/skills/agentic/SKILL.md'  [exit 0]
+    -> --- name: agentic description: Run an Agentic Internet node and talk through it with the `agentic` CLI — contacts by network id, encrypted messages and groups, a processing inbox, paid stamps (coins), and scoped grants for other agents. ---  # Agentic Internet
+$ /bin/zsh -lc 'agentic inbox watch --timeout-seconds 1'  [exit 0]
+    -> {"result":{"conversations":[{"conversationId":"2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327","name":"Bob","unread":2}]}}
+$ /bin/zsh -lc 'agentic daemon status'  [exit 0]
+    -> {"result":{"name":"Alice","networkId":"ain1ad43d8f59ddc3037f9d03da2cecd84c1d1e4ddb0e38392b3259808b92e51f6a8","peerId":"12D3KooWKGGZ35VnkQpt6ip7ewtzgu33cM3SV8rJpciE7fM8NxAC","running":true}}
+$ /bin/zsh -lc 'agentic contacts list'  [exit 0]
+    -> {"result":[{"conversationId":"2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327","name":"Bob"}]}
+$ /bin/zsh -lc 'agentic groups list'  [exit 0]
+    -> {"result":[{"admins":[],"epoch":1,"id":"c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4","members":["ain1ad43d8f59ddc3037f9d03da2cecd84c1d1e4ddb0e38392b3259808b92e51f6a8","ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016","
+$ /bin/zsh -lc "agentic inbox poll --with 'Hike' --limit 50"  [exit 3]
+    -> {"error":{"code":"unknown_contact","message":"unknown conversation","retryable":false}}
+$ /bin/zsh -lc 'agentic inbox poll --with Bob --limit 50'  [exit 0]
+    -> {"result":{"conversationId":"2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327","expiresAt":1790524526,"hasMore":false,"items":[{"author":"ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016","createdAt":1790524373,"id":"81c606e
+$ /bin/zsh -lc 'agentic messages --with Bob --limit 30'  [exit 0]
+    -> {"result":[{"createdAt":1790524320,"delivery":"delivered","id":"795a9ea48bbb6e293c52cced98115d50820a8363db522b2a92be4c3b842fc806","own":true,"text":"Hi Bob! Shall we meet on Friday at 19:00 by the cafe on Sadovaya?\n"},{"createdAt":1790524373,"delivery":"delivered
+$ /bin/zsh -lc 'agentic messages --with c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4 --limit 30'  [exit 0]
+    -> {"result":[{"createdAt":1790524334,"delivery":"delivered","id":"7277927c4a4e2b9791db651ede52cdf279f992065cb5f879a2f472836c015c79","own":true,"text":"Plan for Saturday: meet at 9:00 at the railway station.\n"},{"createdAt":1790524373,"delivery":"delivered","id":"0f0147f0ff75b5
+$ /bin/zsh -lc 'agentic groups show --group c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4'  [exit 0]
+    -> {"result":{"admins":[],"epoch":1,"id":"c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4","members":["ain1ad43d8f59ddc3037f9d03da2cecd84c1d1e4ddb0e38392b3259808b92e51f6a8","ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016","a
+$ /bin/zsh -lc 'agentic inbox poll --help'  [exit 0]
+    -> The next incoming messages of a conversation, under a lease  Usage: agentic inbox poll [OPTIONS] --with <WITH>  Options:       --data-dir <DATA_DIR>            Profile directory (default: the desktop app's)       --with <WITH>                           --limit
+$ /bin/zsh -lc 'agentic inbox watch --timeout-seconds 1'  [exit 0]
+    -> {"result":{"conversations":[]}}
+$ /bin/zsh -lc "agentic send --to Bob --operation-id 885bf24a-e128-4ca6-acda-f0b73a2aa475 --text-stdin <<'EOF'
+Great, see you on Friday at 19:00 by the cafe on Sadovaya. I'll take an umbrella, thanks"'!
+EOF'  [exit 0]
+    -> {"result":{"delivery":"queued","messageId":"82b2c38267601a11193105ac82cfbd245423088a7282c3d96f6bc50c40d46bc8"}}
+$ /bin/zsh -lc 'agentic inbox ack --with Bob --lease-id bc48583f49a7286b38e13b2ae7d21c7e928e1fd3af54aece646c566f951a80cb'  [exit 0]
+    -> {"result":{"conversationId":"2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327","leaseId":"bc48583f49a7286b38e13b2ae7d21c7e928e1fd3af54aece646c566f951a80cb"}}
+$ /bin/zsh -lc 'agentic messages --with Bob --limit 10'  [exit 0]
+    -> {"result":[{"createdAt":1790524320,"delivery":"delivered","id":"795a9ea48bbb6e293c52cced98115d50820a8363db522b2a92be4c3b842fc806","own":true,"text":"Hi Bob! Shall we meet on Friday at 19:00 by the cafe on Sadovaya?\n"},{"createdAt":1790524373,"delivery":"delivered
+$ /bin/zsh -lc 'agentic inbox poll --with c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4 --limit 50'  [exit 3]
+    -> {"error":{"code":"unknown_contact","message":"unknown conversation","retryable":false}}
+$ /bin/zsh -lc 'agentic inbox watch --timeout-seconds 1'  [exit 0]
+    -> {"result":{"conversations":[]}}
+usage: {'input_tokens': 236770, 'cached_input_tokens': 205824, 'cache_write_input_tokens': 0, 'output_tokens': 2828, 'reasoning_output_tokens': 1487}

@@ -1,0 +1,19 @@
+{
+  "bundle": {
+    "resources": {
+      "../../../integrations/agent-skill/agentic-messaging/SKILL.md": "skills/agentic-messaging/SKILL.md"
+    },
+    "externalBin": [
+      "binaries/agentic-node",
+      "binaries/agentic-mcp",
+      "binaries/agentic-cli",
+      "binaries/kaiki"
+    ],
+    "icon": [
+      "icons/icon.png"
+    ],
+    "macOS": {
+      "signingIdentity": "-"
+    }
+  }
+}

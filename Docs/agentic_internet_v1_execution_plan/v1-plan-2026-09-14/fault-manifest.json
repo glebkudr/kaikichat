@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 2,
+  "scenario": "offline-reorder-crash-sql-fault",
+  "seed": 20260914,
+  "messageCount": 2,
+  "expectedCursor": 2,
+  "topology": {
+    "nodes": [
+      {"id": "sender", "role": "sender", "profile": "node-daemon", "count": 1},
+      {"id": "recipient", "role": "recipient", "profile": "node-daemon", "count": 1},
+      {"id": "custodian", "role": "custodian", "profile": "node-daemon", "count": 10},
+      {"id": "seed", "role": "dht-seed", "profile": "node-daemon", "count": 2},
+      {"id": "chain", "role": "evm-chain", "profile": "anvil", "count": 1}
+    ]
+  },
+  "profiles": {
+    "node-daemon": {
+      "binary": "agentic-node",
+      "argv": ["serve", "--profile", "<dir>/profile.db", "--ipc", "<dir>/node.sock", "--listen", "<listen>", "--secrets-stdin"],
+      "restartArgv": ["--bootstrap", "<seedMultiaddr>"],
+      "store": "profile.db (SQLCipher)",
+      "ipc": "unix:<dir>/node.sock"
+    },
+    "anvil": {
+      "binary": "anvil",
+      "argv": ["--host", "127.0.0.1", "--port", "<ephemeral>", "--chain-id", "<chainId>", "--hardfork", "cancun", "--state", "<dir>/chain.json"]
+    },
+    "sql-fixture": {
+      "binary": "postage_spend_store_failure",
+      "io": "stdin JSON against a stopped profile.db",
+      "requires": "profile lock released"
+    }
+  },
+  "ports": {
+    "nodeListen": {"multiaddr": "/ip4/127.0.0.1/tcp/0", "assignment": "kernel-ephemeral", "observedVia": "node_info.listeners"},
+    "nodeIpc": {"kind": "unix", "path": "<nodeDir>/node.sock"},
+    "chainRpc": {"kind": "http", "host": "127.0.0.1", "port": "ephemeral", "observedVia": "Chain.url"}
+  },
+  "faults": [
+    {
+      "step": 10,
+      "kind": "network_reorder",
+      "node": "recipient",
+      "mechanism": "delivery_reorder",
+      "params": {"earlierOrdinal": 0, "laterOrdinal": 1},
+      "evidence": {"channel": "commit-order"}
+    },
+    {
+      "step": 20,
+      "kind": "recipient_process_kill",
+      "node": "recipient",
+      "mechanism": "sigkill",
+      "evidence": {"channel": "process"}
+    },
+    {
+      "step": 30,
+      "kind": "sql_messages_insert_abort",
+      "node": "recipient",
+      "mechanism": "sql_trigger",
+      "params": {"targetOrdinal": 0},
+      "evidence": {
+        "channel": "custodyImportFailures",
+        "sqliteCode": 1811,
+        "markerFormat": "ain-recipient-commit-v1:{nonce}:{messageId}:{operation}:{sequence}"
+      }
+    }
+  ],
+  "producer": {
+    "kind": "deterministic-model",
+    "module": "scripts/fault-model.mjs",
+    "emits": ["trace.jsonl", "oracle.json"]
+  },
+  "nativeEquivalent": {
+    "module": "tests/evm/public_index_recipient.py",
+    "emits": "trace.json",
+    "distill": "scripts/fault-distill-trace.py"
+  },
+  "time": {
+    "replay": "deterministic fault-transition and durable-oracle check",
+    "elapsed": "native elapsed/wall fields are evidence metadata, never oracle inputs"
+  }
+}

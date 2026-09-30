@@ -1,0 +1,274 @@
+{
+  "bansDoorsAndOpenGroups": {
+    "door": {
+      "alice": {
+        "admitted": 1,
+        "batches": 1,
+        "published": 2,
+        "rejoins": 0,
+        "waiting": 1
+      },
+      "bob": {
+        "admitted": 1,
+        "batches": 1,
+        "published": 2,
+        "rejoins": 0,
+        "waiting": 1
+      }
+    },
+    "failureKinds": [
+      {
+        "access": 12
+      },
+      {
+        "access": 13
+      },
+      {
+        "access": 14
+      },
+      {
+        "access": 15
+      }
+    ],
+    "follower": {
+      "archives": 0,
+      "archivesLaid": 0,
+      "followReads": 3,
+      "hardReseeds": 0,
+      "hellos": 0,
+      "keyUpdates": 0,
+      "posts": 2,
+      "published": 0,
+      "rekeyed": 0,
+      "rosters": 2,
+      "subscriberKeys": 0
+    },
+    "holders": 10,
+    "seconds": {
+      "adminMade": 5.559240625,
+      "admittedAfterDecision": 42.301560292,
+      "banDecided": 1.010278167,
+      "banLifted": 6.049058292,
+      "bannedOut": 4.033751291,
+      "cardsPublished": 5.60032275,
+      "directoryComplete": 30.580001625,
+      "followerReadMember": 3.525558834,
+      "followerReadNewcomer": 28.726338459,
+      "groupJoined": 24.663774958,
+      "groupOpened": 5.04116,
+      "letInAtOpenDoor": 31.232462958,
+      "newcomerReadByGroup": 4.049037541,
+      "openDoorCardFound": 1.004535792,
+      "readAfterBan": 4.539398583,
+      "requestDoorCardFound": 1.003454458,
+      "requestListedAtAdmin": 8.070337042,
+      "sinceHoldersStarted": 400.497779417
+    },
+    "testSeconds": 419.84
+  },
+  "publicChannel": {
+    "failureKinds": [
+      {
+        "access": 12
+      },
+      {
+        "access": 13
+      },
+      {
+        "access": 14
+      },
+      {
+        "access": 15
+      }
+    ],
+    "followers": [
+      {
+        "archives": 0,
+        "archivesLaid": 0,
+        "followReads": 2,
+        "hardReseeds": 0,
+        "hellos": 0,
+        "keyUpdates": 0,
+        "posts": 3,
+        "published": 0,
+        "rekeyed": 0,
+        "rosters": 1,
+        "subscriberKeys": 0
+      },
+      {
+        "archives": 1,
+        "archivesLaid": 0,
+        "followReads": 1,
+        "hardReseeds": 0,
+        "hellos": 0,
+        "keyUpdates": 0,
+        "posts": 3,
+        "published": 0,
+        "rekeyed": 0,
+        "rosters": 3,
+        "subscriberKeys": 0
+      }
+    ],
+    "holders": 10,
+    "postBytes": [
+      23200,
+      23198,
+      23200
+    ],
+    "seconds": {
+      "archivePartLaid": 171.587367917,
+      "archiveWait": 169.041458667,
+      "cardsPublished": 5.154679334,
+      "directoryComplete": 30.09587775,
+      "followerReadPosts": 2.542607542,
+      "laterFollowerReadHistoryAndArchive": 2.53145725,
+      "retentionSet": 7.60915375,
+      "sinceHoldersStarted": 423.833234,
+      "teamJoined": 24.829046542
+    },
+    "storage": {
+      "addedLastMonth": 1,
+      "bytes": 47386,
+      "parts": 1,
+      "retention": 90,
+      "stampsPerMonth": 2
+    },
+    "team": [
+      {
+        "archives": 0,
+        "archivesLaid": 1,
+        "followReads": 0,
+        "hardReseeds": 0,
+        "hellos": 0,
+        "keyUpdates": 0,
+        "posts": 1,
+        "published": 2,
+        "rekeyed": 0,
+        "rosters": 0,
+        "subscriberKeys": 0
+      },
+      {
+        "archives": 0,
+        "archivesLaid": 0,
+        "followReads": 0,
+        "hardReseeds": 0,
+        "hellos": 0,
+        "keyUpdates": 0,
+        "posts": 2,
+        "published": 1,
+        "rekeyed": 0,
+        "rosters": 0,
+        "subscriberKeys": 0
+      }
+    ],
+    "testSeconds": 443.34
+  },
+  "closedChannel": {
+    "failureKinds": [
+      {
+        "access": 12
+      },
+      {
+        "access": 13
+      },
+      {
+        "access": 13
+      },
+      {
+        "access": 15
+      },
+      {
+        "access": 16
+      }
+    ],
+    "holders": 10,
+    "owner": {
+      "archives": 0,
+      "archivesLaid": 0,
+      "followReads": 0,
+      "hardReseeds": 1,
+      "hellos": 0,
+      "keyUpdates": 1,
+      "posts": 0,
+      "published": 2,
+      "rekeyed": 0,
+      "rosters": 0,
+      "subscriberKeys": 3
+    },
+    "removedAdmin": {
+      "archives": 0,
+      "archivesLaid": 0,
+      "followReads": 0,
+      "hardReseeds": 0,
+      "hellos": 0,
+      "keyUpdates": 1,
+      "posts": 2,
+      "published": 1,
+      "rekeyed": 0,
+      "rosters": 0,
+      "subscriberKeys": 0
+    },
+    "seconds": {
+      "adminRemoved": 1.518442833,
+      "cardsPublished": 5.163130458,
+      "directoryComplete": 30.100864541,
+      "firstPostRead": 246.922173291,
+      "hardReseedAndKeysAgain": 301.776326333,
+      "keysTakenAndPublished": 90.82836625,
+      "readAfterAdminRemoved": 303.407383541,
+      "readAfterTakenOff": 303.330393875,
+      "rekeyedAfterTakenOff": 297.831909375,
+      "sinceHoldersStarted": 1854.487053833,
+      "subscriberTakenOff": 5.54075425,
+      "teamJoined": 25.36928625
+    },
+    "subscribers": [
+      {
+        "archives": 0,
+        "archivesLaid": 0,
+        "followReads": 2,
+        "hardReseeds": 0,
+        "hellos": 1,
+        "keyUpdates": 0,
+        "posts": 1,
+        "published": 0,
+        "rekeyed": 0,
+        "rosters": 2,
+        "subscriberKeys": 0
+      },
+      {
+        "archives": 0,
+        "archivesLaid": 0,
+        "followReads": 6,
+        "hardReseeds": 0,
+        "hellos": 1,
+        "keyUpdates": 0,
+        "posts": 3,
+        "published": 0,
+        "rekeyed": 2,
+        "rosters": 3,
+        "subscriberKeys": 0
+      },
+      {
+        "archives": 0,
+        "archivesLaid": 0,
+        "followReads": 6,
+        "hardReseeds": 0,
+        "hellos": 1,
+        "keyUpdates": 0,
+        "posts": 1,
+        "published": 0,
+        "rekeyed": 0,
+        "rosters": 2,
+        "subscriberKeys": 0
+      }
+    ],
+    "testSeconds": 1874.01
+  },
+  "firstAttempt": {
+    "test": "native_bans_doors_and_open_groups",
+    "result": "failed",
+    "error": "join_group answered card_not_found: the knock came before the door's card was published; the scenario now knocks again while the card is looked up or not there yet",
+    "seconds": 362.13
+  }
+}

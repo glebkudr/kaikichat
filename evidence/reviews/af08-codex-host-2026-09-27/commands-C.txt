@@ -1,0 +1,13 @@
+MCP agentic.groups_list {}
+    -> {"content": [{"type": "text", "text": "{\"groups\":[{\"admins\":[],\"epoch\":1,\"id\":\"c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4\",\"members\":[\"ain1ad43d8f59ddc3037f9d03da2cecd84c1d1e4ddb0e38392b3259808b92e51f6a8\",\"ain197234377ceaa1
+MCP agentic.contacts_list {}
+    -> {"content": [{"type": "text", "text": "{\"contacts\":[{\"conversationId\":\"2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327\",\"name\":\"Bob\"}]}"}], "structured_content": {"contacts": [{"conversationId": "2cd699c2b7b834ace6414ae18b8a344e5cd6c
+MCP agentic.inbox_poll {"with": "2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327", "limit": 50}
+    -> {"message": "MCP tool call requires approval, but approval policy is never"}
+MCP agentic.messages {"with": "c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4", "limit": 30}
+    -> {"content": [{"type": "text", "text": "{\"messages\":[{\"createdAt\":1790524334,\"delivery\":\"delivered\",\"id\":\"7277927c4a4e2b9791db651ede52cdf279f992065cb5f879a2f472836c015c79\",\"own\":true,\"text\":\"Plan for Saturday: meet at 9:00 at the railway station.\\n\"},{\"crea
+MCP agentic.messages {"with": "2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327", "limit": 50}
+    -> {"content": [{"type": "text", "text": "{\"messages\":[{\"createdAt\":1790524320,\"delivery\":\"delivered\",\"id\":\"795a9ea48bbb6e293c52cced98115d50820a8363db522b2a92be4c3b842fc806\",\"own\":true,\"text\":\"Hi Bob! Shall we meet on Friday at 19:00 by the cafe on 
+MCP agentic.groups_send {"group": "c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4", "operationId": "reply-bob-departure-2026-09-27-0930", "text": "We leave from the railway station at 9:30, the train is at 9:42."}
+    -> {"message": "MCP tool call requires approval, but approval policy is never"}
+usage: {'input_tokens': 150227, 'cached_input_tokens': 121856, 'cache_write_input_tokens': 0, 'output_tokens': 1248, 'reasoning_output_tokens': 620}

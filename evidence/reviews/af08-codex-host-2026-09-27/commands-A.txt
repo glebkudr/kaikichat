@@ -1,0 +1,33 @@
+$ /bin/zsh -lc 'cat ./.agents/skills/agentic/SKILL.md'  [exit 0]
+    -> --- name: agentic description: Run an Agentic Internet node and talk through it with the `agentic` CLI — contacts by network id, encrypted messages and groups, a processing inbox, paid stamps (coins), and scoped grants for other agents. ---  # Agentic Internet
+$ /bin/zsh -lc 'agentic groups list'  [exit 0]
+    -> {"result":[]}
+$ /bin/zsh -lc 'agentic daemon status'  [exit 0]
+    -> {"result":{"name":"Alice","networkId":"ain1ad43d8f59ddc3037f9d03da2cecd84c1d1e4ddb0e38392b3259808b92e51f6a8","peerId":"12D3KooWKGGZ35VnkQpt6ip7ewtzgu33cM3SV8rJpciE7fM8NxAC","running":true}}
+$ /bin/zsh -lc 'agentic contacts list'  [exit 0]
+    -> {"result":[]}
+$ /bin/zsh -lc 'agentic coins balance'  [exit 0]
+    -> {"result":{"books":[{"book":"0x756b2163342491dafc00566ad8b123c5706265b6da73032aacf3235a7d25802c","count":1000,"kind":"bought","used":1,"validUntil":1793116143}],"claim":null,"lastClaim":null,"pending":[],"remaining":999}}
+$ /bin/zsh -lc "python3 -c 'import uuid; print(\"\\n\".join(str(uuid.uuid4()) for _ in range(3)))'"  [exit 0]
+    -> ccc2cb0d-009d-482a-931c-604803aa4719 8b262a46-8b34-4e42-a2f9-176f05b9e84f 5ce4b713-fd74-449a-b13b-bc7c7ba72c34
+$ /bin/zsh -lc 'agentic contacts request --id ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016 --name Bob --operation-id ccc2cb0d-009d-482a-931c-604803aa4719'  [exit 0]
+    -> {"result":{"conversationId":"2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327","name":"Bob"}}
+$ /bin/zsh -lc "agentic send --to Bob --operation-id 8b262a46-8b34-4e42-a2f9-176f05b9e84f --text-stdin <<'MESSAGE'
+Hi Bob"'! Shall we meet on Friday at 19:00 by the cafe on Sadovaya?
+MESSAGE'  [exit 0]
+    -> {"result":{"delivery":"queued","messageId":"795a9ea48bbb6e293c52cced98115d50820a8363db522b2a92be4c3b842fc806"}}
+$ /bin/zsh -lc 'agentic groups create --name Hike --member ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016 --member ain1b4add6cde37ce34c39e25861dbe5572289051186575b31bb3b831a39880953cb --operation-id 5ce4b713-fd74-449a-b13b-bc7c7ba72c34'  [exit 0]
+    -> {"result":{"admins":[],"epoch":1,"id":"c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4","members":["ain1ad43d8f59ddc3037f9d03da2cecd84c1d1e4ddb0e38392b3259808b92e51f6a8","ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016","a
+$ /bin/zsh -lc uuidgen  [exit 0]
+    -> 508BEEBD-6D5B-4746-8DC7-839062E20825
+$ /bin/zsh -lc "agentic groups send --group Hike --operation-id 508BEEBD-6D5B-4746-8DC7-839062E20825 --text-stdin <<'MESSAGE'
+Plan for Saturday: meet at 9:00 at the railway station.
+MESSAGE"  [exit 0]
+    -> {"result":{"delivery":"queued","messageId":"7277927c4a4e2b9791db651ede52cdf279f992065cb5f879a2f472836c015c79"}}
+$ /bin/zsh -lc 'agentic messages --with Bob --limit 10'  [exit 0]
+    -> {"result":[{"createdAt":1790524320,"delivery":"delivered","id":"795a9ea48bbb6e293c52cced98115d50820a8363db522b2a92be4c3b842fc806","own":true,"text":"Hi Bob! Shall we meet on Friday at 19:00 by the cafe on Sadovaya?\n"}]}
+$ /bin/zsh -lc 'agentic messages --with Hike --limit 10'  [exit 0]
+    -> {"result":[{"createdAt":1790524334,"delivery":"delivered","id":"7277927c4a4e2b9791db651ede52cdf279f992065cb5f879a2f472836c015c79","own":true,"text":"Plan for Saturday: meet at 9:00 at the railway station.\n"}]}
+$ /bin/zsh -lc 'agentic groups show --group Hike'  [exit 0]
+    -> {"result":{"admins":[],"epoch":1,"id":"c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4","members":["ain1ad43d8f59ddc3037f9d03da2cecd84c1d1e4ddb0e38392b3259808b92e51f6a8","ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016","a
+usage: {'input_tokens': 251452, 'cached_input_tokens': 222592, 'cache_write_input_tokens': 0, 'output_tokens': 2005, 'reasoning_output_tokens': 831}

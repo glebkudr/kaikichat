@@ -1,0 +1,56 @@
+# Keep the default detectors. Exceptions cover only reviewed public fixtures
+# and identifiers, with both the file and the value/line required to match.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Anvil's publicly documented local-test account 3"
+condition = "AND"
+paths = ['''^apps/desktop/tests/native-owner\.mjs$''']
+regexes = ['''0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6''']
+
+[[rules.allowlists]]
+description = "Grant-book test keys derived from the fixture's public labels"
+condition = "AND"
+paths = ['''^fixtures/grant-book/v1\.json$''']
+regexes = [
+  '''0xba049c3400787dde7b9aafc5c0881e16b4103e251865d726becdec1aa59f2dc8''',
+  '''0x36aaf248189752b0ae5ba5b351f7f499d1352164de538246a4d4b1492a8b1dd3''',
+  '''0x67bd07f11b3ac29722ee5a54de88758403251a0139d6ccdeb32cbce8868afb57''',
+]
+
+[[rules.allowlists]]
+description = "Public Base Sepolia USDC contract address in the UI fixture"
+condition = "AND"
+paths = ['''^apps/desktop/tests/visual\.tsx$''']
+regexes = ['''0x036CbD53842c5426634e7929541eC2318f3dCF7e''']
+
+[[rules.allowlists]]
+description = "The libcrux-sha3 dependency name is not a credential"
+condition = "AND"
+paths = ['''^Cargo\.lock$''']
+regexes = ['''^libcrux-sha3$''']
+
+[[rules.allowlists]]
+description = "SHA-256 digests of source files in historical build evidence"
+condition = "AND"
+paths = ['''^evidence/reviews/P02-daemon-retained-context/source-inputs(?:-initial)?\.json$''']
+regexTarget = "line"
+regexes = ['''^\s*"[^"\n]+\.(?:ts|tsx|rs|md)": "[a-f0-9]{64}",?$''']
+
+[[rules.allowlists]]
+description = "Public message semantic hashes in historical native evidence"
+condition = "AND"
+paths = ['''^evidence/reviews/native-acceptance-2026-09-17/h10-diagnostic32-macos-evidence$''']
+regexTarget = "line"
+regexes = ['''^\s*"semanticKey": "[a-f0-9]{64}",?$''']
+
+[[rules.allowlists]]
+description = "A public book address in a testnet acceptance receipt"
+condition = "AND"
+paths = ['''^evidence/reviews/testnet-acceptance-2026-09-29/af07-first-pass-stale-price\.json$''']
+regexTarget = "line"
+regexes = ['''^\s*"key": "0x85e9e6792b58d3b75c2e2dd0f9c06682fbe939f8",?$''']

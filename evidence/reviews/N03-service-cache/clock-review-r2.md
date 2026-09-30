@@ -1,0 +1,3 @@
+Independent backend-test-critic /root/common_context_test_critic, inherited context false. FINAL ACCEPT, tests only.
+
+Bounded wait permits independent sibling startup, immediately fails generation > 1 (wait does not swallow assertions); success requires both running at generation 1, existing service count prevents empty-list success. Real second crossing, offline effect11, durable cursor and previous expiry/revocation remain. All 128 production and 360 helper hashes exact, only Python predicate changed since R1; reverse replacement restores R1 hash. No edits/builds by critic. Nonblocking future callback crossing actual expiry remains.

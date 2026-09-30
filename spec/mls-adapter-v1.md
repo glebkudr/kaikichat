@@ -1,0 +1,15 @@
+# Staged MLS adapter — I05/G cryptographic slice
+
+Use OpenMLS 0.9.0 and RustCrypto 0.6.0, RFC 9420, fixed MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519. No custom network cryptography, plaintext fallback, crypto-debug, content-debug, test-utils or file persistence features in production. MSRV is 1.91, supported by installed Rust 1.97.1.
+
+An `MlsClient` owns an opaque secret snapshot. `create_group`, `key_package`, `add_members`, `remove_member`, `activate_pending_commit`, `apply_finalized_commit`, `join`, `encrypt`, `decrypt` return a `Prepared<T>` containing a value and the **next** secret snapshot. They never change the input snapshot, even on errors. Caller writes that snapshot with state CAS and inbox/outbox atomically using ProfileStore. Only after durable commit can wire bytes be sent. Failed preparation/DB commit is discarded. Snapshots remain internal to trusted Rust code, never renderer/MCP data.
+
+Snapshot stores OpenMLS memory-provider records using bounded CBOR in memory and is persisted only inside SQLCipher. Do not use the upstream memory provider's plaintext-file persistence helpers. Key material/snapshots do not have content-revealing Debug; owned snapshot buffers and provider values are zeroized on disposal. This is an adapter, not a separate durable database.
+
+`add_members`/`remove_member` prepare a **pending** MLS commit. Sending while pending fails. Activating pending commits or applying a received commit is an internal operation that the later application/finalizer calls only after authorization and ordering; this adapter does NOT prove finality, roles or root-to-device credential binding. The adapter returns member credential bytes and signature keys for those checks. Roots/grants and finalizer integration remain required and cannot be claimed complete by these tests.
+
+Expected group ID and application AAD are mandatory on receiving. Application AAD binds the higher-layer network/context. Wrong AAD/group, tampered/concatenated/truncated TLS frames, replay, wrong Welcome recipient and unsupported ciphersuites fail without changing the committed snapshot. Application frames are MLS PrivateMessage. Sender identity comes from the verified MLS leaf credential. Join rejects a Welcome for another expected group and does not replace an existing group. New members cannot decrypt pre-join traffic; removed members cannot decrypt later epochs. No pending-commit bypass.
+
+Bounds: plaintext <=49,152 bytes, AAD <=1,024 bytes, application wire <=65,536 bytes, KeyPackage <=65,536 bytes, control/Welcome <=1 MiB, secret snapshot <=32 MiB. Input/output checks precede persistence. Memory record count <=100,000 and each key <=4,096 bytes. Sender ratchet allows bounded reordering (128 messages, forward distance 1,000); retain 3 past epochs for delayed delivery. Wider reliability policy is a later transport/inbox gate.
+
+Tests include real independent raw OpenMLS peer interoperability (not just an adapter round trip), removal/replay/order/context failures, state reopen and a real SQLCipher-trigger rollback with prepared crypto state. They do not constitute device recovery or whole messenger E2E.

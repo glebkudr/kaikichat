@@ -1,0 +1,1 @@
+Initial runner selected zero tests for the public-custody filter. Its 58 actual custody/index and 21 frontend tests passed, but this aggregate is not the accepted gate. The corrected runner uses the exact public ciphertext test prefix and rejects empty test targets. Production and test inputs did not change. Local logs are retained outside Git.

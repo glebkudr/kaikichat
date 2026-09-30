@@ -1,0 +1,9 @@
+# Local proof-authenticated agent IPC
+
+Extend the existing bounded private Unix socket with exactly two disjoint envelopes: owner `{token,method,request}` and agent `{proof}` (hex signed AgentCall wire, at most65536 decoded bytes). Mixed envelopes/unknown fields fail closed. Only validated owner token enters the owner command queue branch. Proof requests reach the same actor with an explicit agent variant; method/principal/context cannot be selected outside the signed wire. Owner grant_runtime/revoke_runtime commands invoke the existing core registry methods. Agents never receive the owner token or encryption key.
+
+The public call_agent(socket, proof) client shares framed IPC limits/timeouts with the owner client. Core revalidates proof and registry at execution time. Rejected proofs return unauthorized without leaking authority records. Real process acceptance: owner registers finite scoped runtime, signed agent send queues while recipient offline, sender crash/retry preserves one message, recipient receives actual MLS ciphertext and reply becomes readable to agent; revoked grant fails after daemon restart while owner continues sending. Raw independent envelopes test owner-branch confusion, wrong signer, read-only expansion, malformed/oversize proof and replay without disturbing the daemon.
+
+This stage adds IPC only. MCP lifecycle/discovery/cancellation, runtime key provisioning, inbox leases/pagination and native permission UI remain separate required work.
+
+Ordinary delivery initiates a dial with a new outbound port before enqueueing the RPC. This avoids TCP tuple reuse after rapid daemon restart (observed macOS AddrInUse), while the persisted/advertised listener stays unchanged. Future NAT hole-punch behavior can request reuse separately. The request-response behavior ignores its redundant dial when the explicit dial is already pending.

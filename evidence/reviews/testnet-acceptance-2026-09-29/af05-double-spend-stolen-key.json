@@ -1,0 +1,247 @@
+{
+  "passed": true,
+  "runId": "ain-testnet-e328a87a",
+  "selected": [
+    "double-spend",
+    "stolen-key"
+  ],
+  "pay": false,
+  "outcomes": [
+    "A profile restored from a backup spends its stamps again: the double spend is proven and the book blocked",
+    "A grant signed with the issuer's key is taken up to serial 9999 of the day and refused from serial 10000: the daily cap holds against a stolen key"
+  ],
+  "seconds": {
+    "grantWithinCapTaken": 1.324,
+    "total": 5.759
+  },
+  "topology": {},
+  "docker": "linux aarch64",
+  "sourceHash": "4a840ea1fc836da486b0d2d20a2d331f4f0f1ecc5d6f83069433b5f722943e10",
+  "imageId": "sha256:745afc92150aa3c8ee2d8685daace7f27377fcc0009ef335b13307ef9f557ba5",
+  "preset": {
+    "network": "kaiki-testnet-base-sepolia",
+    "serial": 3
+  },
+  "purchases": [
+    {
+      "book": "0x21cae98255b8072a58d2a942fbf2149c611b8a5b7602bee4adbac9bdef51a4e4"
+    }
+  ],
+  "attached": {
+    "aliceId": "ain1bae455d11015f4b317d242d3474b3b1bcb346f6771b2f89ec1079354237bf6af",
+    "conversation": "3c37d74f8eed26ec70773b39eb8ec4e63134abe575d6e87b0056dbcb22368155"
+  },
+  "doubleSpendBefore": {
+    "status": 200
+  },
+  "doubleSpend": {
+    "book": "0x21cae98255b8072a58d2a942fbf2149c611b8a5b7602bee4adbac9bdef51a4e4",
+    "directory": {
+      "status": 401,
+      "body": {
+        "error": "book_required"
+      }
+    },
+    "seconds": 1.349,
+    "atAlice": {
+      "state": "blocked"
+    },
+    "client": {
+      "access": {
+        "accepted": 1,
+        "credential": "book",
+        "refused": {
+          "blocked": 1
+        },
+        "showing": 2,
+        "shown": 31,
+        "waiting": 2,
+        "waitingPeers": 2
+      },
+      "asked": {},
+      "blocked": 0,
+      "door": {
+        "admitted": 0,
+        "batches": 0,
+        "published": 0,
+        "rejoins": 0,
+        "waiting": 0
+      },
+      "failureKinds": {
+        "access": 31,
+        "other": 27
+      },
+      "failures": 58,
+      "grants": {
+        "checked": 0,
+        "checking": 0,
+        "learned": 0,
+        "refused": 0
+      },
+      "groups": {
+        "decided": 0,
+        "renewed": 0,
+        "rounds": 0
+      },
+      "held": 0,
+      "holders": 10,
+      "importAttempts": 0,
+      "intro": {
+        "direct": {
+          "ignored": 0,
+          "joined": 0,
+          "pending": 0,
+          "subscribed": 0
+        },
+        "lookups": 0,
+        "published": null,
+        "rejected": 0,
+        "swarm": {
+          "ignored": 0,
+          "joined": 0,
+          "pending": 0,
+          "subscribed": 0
+        }
+      },
+      "lastFailure": "f95ac3f3: access: IO error on outbound stream: connection lost",
+      "notary": {
+        "batches": 0,
+        "notarized": 0,
+        "proofs": 0,
+        "waiting": 4
+      },
+      "pollInMs": 4143,
+      "proofs": {
+        "blockedHolders": 0,
+        "learned": 0
+      },
+      "public": {
+        "archives": 0,
+        "archivesLaid": 0,
+        "followReads": 0,
+        "hardReseeds": 0,
+        "hellos": 0,
+        "keyUpdates": 0,
+        "posts": 0,
+        "published": 0,
+        "rekeyed": 0,
+        "rosters": 0,
+        "subscriberKeys": 0
+      },
+      "reads": [
+        {
+          "conversationId": "3c37d74f8eed26ec70773b39eb8ec4e63134abe575d6e87b0056dbcb22368155",
+          "cursors": [],
+          "holders": 10,
+          "inFlight": 0,
+          "pending": 10,
+          "period": 20724,
+          "seen": 0
+        },
+        {
+          "conversationId": "intro",
+          "cursors": [],
+          "holders": 10,
+          "inFlight": 0,
+          "pending": 10,
+          "period": 20724,
+          "seen": 0
+        },
+        {
+          "conversationId": "intro",
+          "cursors": [],
+          "holders": 10,
+          "inFlight": 0,
+          "pending": 10,
+          "period": 20725,
+          "seen": 0
+        },
+        {
+          "conversationId": "3c37d74f8eed26ec70773b39eb8ec4e63134abe575d6e87b0056dbcb22368155",
+          "cursors": [],
+          "holders": 10,
+          "inFlight": 0,
+          "pending": 10,
+          "period": 20725,
+          "seen": 0
+        }
+      ],
+      "receipts": 2,
+      "received": 0,
+      "refusals": 2,
+      "rejectedEntries": 0,
+      "rejectedReceipts": 0,
+      "replication": {
+        "conflicts": 0,
+        "pages": 0,
+        "pulled": 0,
+        "pulls": 0,
+        "summaries": 0
+      },
+      "requests": 2,
+      "resealed": 0,
+      "sends": [
+        {
+          "inFlight": 2,
+          "messageId": "4f152f67004467ddb57ef9564b2127c26ef08f85e07bdd73bea4feff5b456d9c",
+          "period": 20725,
+          "receipts": 1,
+          "refused": 0,
+          "stored": false
+        },
+        {
+          "inFlight": 0,
+          "messageId": "800ccf443883e5cdafe35a796458250383f325c14ea6ae7c63f254a31fef1ad1",
+          "period": 20725,
+          "receipts": 0,
+          "refused": 1,
+          "stored": false
+        },
+        {
+          "inFlight": 0,
+          "messageId": "card:9d78c8d1a3d8fe49deb4b5e11ec0783dffab8c9e5be47e9eba07f9f9958a9dd0:20725",
+          "period": 20725,
+          "receipts": 1,
+          "refused": 0,
+          "stored": false
+        },
+        {
+          "inFlight": 0,
+          "messageId": "ec422e106572726994829f8279be2fe337a874a4b3a964d1782cb285540b56c0",
+          "period": 20725,
+          "receipts": 0,
+          "refused": 1,
+          "stored": false
+        }
+      ],
+      "sent": {
+        "access": 31,
+        "directory": 1,
+        "store": 4
+      },
+      "served": {},
+      "stored": 0
+    }
+  },
+  "stolenKey": {
+    "capSerials": 10000,
+    "within": {
+      "serial": 9999,
+      "status": 200,
+      "cards": 2
+    },
+    "beyond": [
+      {
+        "serial": 10000,
+        "status": 401,
+        "error": "book_required"
+      },
+      {
+        "serial": 10001,
+        "status": 401,
+        "error": "book_required"
+      }
+    ]
+  },
+  "cleanupErrors": []
+}

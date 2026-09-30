@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "aggregateCleanupErrors": [],
+  "harnessGone": true,
+  "isolatedDaemonProfilesRemoved": true,
+  "nativeProfileRemoved": true,
+  "noUnrelatedProcessesModified": true
+}

@@ -1,0 +1,100 @@
+{
+  "chainId": 84532,
+  "rpc": "https://sepolia.base.org",
+  "confirmations": 5,
+  "domain": "0xae2e3182ade817a3e726c29ef308eed15c6ec267ffc01a68da990e576fa0df18",
+  "deployer": "0xEFDFF6288333A9e5A272ac646966cf4dfcA64305",
+  "treasury": "0xEFDFF6288333A9e5A272ac646966cf4dfcA64305",
+  "pool": "0x7B9e1DDEc7deb6ed69ef7f2E9c3ae9Ee924029Bc",
+  "issuer": "0x5D77D58e61891F98969d098A8D830DD2BFf1194B",
+  "usdc": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  "ethUsdFeed": "0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1",
+  "contracts": {
+    "royaltySplitter": {
+      "address": "0x1a69B92C9C63d53D12A1B26875dFaBC2f4c608B8",
+      "tx": "0x9a32d9fdcdacb49c3b04b1f5ede6e58eec2351fb94901c8edb9c237a4ed2922d"
+    },
+    "bookShop": {
+      "address": "0x20d1013D45f2C99472df833293375A811BF1e406",
+      "tx": "0x463db71fd84750faa88933345410305ffe7e14e452cb712d24e36af0a24620ee"
+    },
+    "grantIssuer": {
+      "address": "0x6710BDeBb92c9D1D4c22f09aAB1305501e5b850d",
+      "tx": "0xb0da4e64fc68ddd7cdb68afa2aadd1537539e3ee0e70d901ced8de4b89d6657f"
+    },
+    "nodeRegistry": {
+      "address": "0xCb3EFbf760293CE658c44f7D17bAb4Fb5d53CbB1",
+      "tx": "0xc1b1f6b2c910a0e794814bac7cda365d429531f8f704e79ff39c917917909aab"
+    },
+    "operatorPool": {
+      "address": "0x7B9e1DDEc7deb6ed69ef7f2E9c3ae9Ee924029Bc",
+      "tx": "0x90dc6f2310edd22e1158e2e55085fe6e0e887a5f9190b3b70fb4156cf32676c5"
+    }
+  },
+  "registryGenesisDigest": "0x7c410d7d7f3a3abdddef6e0629524710b61107fe640e82efeda3193c13cd1b86",
+  "poolFirstDay": 20725,
+  "params": {
+    "royaltyBps": [
+      1000,
+      9000
+    ],
+    "bookPriceUsdc": 1000000,
+    "bookSize": 1000,
+    "maxPriceAgeSeconds": 3600,
+    "bookValiditySeconds": 2592000,
+    "grantBookSize": 10000,
+    "grantMaxValidityDays": 30,
+    "grantDailyCapCoins": 100000000,
+    "prizeUsdc": 100000,
+    "ticketLifetimeSeconds": 31104000,
+    "seedDelayBlocks": 5,
+    "registryGenesis": "agentic-internet-testnet-v1",
+    "unitBondWei": 100000000000000,
+    "epochSeconds": 3600,
+    "admissionLeaseSeconds": 7200,
+    "obligationSeconds": 604800,
+    "beaconDelayBlocks": 5
+  },
+  "nodeFlags": [
+    "--chain-rpc",
+    "https://sepolia.base.org",
+    "--chain-id",
+    "84532",
+    "--book-shop",
+    "0x20d1013D45f2C99472df833293375A811BF1e406",
+    "--grant-issuer",
+    "0x6710BDeBb92c9D1D4c22f09aAB1305501e5b850d",
+    "--registry",
+    "0xCb3EFbf760293CE658c44f7D17bAb4Fb5d53CbB1",
+    "--chain-confirmations",
+    "5",
+    "--operator-pool",
+    "0x7B9e1DDEc7deb6ed69ef7f2E9c3ae9Ee924029Bc"
+  ],
+  "verified": true,
+  "supersededGrantIssuers": [
+    {
+      "address": "0xCedBF2a7c25C242cFe2ea51357970e62707570A3",
+      "bookSize": 100,
+      "dailyCapCoins": 10000,
+      "replaced": "2026-09-28",
+      "why": "the app promises up to 10 thousand free messages a month"
+    },
+    {
+      "address": "0xA4db691302166eAd509f702da50D95DBFB48Dc90",
+      "bookSize": 10000,
+      "dailyCapCoins": 1000000,
+      "replaced": "2026-09-28",
+      "why": "a daily cap of ten thousand grants from the first day"
+    }
+  ],
+  "supersededShops": [
+    {
+      "bookShop": "0x2233C293FBcE0EC59F6f9dcCb6e8A492B12CE597",
+      "royaltySplitter": "0xcDFe49a9739569534a25E6752ea83b1B2C4DCb09",
+      "pool": "0x3b6fcB5524A3a2F30C7DafCeDE2363Fa5112f524",
+      "replaced": "2026-09-29",
+      "why": "the operator share goes to OperatorPool (Docs/V1_OPERATOR_PAYOUTS_2026_09_29.md)"
+    }
+  ]
+}

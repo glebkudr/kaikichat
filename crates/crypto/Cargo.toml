@@ -1,0 +1,25 @@
+[package]
+name = "agentic-crypto"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+[dependencies]
+agentic-protocol = { path = "../protocol-types" }
+agentic-mailbox-swarm = { path = "../mailbox-swarm" }
+serde.workspace = true
+serde_json.workspace = true
+openmls.workspace = true
+openmls_traits.workspace = true
+openmls_rust_crypto.workspace = true
+openmls_basic_credential.workspace = true
+minicbor.workspace = true
+thiserror.workspace = true
+zeroize.workspace = true
+[dev-dependencies]
+serde_json.workspace = true
+agentic-store = { path = "../store" }
+tempfile.workspace = true
+rusqlite.workspace = true
+hex.workspace = true
+[lints]
+workspace = true

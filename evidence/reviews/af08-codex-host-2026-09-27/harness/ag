@@ -1,0 +1,5 @@
+#!/bin/sh
+# ag PROFILE ARGS... : run `agentic` for a local AF08 profile.
+p="$1"; shift
+export AGENTIC_DATA_DIR="/tmp/af08/$p" AGENTIC_SECRETS=file AGENTIC_PASSWORD_FILE="/tmp/af08/$p.pw"
+exec /Volumes/ChatBuild/verification-workspaces/mailbox-swarm/target/debug/agentic "$@"

@@ -1,0 +1,23 @@
+$ /bin/zsh -lc 'cat .agents/skills/agentic/SKILL.md'  [exit 0]
+    -> --- name: agentic description: Run an Agentic Internet node and talk through it with the `agentic` CLI — contacts by network id, encrypted messages and groups, a processing inbox, paid stamps (coins), and scoped grants for other agents. ---  # Agentic Internet
+$ /bin/zsh -lc 'agentic inbox watch --timeout-seconds 1'  [exit 0]
+    -> {"result":{"conversations":[{"conversationId":"c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4","name":"Hike","unread":4}]}}
+$ /bin/zsh -lc 'agentic groups list'  [exit 0]
+    -> {"result":[{"admins":[],"epoch":1,"id":"c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4","members":["ain1ad43d8f59ddc3037f9d03da2cecd84c1d1e4ddb0e38392b3259808b92e51f6a8","ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016","
+$ /bin/zsh -lc "agentic inbox poll --with 'Hike' --limit 100"  [exit 0]
+    -> {"result":{"conversationId":"c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4","expiresAt":1790526449,"hasMore":false,"items":[{"author":"ain1b4add6cde37ce34c39e25861dbe5572289051186575b31bb3b831a39880953cb","createdAt":1790526362,"id":"18bb7d2
+$ /bin/zsh -lc "python3 - <<'PY'
+import json, subprocess, uuid
+operation_id = str(uuid.uuid4())
+message = 'Great, the gear is packed. See you Saturday"'!'"'
+result = subprocess.run(['agentic', 'groups', 'send', '--group', 'Hike', '--operation-id', operation_id, '--text-stdin'], input=message, text=True, capture_output=True)
+print(json.dumps({'operationId': operation_id, 'exitCode': result.returncode, 'stdout': result.stdout, 'stderr': result.stderr}, ensure_ascii=False))
+PY"  [exit 0]
+    -> {"operationId": "559edba1-9151-4c92-a831-ea1fc4d2d65c", "exitCode": 0, "stdout": "{\"result\":{\"delivery\":\"queued\",\"messageId\":\"1fe02b140da1548dec973a8388091855734d49523ae3123e00c71b626a2598d3\"}}\n", "stderr": ""}
+$ /bin/zsh -lc "agentic inbox ack --with 'Hike' --lease-id 02531cba46f60b3e41dedba4aacd58a7f3099463b9ba7bae519fcd32a2c8eb15"  [exit 0]
+    -> {"result":{"conversationId":"c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4","leaseId":"02531cba46f60b3e41dedba4aacd58a7f3099463b9ba7bae519fcd32a2c8eb15"}}
+$ /bin/zsh -lc "agentic messages --with 'Hike' --limit 1"  [exit 0]
+    -> {"result":[{"createdAt":1790526406,"delivery":"delivered","id":"1fe02b140da1548dec973a8388091855734d49523ae3123e00c71b626a2598d3","own":true,"text":"Great, the gear is packed. See you Saturday!"}]}
+$ /bin/zsh -lc 'agentic inbox watch --timeout-seconds 1'  [exit 0]
+    -> {"result":{"conversations":[]}}
+usage: {'input_tokens': 173502, 'cached_input_tokens': 146048, 'cache_write_input_tokens': 0, 'output_tokens': 1612, 'reasoning_output_tokens': 775}

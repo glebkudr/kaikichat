@@ -1,0 +1,20 @@
+{
+  "passed": false,
+  "selected": [
+    "chat",
+    "network"
+  ],
+  "completed": [],
+  "fingerprints": {
+    "/Users/glebk/Code/chat/target/debug/bundle/macos/Kaiki Chat.app/Contents/MacOS/agentic-desktop": "52dc4c8f6a21c2b1e46fafb4f805319c83a11b0f3bc6e67c322aa5ad01ba1179",
+    "/Users/glebk/Code/chat/target/debug/bundle/macos/Kaiki Chat.app/Contents/MacOS/agentic-node": "9cc2745f278395c62530091c9be894208391665386249e2fecafcc03c61cc887",
+    "/Users/glebk/Code/chat/target/debug/bundle/macos/Kaiki Chat.app/Contents/MacOS/agentic-mcp": "683ce594ecc5c4741805f656b997a6faf7804facf32c696ca03423c252969951",
+    "/Users/glebk/Code/chat/target/debug/bundle/macos/Kaiki Chat.app/Contents/MacOS/agentic-cli": "20bc52a5b94fdb65d0a9755eb7c7b3aca21bfeafe13520c48af7b538f4d8b7c0",
+    "/Users/glebk/Code/chat/target/debug/bundle/macos/Kaiki Chat.app/Contents/MacOS/kaiki": "d42c0b8717103dde774bba1652907043e4efc16258d005391ad50f84c7557d89"
+  },
+  "outcomes": [
+    "Two native webviews: UI onboarding, invitation, MLS contact, message, reply and signed delivery receipts with automatic updates",
+    "Closing/reopening the UI preserves the same isolated profile identity and complete history; independent daemon receives while UI is closed"
+  ],
+  "error": "Error: {\"value\":{\"error\":\"no such element\",\"message\":\"Unable to locate element\",\"stacktrace\":\"\"}}\n    at Client.http (file:///Users/glebk/Code/chat/apps/desktop/tests/native-harness.mjs:77:48)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async Client.button (file:///Users/glebk/Code/chat/apps/desktop/tests/native-harness.mjs:94:15)\n    at async file:///Users/glebk/Code/chat/apps/desktop/tests/native-e2e.mjs:74:3"
+}

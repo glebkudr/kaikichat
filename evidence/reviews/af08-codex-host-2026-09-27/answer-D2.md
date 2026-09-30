@@ -1,0 +1,1 @@
+The message has **not been sent**: the CLI rejected the agent's current credentials with an `unauthorized` error before sending. The [draft](/private/tmp/af08/codex-helper/draft.json) and its operation id are preserved unchanged. Update the agent's access to Agentic Internet and pass the new connection context — then I will be able to send the confirmed text.

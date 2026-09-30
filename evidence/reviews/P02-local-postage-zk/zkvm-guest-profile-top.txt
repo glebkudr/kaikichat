@@ -1,0 +1,26 @@
+File: unknown
+Type: cycles
+Showing nodes accounting for 4410597, 96.59% of 4566377 total
+Dropped 92 nodes (cum <= 22831)
+Showing top 20 nodes out of 52
+      flat  flat%   sum%        cum   cum%
+   1523176 33.36% 33.36%    1527622 33.45%  keccak[29f8beee41589067]::backends::soft::keccak_p
+    768872 16.84% 50.19%     773522 16.94%  sys_read_words
+    589931 12.92% 63.11%     597736 13.09%  <curve25519_dalek[2805737d19e4ab0e]::backend::serial::u32::field::FieldElement2625 as core[9db5b0d37c7706fd]::ops::arith::Mul>
+    382938  8.39% 71.50%     422047  9.24%  <curve25519_dalek[2805737d19e4ab0e]::backend::serial::u32::field::FieldElement2625>
+    206208  4.52% 76.01%     224594  4.92%  <curve25519_dalek[2805737d19e4ab0e]::backend::serial::curve_models::AffineNielsPoint as subtle[dd909afb840db839]::ConditionallySelectable>
+    201463  4.41% 80.43%     201463  4.41%  [PageIn]
+    185153  4.05% 84.48%     961632 21.06%  <risc0_zkvm[8de00b87613210c2]::guest::env::read::FdReader as risc0_zkvm[8de00b87613210c2]::serde::deserializer::WordRead>
+    154449  3.38% 87.86%    1115014 24.42%  <risc0_zkvm[8de00b87613210c2]::serde::deserializer::SeqAccess<mut risc0_zkvm[8de00b87613210c2]::guest::env::read::FdReader> as serde_core[7a4e6f8edf64299b]::de::SeqAccess>::next_element::<alloc[3d83e87414f6d94a]::vec
+     98315  2.15% 90.02%     113984  2.50%  memcpy
+     48518  1.06% 91.08%      52821  1.16%  <serde_json[e89239694b54aa79]::read::SliceRead>
+     44154  0.97% 92.05%      48483  1.06%  <agentic_postage_proof[d25c942cd190be41]::StatementWitness as core[9db5b0d37c7706fd]::ops::drop::Drop>
+     41123   0.9% 92.95%      43441  0.95%  const_hex[98001513481264d6]::decode
+     37793  0.83% 93.77%      49557  1.09%  sha2[cae9c7803db790b7]::sha256
+     29178  0.64% 94.41%      29178  0.64%  [PageOut]
+     26555  0.58% 94.99%      27638  0.61%  sha3[70ed1eb6861e965]::block_api
+     26112  0.57% 95.57%      26460  0.58%  <curve25519_dalek[2805737d19e4ab0e]::backend::serial::u32::field::FieldElement2625 as core[9db5b0d37c7706fd]::ops::arith::Sub>
+     14365  0.31% 95.88%      33421  0.73%  sha2[cae9c7803db790b7]::sha512::soft::unroll
+     12800  0.28% 96.16%     265099  5.81%  <curve25519_dalek[2805737d19e4ab0e]::edwards::EdwardsPoint as core[9db5b0d37c7706fd]::ops::arith::Add<curve25519_dalek[2805737d19e4ab0e]::backend::serial::curve_models::AffineNielsPoint>>
+     11366  0.25% 96.41%      64513  1.41%  <alloy_trie[1ba7de24975d481]::nodes::TrieNode as alloy_rlp[4f3bc077f1d10156]::decode::Decodable>
+      8128  0.18% 96.59%     269789  5.91%  <curve25519_dalek[2805737d19e4ab0e]::window::LookupTable<curve25519_dalek[2805737d19e4ab0e]::backend::serial::curve_models::AffineNielsPoint>>

@@ -1,0 +1,5 @@
+$ /bin/zsh -lc "'/Volumes/ChatBuild/verification-workspaces/mailbox-swarm/target/debug/agentic-cli' --credentials '/private/tmp/af08/alice/runtimes/52f1938f1590376f1560ffa89282dd8449bbea19a10c95191fce105101f74b46.json' context"  [exit 3]
+    -> {"error":{"code":"unauthorized","message":"Agent authorization or request rejected","retryable":false}}
+$ /bin/zsh -lc "python3 -c 'import json; d=json.load(open(\"draft.json\")); print(json.dumps({\"status\":d.get(\"status\"),\"recipientName\":d.get(\"recipientName\"),\"to\":d.get(\"to\"),\"operationId\":d.get(\"operationId\"),\"text\":d.get(\"text\")},ensure_ascii=False))'"  [exit 0]
+    -> {"status": "draft", "recipientName": "Bob", "to": "ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016", "operationId": "767809bf-949c-4f1d-9a74-28ede4a1771e", "text": "Yes, no problem. Then let's move the meeting to Friday 19:30. Do
+usage: {'input_tokens': 634713, 'cached_input_tokens': 570624, 'cache_write_input_tokens': 0, 'output_tokens': 6287, 'reasoning_output_tokens': 2276}

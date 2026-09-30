@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "runId": "ain-testnet-d569c998",
+  "selected": [
+    "af07"
+  ],
+  "pay": false,
+  "outcomes": [
+    "Two clients behind separate NAT routers reserve circuits at two of the testnet's nodes; they cannot reach each other directly"
+  ],
+  "seconds": {
+    "relaysReserved": 1.551,
+    "total": 7.862
+  },
+  "topology": {
+    "af07": {
+      "alice": "198.19.153.3",
+      "bob": "198.19.154.3",
+      "routerA": "198.19.152.2",
+      "routerB": "198.19.152.3",
+      "relays": [
+        "/ip4/51.91.126.3/udp/4103/quic-v1/p2p/12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd",
+        "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY"
+      ]
+    }
+  },
+  "docker": "linux aarch64",
+  "sourceHash": "c303a1fe27ebd77ee241f1b1c02e8ee5a2ae601df0ba5276b77744b2cb203ed9",
+  "imageId": "sha256:bb68083a7c81a43d3fc8c7dcd1e490d088c870a70a83f816edcdc2d640acc704",
+  "preset": {
+    "network": "kaiki-testnet-base-sepolia",
+    "serial": 2
+  },
+  "cleanupErrors": []
+}

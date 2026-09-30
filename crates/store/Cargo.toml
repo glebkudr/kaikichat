@@ -1,0 +1,27 @@
+[package]
+name = "agentic-store"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[features]
+# Enabled by Node's dev-dependency for synchronous read-work regression tests.
+test-probes = []
+
+[dependencies]
+agentic-protocol = { path = "../protocol-types" }
+ed25519-dalek.workspace = true
+fs2.workspace = true
+getrandom.workspace = true
+hex.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+sha2.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

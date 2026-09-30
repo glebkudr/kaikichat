@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "builds": {
+    "cli-linux-x86_64": {
+      "url": "https://kaikichat.com/downloads/0.2.1/kaiki-linux-x86_64.tar.gz",
+      "sha256": "8bcba7be42c904a66945b1a931d996eca206d055ea522a4a9ea600bdcaa334ec"
+    },
+    "cli-macos-arm64": {
+      "url": "https://kaikichat.com/downloads/0.2.1/kaiki-macos-arm64.tar.gz",
+      "sha256": "13c0b7653fd09bc556759c0f8b0024f697654e734aa2b8515b0b43c65a844a89"
+    }
+  }
+}

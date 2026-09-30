@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "platform": "macOS WKWebView",
+  "selected": [
+    "chat",
+    "network"
+  ],
+  "completed": [
+    "chat",
+    "network"
+  ],
+  "fingerprints": {
+    "/Users/glebk/Code/chat/target/debug/bundle/macos/Kaiki Chat.app/Contents/MacOS/agentic-desktop": "b39013304ffc50072205476b7d9a5b250ea20faadce82083db0dd2bf66807fc3",
+    "/Users/glebk/Code/chat/target/debug/bundle/macos/Kaiki Chat.app/Contents/MacOS/agentic-node": "fe099ad717e994c450dc3889206903226790cae65d093abe36279db714a142f4",
+    "/Users/glebk/Code/chat/target/debug/bundle/macos/Kaiki Chat.app/Contents/MacOS/agentic-mcp": "920c5063d4cec712c29e28fa4d443c4b3eedc27a91a74aad13b660e9b40de2d9",
+    "/Users/glebk/Code/chat/target/debug/bundle/macos/Kaiki Chat.app/Contents/MacOS/agentic-cli": "fc79a82cb67dff30c7e24eda0b503a0da93a25a3903fc20063f4379add73b85e",
+    "/Users/glebk/Code/chat/target/debug/bundle/macos/Kaiki Chat.app/Contents/MacOS/kaiki": "aaf7018b46950ec47b15be85c3ae4c81db4cbc8c0eeb4c24ea3b33f15144f879"
+  },
+  "outcomes": [
+    "Two native webviews: UI onboarding, invitation, MLS contact, message, reply and signed delivery receipts with automatic updates",
+    "Closing/reopening the UI preserves the same isolated profile identity and complete history; independent daemon receives while UI is closed",
+    "Native permissions UI creates a scoped runtime; displayed MCP and CLI commands launch bundled executables, share send idempotency and delivery status, and UI revoke denies both clients",
+    "Native DHT client/server control saves and restores the actual daemon role and explains relay suppression; network settings configure an independent packaged relay/AutoNAT provider; real MLS and receipts flow through its circuit; daemon restart restores preferences, listener ports, identity and the original queued message"
+  ]
+}

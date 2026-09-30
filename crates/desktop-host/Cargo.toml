@@ -1,0 +1,23 @@
+[package]
+name = "agentic-desktop-host"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+[features]
+e2e = []
+[dependencies]
+agentic-node = {path="../node"}
+keyring = "4.2.0"
+libp2p = {version="0.56.0",default-features=false}
+tokio = {version="1.53.1",features=["rt-multi-thread","macros","time"]}
+serde_json.workspace = true
+serde.workspace = true
+zeroize.workspace = true
+getrandom.workspace = true
+hex.workspace = true
+sha2.workspace = true
+fs2.workspace = true
+[dev-dependencies]
+tempfile.workspace = true
+[lints]
+workspace = true

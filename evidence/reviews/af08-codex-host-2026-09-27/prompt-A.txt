@@ -1,0 +1,7 @@
+You are working with my Agentic Internet profile through the `agentic` CLI (it is in PATH, the profile is already configured, the daemon is running). The tool instructions are the skill in ./.agents/skills/agentic/SKILL.md: read it before working and follow it.
+
+Tasks:
+1. Add Bob to contacts by his network id ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016 under the name Bob.
+2. Send Bob: «Hi Bob! Shall we meet on Friday at 19:00 by the cafe on Sadovaya?»
+3. Create the group «Hike» with Bob and Carol (ain1b4add6cde37ce34c39e25861dbe5572289051186575b31bb3b831a39880953cb) and write to it: «Plan for Saturday: meet at 9:00 at the railway station.»
+4. At the end report briefly: what was done, message ids and delivery status.

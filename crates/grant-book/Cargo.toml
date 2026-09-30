@@ -1,0 +1,18 @@
+[package]
+name = "agentic-grant-book"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+alloy-primitives = { version = "1.7.2" }
+hex.workspace = true
+k256 = { version = "0.13.4", features = ["ecdsa"] }
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

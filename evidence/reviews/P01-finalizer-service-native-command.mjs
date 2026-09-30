@@ -1,0 +1,10 @@
+import {execFileSync} from 'node:child_process';
+const cwd='/Users/glebk/Library/Caches/agentic-internet/worktree';
+const run=(program,args,extra={})=>execFileSync(program,args,{cwd,stdio:'inherit',env:{...process.env,AIN_NODE:process.execPath,...extra}});
+run(process.execPath,['scripts/build-desktop.mjs','--debug','--e2e']);
+run(process.execPath,['apps/desktop/tests/native-e2e.mjs'],{AIN_DESKTOP_BINARY:cwd+'/target/debug/bundle/macos/Agentic Internet.app/Contents/MacOS/agentic-desktop'});
+run(process.execPath,['scripts/build-desktop.mjs']);
+run('codesign',['--verify','--deep','--strict',cwd+'/target/release/bundle/macos/Agentic Internet.app']);
+const tree=execFileSync('cargo',['tree','-p','agentic-desktop','-e','normal','--prefix','none'],{cwd,encoding:'utf8'});
+if(tree.includes('tauri-plugin-wdio-webdriver'))throw new Error('Automation plugin leaked into default graph');
+console.log('Native service-change regression and release build passed; full V1 remains incomplete.');

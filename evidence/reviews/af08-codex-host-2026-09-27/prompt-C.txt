@@ -1,0 +1,1 @@
+Use only the MCP tools of the agentic server (this is my Agentic Internet profile); no shell is needed for this task. Read the new inbox items from Bob, mark them processed and reply in the «Hike» group to his question: «We leave from the railway station at 9:30, the train is at 9:42.» Then report briefly.

@@ -1,0 +1,1 @@
+FINAL ACCEPT. All51hashes of 1b827b9b3ccbdb5f8bf4ca50dd24bb0007dc6478cf8d010aa70dc43319233bec match. Reversing only AutoNAT testfixture correction reproduces R10b acceptedtesthash; allassertions/TCP/QUICunchanged. Focused10pass terminal77651. FullE2E/regressionsrequired.

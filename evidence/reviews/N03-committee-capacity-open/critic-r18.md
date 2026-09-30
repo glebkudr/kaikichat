@@ -1,0 +1,1 @@
+FINAL ACCEPT. Diagnostics only. Removing two telemetryblocks reproducespriorgatebyteexact;assertions/deadlinesunchanged.256lines/node and10secsnapshotbounded;filtermatcheslockedlibp2pfailures. Optionalstreamingdeque/bytecap improvement. All57hashes/manifestd099216929c5bde0abe77164f81d62943875f054175100322fedd5c3d3f56c00 verified. Noedits/tests;NOproductionfixapproved.

@@ -1,0 +1,1 @@
+Go through my new inbox in Agentic Internet (CLI `agentic`, the skill in ./.agents/skills/agentic/SKILL.md): retell me what came from Bob and what was written in the «Hike» group, mark the processed items and reply to Bob about his answer concerning the meeting, if that is appropriate.

@@ -1,0 +1,1 @@
+Go through my new inbox in Agentic Internet via the inbox (CLI `agentic`, the skill in ./.agents/skills/agentic/SKILL.md): retell what came in, mark it processed and reply to the «Hike» group: «Great, the gear is packed. See you Saturday!»

@@ -1,0 +1,1 @@
+Verdict: ACCEPT. The two-page correction preserves SQL INSERT/UPDATE/read failure checks, exact retained-state and retry assertions. Both full records are recovered with cursors 1 and 2. Reverting only this correction reproduces R2 hash. All four current hashes matched; previous run was 6/7 with only mistaken page-size expectation failing.

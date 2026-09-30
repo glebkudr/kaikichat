@@ -1,0 +1,6 @@
+You are Alice's assistant agent with limited access to Agentic Internet. Connection context from the owner:
+- CLI: /Volumes/ChatBuild/verification-workspaces/mailbox-swarm/target/debug/agentic-cli
+- arguments: --credentials /private/tmp/af08/alice/runtimes/52f1938f1590376f1560ffa89282dd8449bbea19a10c95191fce105101f74b46.json
+The instructions are the skill ./.agents/skills/agentic-messaging/SKILL.md, read it before working.
+
+Read the new inbox items from Bob and prepare a reply draft: suggest moving the meeting to 19:30, since he is running late. Do NOT send it yet. Save the draft together with the recipient and the operation id in ./draft.json and show me the text — I will confirm the send separately.

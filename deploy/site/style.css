@@ -1,0 +1,119 @@
+/* kaikichat.com: the look of the Kaiki Chat app. Monochrome, monospace,
+   dark unless the visitor's system prefers light. No web fonts: nothing is
+   loaded from elsewhere. */
+:root {
+  --bg: #0a0a0a; --surface: #0f0f0f; --raised: #151515; --line: #242424;
+  --text: #d6d6d6; --strong: #f2f2f2; --muted: #8d8d8d; --faint: #5a5a5a;
+  --on-strong: #0a0a0a;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f5f5; --surface: #efefef; --raised: #e8e8e8; --line: #d6d6d6;
+    --text: #2c2c2c; --strong: #0d0d0d; --muted: #6b6b6b; --faint: #a5a5a5;
+    --on-strong: #f5f5f5;
+    color-scheme: light;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.7 "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+.wrap { width: min(100% - 32px, 980px); margin: 0 auto; }
+
+/* Header: the brand as in the app's sidebar. */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 28px 0; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.mark { font-size: 25px; font-weight: 700; letter-spacing: -3px; color: var(--strong); }
+.mark span { color: var(--faint); margin: 0 2px; }
+.brand b { display: block; color: var(--strong); font-size: 15px; letter-spacing: -.2px; }
+.brand small { display: block; color: var(--muted); font-size: 10px; margin-top: 2px; }
+.nav { display: flex; align-items: center; gap: 22px; font-size: 12px; }
+.nav a { color: var(--muted); text-decoration: none; }
+.nav a:hover { color: var(--strong); }
+.lang select { font: inherit; font-size: 11px; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 4px 8px; cursor: pointer; }
+.lang select:hover { border-color: var(--muted); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* Hero: the first screen of the app's onboarding. */
+.hero { padding: 72px 0 88px; max-width: 720px; }
+.eyebrow { font-size: 10px; letter-spacing: 2px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+h1 { color: var(--strong); font-size: clamp(30px, 5.2vw, 46px); line-height: 1.18; letter-spacing: -1px; font-weight: 700; margin: 18px 0 20px; text-wrap: balance; }
+.lead { font-size: 15px; color: var(--muted); max-width: 640px; margin: 0 0 32px; }
+.flow { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 36px; font-size: 12px; }
+.flow span { padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; color: var(--text); background: var(--surface); }
+.flow span.agent { border-style: dashed; color: var(--strong); }
+.flow i { font-style: normal; color: var(--faint); }
+.flow span.agent.mine { border: 1px solid var(--strong); border-style: solid; color: var(--strong); font-weight: 700; }
+.flow .friends { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 10px 8px; border: 1px dashed var(--line); border-radius: 6px; background: none; }
+.flow .friends small { flex-basis: 100%; font-size: 10px; color: var(--muted); letter-spacing: .4px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.button { display: inline-block; padding: 13px 20px; border-radius: 4px; font-weight: 600; font-size: 13px; text-decoration: none; background: var(--strong); color: var(--on-strong); border: 1px solid var(--strong); }
+.button.secondary { background: transparent; color: var(--strong); border-color: var(--line); }
+.button.secondary:hover { border-color: var(--muted); }
+
+/* Sections. */
+section.part { border-top: 1px solid var(--line); padding: 64px 0; }
+h2 { color: var(--strong); font-size: 22px; letter-spacing: -.4px; margin: 12px 0 28px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+.grid.pairs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; }
+.card h3 { color: var(--strong); font-size: 14px; margin: 0 0 10px; }
+.card p { margin: 0; color: var(--muted); font-size: 13px; }
+.step { font-size: 11px; color: var(--faint); font-weight: 700; letter-spacing: 1px; display: block; margin-bottom: 14px; }
+
+/* An invitation as a friend sends it. */
+.invite { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+.message { background: var(--surface); border: 1px dashed var(--line); border-radius: 6px; padding: 18px 20px; font-size: 12px; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+.message b { color: var(--strong); font-weight: 600; }
+ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+ol.steps li { counter-increment: step; position: relative; padding-block-end: 18px; padding-inline-start: 34px; color: var(--muted); }
+ol.steps li::before { content: counter(step); position: absolute; inset-inline-start: 0; top: 0; width: 22px; height: 22px; border-radius: 4px; background: var(--strong); color: var(--on-strong); font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+ol.steps li strong { color: var(--strong); font-weight: 600; }
+
+/* Downloads: a tile per platform; a tile without a link is not out yet. */
+.platform { display: flex; justify-content: space-between; align-items: center; gap: 16px; text-decoration: none; }
+.platform b { color: var(--strong); display: block; font-size: 14px; }
+.platform small { color: var(--muted); font-size: 12px; }
+.platform em { font-style: normal; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; border: 1px solid var(--line); border-radius: 3px; padding: 4px 8px; color: var(--muted); white-space: nowrap; }
+a.platform[href]:hover { border-color: var(--muted); }
+a.platform[href] em { background: var(--strong); color: var(--on-strong); border-color: var(--strong); }
+.note { color: var(--muted); font-size: 12px; margin: 22px 0 0; }
+
+/* Footer. */
+footer { border-top: 1px solid var(--line); padding: 28px 0 48px; font-size: 11px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 22px; }
+footer a { color: var(--muted); }
+
+/* The privacy page: one column of text. */
+.page { max-width: 680px; padding: 48px 0 72px; }
+.page h1 { font-size: clamp(28px, 4.6vw, 38px); }
+.page h2 { font-size: 15px; margin: 34px 0 8px; }
+.page p { color: var(--muted); margin: 0 0 12px; }
+
+@media (max-width: 720px) {
+  .bar { flex-wrap: wrap; padding: 20px 0; }
+  .nav { gap: 14px; flex-wrap: wrap; }
+  .nav .optional { display: none; }
+  .hero { padding: 40px 0 56px; }
+  .invite, .grid.pairs { grid-template-columns: 1fr; }
+  section.part { padding: 44px 0; }
+}
+
+/* The agent's text: long lines wrap, the copy row sits under it. */
+.agent-text { font-size: 12px; line-height: 1.7; max-height: 420px; overflow: auto; margin: 0 0 18px; }
+.copy-row { align-items: center; }
+.copy-row .copied { margin: 0; }
+.grid.spaced { margin-top: 16px; }
+
+/* Right-to-left languages: the diagram's arrows point the other way. */
+[dir="rtl"] .flow i { display: inline-block; transform: scaleX(-1); }
+
+/* Arabic script joins its letters, and CJK needs no tightening: letter
+   spacing off there, and a typeface made for Arabic and Persian. */
+html:is(:lang(ar), :lang(fa), :lang(ja), :lang(zh), :lang(ko)) :not(.mark) { letter-spacing: 0; }
+html:is(:lang(ar), :lang(fa)) body { font-family: "SF Arabic", "Geeza Pro", "Noto Sans Arabic", Tahoma, sans-serif; font-size: 15px; }
+html:is(:lang(ar), :lang(fa)) :is(.message, select) { font-family: inherit; font-size: 13px; }

@@ -1,0 +1,1 @@
+During the first broad verification run, a supported 128-byte operator ID was found to produce a namespace longer than the store 256-byte bound. The per-operator namespace now uses a fixed SHA-256 digest. Initial broad runs are diagnostic only, even if runtime assertions pass; final gates must use source-inputs.json after this fix. Tests R5 remain unchanged.

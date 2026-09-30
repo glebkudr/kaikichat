@@ -1,0 +1,3 @@
+
+# Protobuf profiles are binary evidence; preserve bytes and suppress text diffs.
+*.pprof binary

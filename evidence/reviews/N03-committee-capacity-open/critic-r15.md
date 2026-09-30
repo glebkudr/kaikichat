@@ -1,0 +1,1 @@
+FINAL REVISE: first valid may be stale against durable floor, hiding acceptable newer replica. Require real persisted newer floor, firstactualreplica old valid, secondnewusable, boundedretrieval beforeoldexpiry. Positive/invalid tests otherwise sound, all53hashes match9fe90505ca2e0b4af09bd16a653713fc93aec72fc0b5726656136192f3013804.

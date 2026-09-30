@@ -1,0 +1,41 @@
+[package]
+name = "agentic-node"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+[dependencies]
+agentic-core = { path = "../core" }
+agentic-mailbox-swarm = { path = "../mailbox-swarm" }
+agentic-grant-book = { path = "../grant-book" }
+alloy-primitives = { version = "1.7.2" }
+sha2.workspace = true
+async-trait = "0.1.92"
+agentic-store = { path = "../store" }
+agentic-protocol = { path = "../protocol-types" }
+agentic-crypto = { path = "../crypto" }
+rmcp = { version = "3.2.0", default-features = false, features = ["server", "transport-io"] }
+ed25519-dalek.workspace = true
+getrandom.workspace = true
+libp2p = { version = "0.56.0", features = ["tokio", "tcp", "quic", "noise", "yamux", "request-response", "cbor", "macros", "relay", "identify", "dcutr", "autonat", "mdns", "kad"] }
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "sync", "net", "io-util", "time", "signal", "process"] }
+futures = "0.3.34"
+clap = { version = "4.6.6", features = ["derive"] }
+serde.workspace = true
+serde_json.workspace = true
+serde_bytes = "0.11.19"
+subtle = "2.6.1"
+hex.workspace = true
+zeroize.workspace = true
+tracing = "0.1.44"
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls", "json"] }
+keyring = "4.2.0"
+fs2.workspace = true
+argon2 = "0.5.3"
+chacha20poly1305 = "0.10.1"
+dirs = "6.0.0"
+[dev-dependencies]
+agentic-store = { path = "../store", features = ["test-probes"] }
+rusqlite.workspace = true
+tempfile.workspace = true
+[lints]
+workspace = true

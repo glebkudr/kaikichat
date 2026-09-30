@@ -1,0 +1,27 @@
+[package]
+name = "agentic-identity-server"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+agentic-grant-book = { path = "../../crates/grant-book" }
+agentic-mailbox-swarm = { path = "../../crates/mailbox-swarm" }
+axum = "0.8.9"
+base64 = "0.22.1"
+getrandom.workspace = true
+hex.workspace = true
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls", "json", "form"] }
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "net", "sync", "time", "signal"] }
+url = "2.5.8"
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,8 @@
+#!/bin/sh
+# `kaiki` for the welcome agent's profile (welcome.py), for the operator:
+# `welcome-kaiki coins balance`, `welcome-kaiki coins buy`, `welcome-kaiki
+# network`. Run it in the nodes' container.
+export AGENTIC_DATA_DIR=/data/welcome/profile AGENTIC_SECRETS=file \
+    AGENTIC_PASSWORD_FILE=/data/welcome/password
+unset AGENTIC_PASSWORD
+exec /usr/local/bin/kaiki "$@"

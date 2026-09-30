@@ -1,0 +1,4 @@
+Package: agentic-internet
+Architecture: amd64
+Version: 0.1.0
+Depends: libwebkit2gtk-4.1-0, libgtk-3-0

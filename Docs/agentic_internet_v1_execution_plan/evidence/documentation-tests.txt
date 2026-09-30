@@ -1,0 +1,48 @@
+Command: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v test_validate_plan test_revision_contract test_packet_consistency
+Scope: documentation only; messenger product tests executed: 0
+
+test_complete_plan_is_valid (test_validate_plan.PlanValidationTests.test_complete_plan_is_valid) ... ok
+test_dependency_cycle_is_rejected (test_validate_plan.PlanValidationTests.test_dependency_cycle_is_rejected) ... ok
+test_duplicate_task_id_is_rejected (test_validate_plan.PlanValidationTests.test_duplicate_task_id_is_rejected) ... ok
+test_missing_adversarial_test_is_rejected (test_validate_plan.PlanValidationTests.test_missing_adversarial_test_is_rejected) ... ok
+test_missing_fault_test_is_rejected (test_validate_plan.PlanValidationTests.test_missing_fault_test_is_rejected) ... ok
+test_missing_requirement_coverage_is_rejected (test_validate_plan.PlanValidationTests.test_missing_requirement_coverage_is_rejected) ... ok
+test_no_fake_product_assurance (test_validate_plan.PlanValidationTests.test_no_fake_product_assurance) ... ok
+test_status_cannot_imply_product_completion (test_validate_plan.PlanValidationTests.test_status_cannot_imply_product_completion) ... ok
+test_unknown_dependency_is_rejected (test_validate_plan.PlanValidationTests.test_unknown_dependency_is_rejected) ... ok
+test_unknown_requirement_is_rejected (test_validate_plan.PlanValidationTests.test_unknown_requirement_is_rejected) ... ok
+test_wrong_reverse_mapping_is_rejected (test_validate_plan.PlanValidationTests.test_wrong_reverse_mapping_is_rejected) ... ok
+test_amended_traceability_and_scope (test_revision_contract.RevisionContractTests.test_amended_traceability_and_scope) ... ok
+test_completion_gate_is_rejected (test_revision_contract.RevisionContractTests.test_completion_gate_is_rejected) ... ok
+test_economic_agent_engine_belongs_to_v2 (test_revision_contract.RevisionContractTests.test_economic_agent_engine_belongs_to_v2) ... ok
+test_economic_engine_cannot_silently_return_to_v1 (test_revision_contract.RevisionContractTests.test_economic_engine_cannot_silently_return_to_v1) ... ok
+test_executor_claim_is_not_independent_attestation (test_revision_contract.RevisionContractTests.test_executor_claim_is_not_independent_attestation) ... ok
+test_google_telegram_site_profiles_are_required (test_revision_contract.RevisionContractTests.test_google_telegram_site_profiles_are_required) ... ok
+test_missing_telegram_is_rejected (test_revision_contract.RevisionContractTests.test_missing_telegram_is_rejected) ... ok
+test_new_requirement_cannot_be_removed (test_revision_contract.RevisionContractTests.test_new_requirement_cannot_be_removed) ... ok
+test_payment_gate_is_rejected (test_revision_contract.RevisionContractTests.test_payment_gate_is_rejected) ... ok
+test_retired_ui_is_rejected (test_revision_contract.RevisionContractTests.test_retired_ui_is_rejected) ... ok
+test_review_right_does_not_depend_on_provider_completion_or_payment (test_revision_contract.RevisionContractTests.test_review_right_does_not_depend_on_provider_completion_or_payment) ... ok
+test_reviews_belong_to_v1 (test_revision_contract.RevisionContractTests.test_reviews_belong_to_v1) ... ok
+test_reviews_cannot_be_moved_to_v2 (test_revision_contract.RevisionContractTests.test_reviews_cannot_be_moved_to_v2) ... ok
+test_single_issuer_cannot_be_disallowed_again (test_revision_contract.RevisionContractTests.test_single_issuer_cannot_be_disallowed_again) ... ok
+test_single_issuer_is_explicitly_allowed (test_revision_contract.RevisionContractTests.test_single_issuer_is_explicitly_allowed) ... ok
+test_tauri_is_required (test_revision_contract.RevisionContractTests.test_tauri_is_required) ... ok
+test_vendor_veto_is_rejected (test_revision_contract.RevisionContractTests.test_vendor_veto_is_rejected) ... ok
+test_all_task_requirement_references_resolve (test_packet_consistency.PacketConsistencyTests.test_all_task_requirement_references_resolve) ... ok
+test_execution_scope_is_not_product_validated (test_packet_consistency.PacketConsistencyTests.test_execution_scope_is_not_product_validated) ... ok
+test_full_document_is_exact_assembly (test_packet_consistency.PacketConsistencyTests.test_full_document_is_exact_assembly) ... ok
+test_indexes_match_json (test_packet_consistency.PacketConsistencyTests.test_indexes_match_json) ... ok
+test_manifest_ignores_appledouble_without_hiding_real_files (test_packet_consistency.PacketConsistencyTests.test_manifest_ignores_appledouble_without_hiding_real_files) ... ok
+test_metadata_dag_matches_computed (test_packet_consistency.PacketConsistencyTests.test_metadata_dag_matches_computed) ... ok
+test_metadata_files_agree (test_packet_consistency.PacketConsistencyTests.test_metadata_files_agree) ... ok
+test_new_sources_have_provenance (test_packet_consistency.PacketConsistencyTests.test_new_sources_have_provenance) ... ok
+test_no_task_lacks_positive_negative_fault_acceptance (test_packet_consistency.PacketConsistencyTests.test_no_task_lacks_positive_negative_fault_acceptance) ... ok
+test_required_amendment_docs_exist (test_packet_consistency.PacketConsistencyTests.test_required_amendment_docs_exist) ... ok
+test_task_files_are_exact (test_packet_consistency.PacketConsistencyTests.test_task_files_are_exact) ... ok
+test_task_markdown_matches_json (test_packet_consistency.PacketConsistencyTests.test_task_markdown_matches_json) ... ok
+
+----------------------------------------------------------------------
+Ran 40 tests in 0.046s
+
+OK

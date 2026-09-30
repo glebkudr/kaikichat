@@ -1,0 +1,20 @@
+/usr
+/usr/bin
+/usr/bin/agentic-node
+/usr/bin/agentic-cli
+/usr/bin/agentic-mcp
+/usr/bin/agentic
+/usr/bin/agentic-desktop
+/usr/lib
+/usr/lib/Agentic Internet
+/usr/lib/Agentic Internet/skills
+/usr/lib/Agentic Internet/skills/agentic-messaging
+/usr/lib/Agentic Internet/skills/agentic-messaging/SKILL.md
+/usr/share
+/usr/share/icons
+/usr/share/icons/hicolor
+/usr/share/icons/hicolor/512x512
+/usr/share/icons/hicolor/512x512/apps
+/usr/share/icons/hicolor/512x512/apps/agentic-desktop.png
+/usr/share/applications
+/usr/share/applications/Agentic Internet.desktop

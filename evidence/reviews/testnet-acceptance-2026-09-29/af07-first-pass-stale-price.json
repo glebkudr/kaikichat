@@ -1,0 +1,2187 @@
+{
+  "passed": false,
+  "runId": "ain-testnet-b8360971",
+  "selected": [
+    "af07",
+    "af06",
+    "double-spend",
+    "stolen-key"
+  ],
+  "pay": true,
+  "outcomes": [
+    "Two clients behind separate NAT routers reserve circuits at two of the testnet's nodes; they cannot reach each other directly",
+    "Two books bought on Base Sepolia; the treasury's credit grew by 74723406640108 wei, a tenth of the price",
+    "Contact by id, a message and a reply between the NATs; their connection is a circuit through a testnet relay",
+    "The relay in use disappears for both NATs: each keeps the other relay, and messages go on through a circuit there",
+    "Without our web services the newcomer gets no free coins: for a minute its claim answers claim_pending and no login link"
+  ],
+  "seconds": {
+    "relaysReserved": 1.551,
+    "shopTermsRead": 2.243,
+    "directoriesAndCards": 89.427,
+    "contactByIdThroughNat": 25.671,
+    "firstMessage": 1.12,
+    "reply": 3.235,
+    "relayLost": 23.642,
+    "afterRelayLost": 1.114,
+    "circuitReplaced": 110.664,
+    "replyAfterRelayLost": 1.115,
+    "claimWithoutLink": 62.122
+  },
+  "topology": {
+    "af07": {
+      "alice": "198.19.114.3",
+      "bob": "198.19.115.3",
+      "routerA": "198.19.113.2",
+      "routerB": "198.19.113.3",
+      "relays": [
+        "/ip4/51.91.126.3/udp/4103/quic-v1/p2p/12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd",
+        "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY"
+      ]
+    }
+  },
+  "docker": "linux aarch64",
+  "sourceHash": "4a840ea1fc836da486b0d2d20a2d331f4f0f1ecc5d6f83069433b5f722943e10",
+  "imageId": "sha256:745afc92150aa3c8ee2d8685daace7f27377fcc0009ef335b13307ef9f557ba5",
+  "preset": {
+    "network": "kaiki-testnet-base-sepolia",
+    "serial": 3
+  },
+  "purchases": [
+    {
+      "tx": "0x619ecfbb4b32d90a43b67987834941bf980985e398c8228f379bbfc1a6ce3949",
+      "valueWei": "377353203532550",
+      "quoteWei": "373617033200544",
+      "book": "0x7c1c0f987ebaf814e59eb43730a1889389e1799ad77bf66c53c8cbea78658018",
+      "noticedSeconds": 28.559
+    },
+    {
+      "tx": "0x152622928bf30715d5f14c39585ff9d6ad0a00060d9821155bd4209da1059e88",
+      "valueWei": "377353203532550",
+      "quoteWei": "373617033200544",
+      "book": "0x4407180176e9bd992e1747c9d009243eaaa2ef224b97265dd7dd658fc88c7bf2",
+      "noticedSeconds": 31.541
+    }
+  ],
+  "treasury": {
+    "before": "298725385276348",
+    "after": "373448791916456",
+    "paidWei": "754706407065100",
+    "quotedWei": "747234066401088"
+  },
+  "circuits": {
+    "first": "/ip4/51.91.126.3/udp/4103/quic-v1/p2p/12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd/p2p-circuit/p2p/12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp",
+    "replaced": "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY/p2p-circuit/p2p/12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp"
+  },
+  "af07Nodes": {
+    "alice": {
+      "access": {
+        "accepted": 9,
+        "credential": "book",
+        "refused": {
+          "unknown_book": 9
+        },
+        "showing": 0,
+        "shown": 56,
+        "waiting": 0,
+        "waitingPeers": 0
+      },
+      "asked": {
+        "986b85d9d624fe91f83c914d48a7ef06867ab6add6ee0bf901f626453d797f9e": 549,
+        "intro": 158
+      },
+      "blocked": 0,
+      "door": {
+        "admitted": 0,
+        "batches": 0,
+        "published": 0,
+        "rejoins": 0,
+        "waiting": 0
+      },
+      "failureKinds": {
+        "access": 74,
+        "dial": 76,
+        "other": 4
+      },
+      "failures": 154,
+      "grants": {
+        "checked": 0,
+        "checking": 0,
+        "learned": 0,
+        "refused": 0
+      },
+      "groups": {
+        "decided": 0,
+        "renewed": 0,
+        "rounds": 0
+      },
+      "held": 0,
+      "holders": 10,
+      "importAttempts": 2,
+      "intro": {
+        "direct": {
+          "ignored": 0,
+          "joined": 0,
+          "pending": 0,
+          "subscribed": 0
+        },
+        "lookups": 1,
+        "published": "card:80db87329cf63d8d069e0fe0055f8ba80d350d85765f8f8a44286226a58bca6c:20725",
+        "rejected": 0,
+        "swarm": {
+          "ignored": 1,
+          "joined": 0,
+          "pending": 0,
+          "subscribed": 0
+        }
+      },
+      "lastFailure": "95702a78: access: Failed to dial the requested peer",
+      "notary": {
+        "batches": 54,
+        "notarized": 43,
+        "proofs": 0,
+        "waiting": 5
+      },
+      "pollInMs": 44,
+      "proofs": {
+        "blockedHolders": 0,
+        "learned": 0
+      },
+      "public": {
+        "archives": 0,
+        "archivesLaid": 0,
+        "followReads": 0,
+        "hardReseeds": 0,
+        "hellos": 0,
+        "keyUpdates": 0,
+        "posts": 0,
+        "published": 0,
+        "rekeyed": 0,
+        "rosters": 0,
+        "subscriberKeys": 0
+      },
+      "reads": [
+        {
+          "conversationId": "intro",
+          "cursors": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "holders": 10,
+          "inFlight": 0,
+          "pending": 0,
+          "period": 20724,
+          "seen": 0
+        },
+        {
+          "conversationId": "intro",
+          "cursors": [
+            23,
+            23,
+            23,
+            23,
+            23,
+            23,
+            23,
+            23,
+            23
+          ],
+          "holders": 10,
+          "inFlight": 0,
+          "pending": 0,
+          "period": 20725,
+          "seen": 1
+        },
+        {
+          "conversationId": "986b85d9d624fe91f83c914d48a7ef06867ab6add6ee0bf901f626453d797f9e",
+          "cursors": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "holders": 10,
+          "inFlight": 0,
+          "pending": 1,
+          "period": 20724,
+          "seen": 0
+        },
+        {
+          "conversationId": "986b85d9d624fe91f83c914d48a7ef06867ab6add6ee0bf901f626453d797f9e",
+          "cursors": [
+            27,
+            27,
+            27,
+            27,
+            27,
+            27,
+            27,
+            27,
+            27
+          ],
+          "holders": 10,
+          "inFlight": 0,
+          "pending": 1,
+          "period": 20725,
+          "seen": 1
+        }
+      ],
+      "receipts": 35,
+      "received": 1,
+      "refusals": 0,
+      "rejectedEntries": 0,
+      "rejectedReceipts": 0,
+      "replication": {
+        "conflicts": 0,
+        "pages": 0,
+        "pulled": 0,
+        "pulls": 0,
+        "summaries": 0
+      },
+      "requests": 1,
+      "resealed": 0,
+      "sends": [],
+      "sent": {
+        "access": 56,
+        "cardRead": 36,
+        "directory": 6,
+        "notarize": 45,
+        "proofs": 8,
+        "read": 679,
+        "store": 39
+      },
+      "served": {},
+      "stored": 4
+    },
+    "bob": {
+      "access": {
+        "accepted": 9,
+        "credential": "book",
+        "refused": {
+          "unknown_book": 14
+        },
+        "showing": 1,
+        "shown": 52,
+        "waiting": 1,
+        "waitingPeers": 1
+      },
+      "asked": {
+        "986b85d9d624fe91f83c914d48a7ef06867ab6add6ee0bf901f626453d797f9e": 488,
+        "intro": 120
+      },
+      "blocked": 0,
+      "door": {
+        "admitted": 0,
+        "batches": 0,
+        "published": 0,
+        "rejoins": 0,
+        "waiting": 0
+      },
+      "failureKinds": {
+        "access": 71,
+        "dial": 66,
+        "other": 4
+      },
+      "failures": 141,
+      "grants": {
+        "checked": 0,
+        "checking": 0,
+        "learned": 0,
+        "refused": 0
+      },
+      "groups": {
+        "decided": 0,
+        "renewed": 0,
+        "rounds": 0
+      },
+      "held": 0,
+      "holders": 10,
+      "importAttempts": 4,
+      "intro": {
+        "direct": {
+          "ignored": 0,
+          "joined": 0,
+          "pending": 0,
+          "subscribed": 0
+        },
+        "lookups": 0,
+        "published": "card:7de79e16bb080baed09e8d94e8fb717d0c32ac3252d33608746f431acfaab9e5:20725",
+        "rejected": 0,
+        "swarm": {
+          "ignored": 1,
+          "joined": 1,
+          "pending": 0,
+          "subscribed": 0
+        }
+      },
+      "lastFailure": "95702a78: access: Failed to dial the requested peer",
+      "notary": {
+        "batches": 47,
+        "notarized": 43,
+        "proofs": 0,
+        "waiting": 5
+      },
+      "pollInMs": 19,
+      "proofs": {
+        "blockedHolders": 0,
+        "learned": 0
+      },
+      "public": {
+        "archives": 0,
+        "archivesLaid": 0,
+        "followReads": 0,
+        "hardReseeds": 0,
+        "hellos": 0,
+        "keyUpdates": 0,
+        "posts": 0,
+        "published": 0,
+        "rekeyed": 0,
+        "rosters": 0,
+        "subscriberKeys": 0
+      },
+      "reads": [
+        {
+          "conversationId": "intro",
+          "cursors": [
+            25,
+            25,
+            25,
+            25,
+            25,
+            25,
+            25,
+            25,
+            25
+          ],
+          "holders": 10,
+          "inFlight": 0,
+          "pending": 0,
+          "period": 20725,
+          "seen": 2
+        },
+        {
+          "conversationId": "986b85d9d624fe91f83c914d48a7ef06867ab6add6ee0bf901f626453d797f9e",
+          "cursors": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "holders": 10,
+          "inFlight": 1,
+          "pending": 1,
+          "period": 20724,
+          "seen": 0
+        },
+        {
+          "conversationId": "intro",
+          "cursors": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "holders": 10,
+          "inFlight": 0,
+          "pending": 0,
+          "period": 20724,
+          "seen": 0
+        },
+        {
+          "conversationId": "986b85d9d624fe91f83c914d48a7ef06867ab6add6ee0bf901f626453d797f9e",
+          "cursors": [
+            28,
+            28,
+            28,
+            28,
+            28,
+            26,
+            28,
+            28,
+            28
+          ],
+          "holders": 10,
+          "inFlight": 1,
+          "pending": 1,
+          "period": 20725,
+          "seen": 2
+        }
+      ],
+      "receipts": 26,
+      "received": 2,
+      "refusals": 0,
+      "rejectedEntries": 0,
+      "rejectedReceipts": 0,
+      "replication": {
+        "conflicts": 0,
+        "pages": 0,
+        "pulled": 0,
+        "pulls": 0,
+        "summaries": 0
+      },
+      "requests": 3,
+      "resealed": 0,
+      "sends": [
+        {
+          "inFlight": 1,
+          "messageId": "4ee55869875f7a9a3a96e7d67e53c7eefcaf3feb3fa1a000c9018babb89f3087",
+          "period": 20725,
+          "receipts": 8,
+          "refused": 0,
+          "stored": true
+        }
+      ],
+      "sent": {
+        "access": 52,
+        "directory": 6,
+        "notarize": 44,
+        "proofs": 6,
+        "read": 577,
+        "store": 26
+      },
+      "served": {},
+      "stored": 3
+    }
+  },
+  "af06": {
+    "claimAnswers": [
+      "claim_pending"
+    ],
+    "balance": {
+      "books": [],
+      "claim": {
+        "claimId": null,
+        "expiresAt": null,
+        "loginUrl": null,
+        "status": "starting"
+      },
+      "lastClaim": null,
+      "pending": [],
+      "remaining": 0
+    },
+    "peerRoute": "/ip4/198.19.113.4/udp/4001/quic-v1/p2p/12D3KooWLxwJPGnAL9nv341AZwsM7cfPTJ4PMRX8okdkjtZTYBT7"
+  },
+  "error": "Error: Command failed: /Users/glebk/Code/chat/.local/toolchains/foundry-v1.8.1-darwin-arm64/cast send 0x2233c293fbce0ec59f6f9dccb6e8a492b12ce597 0x9058e22800000000000000000000000085e9e6792b58d3b75c2e2dd0f9c06682fbe939f87fa03c7da77454f4bf1a8b0e565cb8d11e7ca1fb75470d7edd0998354f875724 --value 377353203532550 --private-key <redacted> --rpc-url https://sepolia.base.org --json\n\n    at genericNodeError (node:internal/errors:999:15)\n    at wrappedFn (node:internal/errors:544:14)\n    at ChildProcess.exithandler (node:child_process:417:12)\n    at ChildProcess.emit (node:events:514:20)\n    at maybeClose (node:internal/child_process:1125:16)\n    at ChildProcess._handle.onexit (node:internal/child_process:305:5)",
+  "diagnostics": {
+    "alice": [
+      {
+        "accessGate": {
+          "bookRefused": 0,
+          "enabled": true,
+          "introduced": 0,
+          "passes": 0,
+          "penalized": 0,
+          "penalties": 0,
+          "probationRefused": 0,
+          "units": 10
+        },
+        "advertisedAddresses": [
+          "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY/p2p-circuit/p2p/12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw",
+          "/ip4/198.19.114.3/tcp/4001/p2p/12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw",
+          "/ip4/198.19.114.3/udp/4001/quic-v1/p2p/12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw"
+        ],
+        "autoNat": {
+          "configuredPeers": [],
+          "deniedProbes": 0,
+          "failedProbes": 0,
+          "inboundProbes": 0,
+          "probeIntervalSeconds": 60,
+          "publicAddress": null,
+          "refusedProbes": 0,
+          "serverEnabled": false,
+          "status": "unknown",
+          "successfulProbes": 0
+        },
+        "bootstrap": {
+          "action": "",
+          "cachedHints": 5,
+          "candidateHints": 5,
+          "failedAttempts": 9,
+          "inFlight": 0,
+          "networkDomain": "ae2e3182ade817a3e726c29ef308eed15c6ec267ffc01a68da990e576fa0df18",
+          "policyBlockedHints": 0,
+          "rateLimitedRequests": 0,
+          "rejectedRecords": 0,
+          "state": "connected",
+          "verifiedPeers": [
+            {
+              "peerId": "12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp",
+              "rootId": "ain1e03dc42706cf09a8db6b851431de2b109417a5574416d16604576f19022b2e93"
+            },
+            {
+              "peerId": "12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw",
+              "rootId": "ain1e2297af8a3ff53ecc8dfe8a6313d1dff34052f51c59ed8d698d4e7c1b73af02e"
+            },
+            {
+              "peerId": "12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd",
+              "rootId": "ain1299b2ded223525517fdfddd7cc9fa99cf6a4feb65e5e4aaccede94a30104f170"
+            },
+            {
+              "peerId": "12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg",
+              "rootId": "ain17aab24e8ff023d67acfc21320af2e1e9c2a6607dc3a973bc9a67f5299ce00488"
+            },
+            {
+              "peerId": "12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj",
+              "rootId": "ain1587965c752fb348435852a7b6dc30e2ee4afdd92d05de61846b2f30da213ae05"
+            }
+          ]
+        },
+        "chain": {
+          "absentBooks": 0,
+          "configured": true,
+          "failures": 0,
+          "learned": 1,
+          "reads": 4,
+          "running": 0,
+          "unpaidPurchases": 0
+        },
+        "connectionCapacity": {
+          "established": 11,
+          "establishedLimit": 192,
+          "ordinaryEstablished": 11,
+          "ordinaryLimit": 64,
+          "pendingLimit": 48,
+          "pendingOrdinaryLimit": 16,
+          "reservedEstablished": 0,
+          "reservedPeerLimit": 64,
+          "reservedPeers": []
+        },
+        "directory": {
+          "ownCommitment": "03bbe72962d39be1e021e14c0ec94bab02c3b0db77ad031313853e8212301e4d",
+          "pulled": 6,
+          "pullsInFlight": 0,
+          "records": 10,
+          "units": 10
+        },
+        "failedAttempts": 0,
+        "failedReservations": 5,
+        "holePunch": {
+          "enabled": true,
+          "failed": 3,
+          "succeeded": 0
+        },
+        "inFlight": 0,
+        "lanDiscovery": {
+          "active": false,
+          "blockedByPolicy": false,
+          "enabled": false,
+          "peers": []
+        },
+        "listeners": [
+          "/ip4/198.19.114.3/tcp/4001/p2p/12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw",
+          "/ip4/198.19.114.3/udp/4001/quic-v1/p2p/12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw"
+        ],
+        "mailboxHolder": {
+          "account": "8b5d622751c7bd019512ac2daf02b5db505e61e6",
+          "blockedBooks": 0,
+          "blockedIssuers": 0,
+          "equivocations": 0,
+          "grantEquivocations": 0,
+          "grants": 0,
+          "tickets": 0,
+          "unit": null
+        },
+        "mailboxSwarm": {
+          "access": {
+            "accepted": 9,
+            "credential": "book",
+            "refused": {
+              "unknown_book": 9
+            },
+            "showing": 1,
+            "shown": 67,
+            "waiting": 2,
+            "waitingPeers": 1
+          },
+          "asked": {
+            "986b85d9d624fe91f83c914d48a7ef06867ab6add6ee0bf901f626453d797f9e": 786,
+            "intro": 198
+          },
+          "blocked": 0,
+          "door": {
+            "admitted": 0,
+            "batches": 0,
+            "published": 0,
+            "rejoins": 0,
+            "waiting": 0
+          },
+          "failureKinds": {
+            "access": 89,
+            "dial": 106,
+            "other": 4
+          },
+          "failures": 199,
+          "grants": {
+            "checked": 0,
+            "checking": 0,
+            "learned": 0,
+            "refused": 0
+          },
+          "groups": {
+            "decided": 0,
+            "renewed": 0,
+            "rounds": 0
+          },
+          "held": 0,
+          "holders": 10,
+          "importAttempts": 3,
+          "intro": {
+            "direct": {
+              "ignored": 0,
+              "joined": 0,
+              "pending": 0,
+              "subscribed": 0
+            },
+            "lookups": 1,
+            "published": "card:80db87329cf63d8d069e0fe0055f8ba80d350d85765f8f8a44286226a58bca6c:20725",
+            "rejected": 0,
+            "swarm": {
+              "ignored": 1,
+              "joined": 0,
+              "pending": 0,
+              "subscribed": 0
+            }
+          },
+          "lastFailure": "95702a78: access: Failed to dial the requested peer",
+          "notary": {
+            "batches": 57,
+            "notarized": 43,
+            "proofs": 0,
+            "waiting": 5
+          },
+          "pollInMs": 520,
+          "proofs": {
+            "blockedHolders": 0,
+            "learned": 0
+          },
+          "public": {
+            "archives": 0,
+            "archivesLaid": 0,
+            "followReads": 0,
+            "hardReseeds": 0,
+            "hellos": 0,
+            "keyUpdates": 0,
+            "posts": 0,
+            "published": 0,
+            "rekeyed": 0,
+            "rosters": 0,
+            "subscriberKeys": 0
+          },
+          "reads": [
+            {
+              "conversationId": "intro",
+              "cursors": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "holders": 10,
+              "inFlight": 0,
+              "pending": 0,
+              "period": 20724,
+              "seen": 0
+            },
+            {
+              "conversationId": "intro",
+              "cursors": [
+                23,
+                23,
+                23,
+                23,
+                23,
+                23,
+                23,
+                23,
+                23
+              ],
+              "holders": 10,
+              "inFlight": 0,
+              "pending": 0,
+              "period": 20725,
+              "seen": 1
+            },
+            {
+              "conversationId": "986b85d9d624fe91f83c914d48a7ef06867ab6add6ee0bf901f626453d797f9e",
+              "cursors": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "holders": 10,
+              "inFlight": 1,
+              "pending": 0,
+              "period": 20724,
+              "seen": 0
+            },
+            {
+              "conversationId": "986b85d9d624fe91f83c914d48a7ef06867ab6add6ee0bf901f626453d797f9e",
+              "cursors": [
+                29,
+                29,
+                29,
+                29,
+                29,
+                29,
+                29,
+                29,
+                29
+              ],
+              "holders": 10,
+              "inFlight": 1,
+              "pending": 0,
+              "period": 20725,
+              "seen": 2
+            }
+          ],
+          "receipts": 35,
+          "received": 2,
+          "refusals": 0,
+          "rejectedEntries": 0,
+          "rejectedReceipts": 0,
+          "replication": {
+            "conflicts": 0,
+            "pages": 0,
+            "pulled": 0,
+            "pulls": 0,
+            "summaries": 0
+          },
+          "requests": 1,
+          "resealed": 0,
+          "sends": [],
+          "sent": {
+            "access": 67,
+            "cardRead": 36,
+            "directory": 6,
+            "notarize": 45,
+            "proofs": 10,
+            "read": 942,
+            "store": 39
+          },
+          "served": {},
+          "stored": 4
+        },
+        "peerConnections": [
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp",
+            "relayed": true,
+            "remoteAddress": "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY/p2p-circuit/p2p/12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWRiVyoXWtewcD75GyKXYeygHdvss79NdLHm7duZmsq5ZS",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4108/quic-v1/p2p/12D3KooWRiVyoXWtewcD75GyKXYeygHdvss79NdLHm7duZmsq5ZS"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4102/quic-v1/p2p/12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWPsvtzHonsrEbMyrW7J3UDZ49tin9rohv7zzs7DtPbbQA",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4106/quic-v1/p2p/12D3KooWPsvtzHonsrEbMyrW7J3UDZ49tin9rohv7zzs7DtPbbQA"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY"
+          },
+          {
+            "localAddress": "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY/p2p-circuit",
+            "peerId": "12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp",
+            "relayed": true,
+            "remoteAddress": "/p2p/12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4101/quic-v1/p2p/12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWLaUvtaDW3ooHxWqdGcHrMtnQ2cktaBJEKaovoeKce2io",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4110/quic-v1/p2p/12D3KooWLaUvtaDW3ooHxWqdGcHrMtnQ2cktaBJEKaovoeKce2io"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWAiVAY2aL4JedyeLPHC6i6ryf5rvdecSt4jHpTrbYDzw6",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4105/quic-v1/p2p/12D3KooWAiVAY2aL4JedyeLPHC6i6ryf5rvdecSt4jHpTrbYDzw6"
+          },
+          {
+            "localAddress": "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY/p2p-circuit",
+            "peerId": "12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd",
+            "relayed": true,
+            "remoteAddress": "/p2p/12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4104/quic-v1/p2p/12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj"
+          }
+        ],
+        "peerId": "12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw",
+        "pendingOutbox": 0,
+        "pendingOutboxTruncated": false,
+        "processingCapacity": {
+          "active": 0,
+          "activeLimit": 64,
+          "capacityRejected": 0,
+          "ordinaryActive": 0,
+          "ordinaryByteLimit": 67112960,
+          "ordinaryBytes": 0,
+          "ordinaryLimit": 16,
+          "ordinaryPeerLimit": 4,
+          "peakActive": 10,
+          "peakOrdinaryActive": 10,
+          "peakOrdinaryBytes": 6621824,
+          "peakSelectedActive": 0,
+          "peakSelectedBytes": 0,
+          "peerByteLimit": 33556480,
+          "peers": [],
+          "rateRejected": 0,
+          "selectedActive": 0,
+          "selectedByteLimit": 67112960,
+          "selectedBytes": 0,
+          "selectedLimit": 48,
+          "selectedPeerLimit": 16,
+          "startedOrdinary": 1152,
+          "startedSelected": 0
+        },
+        "rejectedFrames": 2,
+        "relayRoutes": [
+          "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY/p2p-circuit/p2p/12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw"
+        ],
+        "relayServer": {
+          "acceptedCircuits": 0,
+          "activeCircuits": 0,
+          "activeReservations": 0,
+          "byteLimitedCircuits": 0,
+          "capacity": 16,
+          "circuitBytes": 1048576,
+          "circuitSeconds": 120,
+          "deniedReservations": 0,
+          "enabled": false,
+          "expiredReservations": 0,
+          "maxCircuits": 32,
+          "reservationPeers": [],
+          "reservationSeconds": 300,
+          "timedOutCircuits": 0
+        },
+        "routing": {
+          "addresses": 10,
+          "admitDropped": {
+            "findNode": 2
+          },
+          "blockedByPolicy": false,
+          "dhtAdmission": {
+            "lookup": {
+              "exhausted": false,
+              "peers": 0,
+              "total": 0
+            },
+            "topPeers": {
+              "lookup": []
+            }
+          },
+          "enabled": true,
+          "heldDropped": {
+            "dead": 0,
+            "overflow": 0
+          },
+          "inFlight": 0,
+          "inFlightReq": 0,
+          "kadEv": {
+            "findNodeReq": 0,
+            "findNodeRes": 0,
+            "getRecordReq": 0,
+            "other": 14,
+            "putRecordReq": 0,
+            "qErrKinds": {},
+            "qErrTopPeers": [],
+            "queryError": 0,
+            "queryErrorLive": 0,
+            "queryErrorOrphan": 0
+          },
+          "knownPeers": [
+            "12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw",
+            "12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj",
+            "12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg",
+            "12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp",
+            "12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd"
+          ],
+          "lookupRejections": {},
+          "lookups": [],
+          "mode": "client",
+          "outboundHeld": 0,
+          "outboundHeldTotal": 0,
+          "ownedDials": 0,
+          "peers": 5,
+          "repliesDropped": 0,
+          "servingPeers": [
+            "12D3KooWRiVyoXWtewcD75GyKXYeygHdvss79NdLHm7duZmsq5ZS",
+            "12D3KooWPsvtzHonsrEbMyrW7J3UDZ49tin9rohv7zzs7DtPbbQA",
+            "12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd",
+            "12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw",
+            "12D3KooWLaUvtaDW3ooHxWqdGcHrMtnQ2cktaBJEKaovoeKce2io",
+            "12D3KooWAiVAY2aL4JedyeLPHC6i6ryf5rvdecSt4jHpTrbYDzw6",
+            "12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg",
+            "12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY",
+            "12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj"
+          ]
+        },
+        "transportsUsed": [
+          "quic",
+          "relay",
+          "tcp"
+        ]
+      },
+      {
+        "books": [
+          {
+            "book": "0x7c1c0f987ebaf814e59eb43730a1889389e1799ad77bf66c53c8cbea78658018",
+            "count": 1000,
+            "kind": "bought",
+            "used": 4,
+            "validUntil": 1793253692
+          }
+        ],
+        "claim": null,
+        "lastClaim": null,
+        "pending": [],
+        "remaining": 996
+      }
+    ],
+    "bob": [
+      {
+        "accessGate": {
+          "bookRefused": 0,
+          "enabled": true,
+          "introduced": 0,
+          "passes": 0,
+          "penalized": 0,
+          "penalties": 0,
+          "probationRefused": 0,
+          "units": 10
+        },
+        "advertisedAddresses": [
+          "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY/p2p-circuit/p2p/12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp",
+          "/ip4/198.19.115.3/tcp/4001/p2p/12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp",
+          "/ip4/198.19.115.3/udp/4001/quic-v1/p2p/12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp"
+        ],
+        "autoNat": {
+          "configuredPeers": [],
+          "deniedProbes": 0,
+          "failedProbes": 0,
+          "inboundProbes": 0,
+          "probeIntervalSeconds": 60,
+          "publicAddress": null,
+          "refusedProbes": 0,
+          "serverEnabled": false,
+          "status": "unknown",
+          "successfulProbes": 0
+        },
+        "bootstrap": {
+          "action": "",
+          "cachedHints": 5,
+          "candidateHints": 5,
+          "failedAttempts": 11,
+          "inFlight": 0,
+          "networkDomain": "ae2e3182ade817a3e726c29ef308eed15c6ec267ffc01a68da990e576fa0df18",
+          "policyBlockedHints": 0,
+          "rateLimitedRequests": 0,
+          "rejectedRecords": 0,
+          "state": "connected",
+          "verifiedPeers": [
+            {
+              "peerId": "12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj",
+              "rootId": "ain1587965c752fb348435852a7b6dc30e2ee4afdd92d05de61846b2f30da213ae05"
+            },
+            {
+              "peerId": "12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw",
+              "rootId": "ain1e2297af8a3ff53ecc8dfe8a6313d1dff34052f51c59ed8d698d4e7c1b73af02e"
+            },
+            {
+              "peerId": "12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg",
+              "rootId": "ain17aab24e8ff023d67acfc21320af2e1e9c2a6607dc3a973bc9a67f5299ce00488"
+            },
+            {
+              "peerId": "12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw",
+              "rootId": "ain1aff2777f6f61054de8f8894c45697f9a3f9d7fe906c06101a98cf82937e147cd"
+            }
+          ]
+        },
+        "chain": {
+          "absentBooks": 0,
+          "configured": true,
+          "failures": 0,
+          "learned": 1,
+          "reads": 5,
+          "running": 0,
+          "unpaidPurchases": 0
+        },
+        "connectionCapacity": {
+          "established": 10,
+          "establishedLimit": 192,
+          "ordinaryEstablished": 10,
+          "ordinaryLimit": 64,
+          "pendingLimit": 48,
+          "pendingOrdinaryLimit": 16,
+          "reservedEstablished": 0,
+          "reservedPeerLimit": 64,
+          "reservedPeers": []
+        },
+        "directory": {
+          "ownCommitment": "ba8a12f0cf61fcead65568352714d48db95fade4120bd51ab83cd05de2a14aa2",
+          "pulled": 6,
+          "pullsInFlight": 0,
+          "records": 10,
+          "units": 10
+        },
+        "failedAttempts": 0,
+        "failedReservations": 1,
+        "holePunch": {
+          "enabled": true,
+          "failed": 2,
+          "succeeded": 0
+        },
+        "inFlight": 0,
+        "lanDiscovery": {
+          "active": false,
+          "blockedByPolicy": false,
+          "enabled": false,
+          "peers": []
+        },
+        "listeners": [
+          "/ip4/198.19.115.3/tcp/4001/p2p/12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp",
+          "/ip4/198.19.115.3/udp/4001/quic-v1/p2p/12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp"
+        ],
+        "mailboxHolder": {
+          "account": "a25c70415dddc2f41bf3babb692a228257a35332",
+          "blockedBooks": 0,
+          "blockedIssuers": 0,
+          "equivocations": 0,
+          "grantEquivocations": 0,
+          "grants": 0,
+          "tickets": 0,
+          "unit": null
+        },
+        "mailboxSwarm": {
+          "access": {
+            "accepted": 9,
+            "credential": "book",
+            "refused": {
+              "unknown_book": 14
+            },
+            "showing": 1,
+            "shown": 62,
+            "waiting": 1,
+            "waitingPeers": 1
+          },
+          "asked": {
+            "986b85d9d624fe91f83c914d48a7ef06867ab6add6ee0bf901f626453d797f9e": 716,
+            "intro": 160
+          },
+          "blocked": 0,
+          "door": {
+            "admitted": 0,
+            "batches": 0,
+            "published": 0,
+            "rejoins": 0,
+            "waiting": 0
+          },
+          "failureKinds": {
+            "access": 85,
+            "dial": 100,
+            "other": 4
+          },
+          "failures": 189,
+          "grants": {
+            "checked": 0,
+            "checking": 0,
+            "learned": 0,
+            "refused": 0
+          },
+          "groups": {
+            "decided": 0,
+            "renewed": 0,
+            "rounds": 0
+          },
+          "held": 0,
+          "holders": 10,
+          "importAttempts": 4,
+          "intro": {
+            "direct": {
+              "ignored": 0,
+              "joined": 0,
+              "pending": 0,
+              "subscribed": 0
+            },
+            "lookups": 0,
+            "published": "card:7de79e16bb080baed09e8d94e8fb717d0c32ac3252d33608746f431acfaab9e5:20725",
+            "rejected": 0,
+            "swarm": {
+              "ignored": 1,
+              "joined": 1,
+              "pending": 0,
+              "subscribed": 0
+            }
+          },
+          "lastFailure": "8fe1831c: Failed to dial the requested peer",
+          "notary": {
+            "batches": 48,
+            "notarized": 43,
+            "proofs": 0,
+            "waiting": 5
+          },
+          "pollInMs": 595,
+          "proofs": {
+            "blockedHolders": 0,
+            "learned": 0
+          },
+          "public": {
+            "archives": 0,
+            "archivesLaid": 0,
+            "followReads": 0,
+            "hardReseeds": 0,
+            "hellos": 0,
+            "keyUpdates": 0,
+            "posts": 0,
+            "published": 0,
+            "rekeyed": 0,
+            "rosters": 0,
+            "subscriberKeys": 0
+          },
+          "reads": [
+            {
+              "conversationId": "intro",
+              "cursors": [
+                25,
+                25,
+                25,
+                25,
+                25,
+                25,
+                25,
+                25,
+                25
+              ],
+              "holders": 10,
+              "inFlight": 0,
+              "pending": 0,
+              "period": 20725,
+              "seen": 2
+            },
+            {
+              "conversationId": "986b85d9d624fe91f83c914d48a7ef06867ab6add6ee0bf901f626453d797f9e",
+              "cursors": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "holders": 10,
+              "inFlight": 0,
+              "pending": 1,
+              "period": 20724,
+              "seen": 0
+            },
+            {
+              "conversationId": "intro",
+              "cursors": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "holders": 10,
+              "inFlight": 0,
+              "pending": 0,
+              "period": 20724,
+              "seen": 0
+            },
+            {
+              "conversationId": "986b85d9d624fe91f83c914d48a7ef06867ab6add6ee0bf901f626453d797f9e",
+              "cursors": [
+                28,
+                28,
+                28,
+                28,
+                28,
+                26,
+                28,
+                28,
+                28
+              ],
+              "holders": 10,
+              "inFlight": 1,
+              "pending": 0,
+              "period": 20725,
+              "seen": 2
+            }
+          ],
+          "receipts": 26,
+          "received": 2,
+          "refusals": 0,
+          "rejectedEntries": 0,
+          "rejectedReceipts": 0,
+          "replication": {
+            "conflicts": 0,
+            "pages": 0,
+            "pulled": 0,
+            "pulls": 0,
+            "summaries": 0
+          },
+          "requests": 1,
+          "resealed": 0,
+          "sends": [],
+          "sent": {
+            "access": 62,
+            "directory": 6,
+            "notarize": 45,
+            "proofs": 8,
+            "read": 834,
+            "store": 30
+          },
+          "served": {},
+          "stored": 3
+        },
+        "peerConnections": [
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw",
+            "relayed": true,
+            "remoteAddress": "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY/p2p-circuit/p2p/12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWPsvtzHonsrEbMyrW7J3UDZ49tin9rohv7zzs7DtPbbQA",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4106/quic-v1/p2p/12D3KooWPsvtzHonsrEbMyrW7J3UDZ49tin9rohv7zzs7DtPbbQA"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4102/quic-v1/p2p/12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4101/quic-v1/p2p/12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWLaUvtaDW3ooHxWqdGcHrMtnQ2cktaBJEKaovoeKce2io",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4110/quic-v1/p2p/12D3KooWLaUvtaDW3ooHxWqdGcHrMtnQ2cktaBJEKaovoeKce2io"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWAiVAY2aL4JedyeLPHC6i6ryf5rvdecSt4jHpTrbYDzw6",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4105/quic-v1/p2p/12D3KooWAiVAY2aL4JedyeLPHC6i6ryf5rvdecSt4jHpTrbYDzw6"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWRiVyoXWtewcD75GyKXYeygHdvss79NdLHm7duZmsq5ZS",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4108/quic-v1/p2p/12D3KooWRiVyoXWtewcD75GyKXYeygHdvss79NdLHm7duZmsq5ZS"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4104/quic-v1/p2p/12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj"
+          },
+          {
+            "localAddress": "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY/p2p-circuit",
+            "peerId": "12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw",
+            "relayed": true,
+            "remoteAddress": "/p2p/12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw"
+          }
+        ],
+        "peerId": "12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp",
+        "pendingOutbox": 0,
+        "pendingOutboxTruncated": false,
+        "processingCapacity": {
+          "active": 0,
+          "activeLimit": 64,
+          "capacityRejected": 0,
+          "ordinaryActive": 0,
+          "ordinaryByteLimit": 67112960,
+          "ordinaryBytes": 0,
+          "ordinaryLimit": 16,
+          "ordinaryPeerLimit": 4,
+          "peakActive": 10,
+          "peakOrdinaryActive": 10,
+          "peakOrdinaryBytes": 6523520,
+          "peakSelectedActive": 0,
+          "peakSelectedBytes": 0,
+          "peerByteLimit": 33556480,
+          "peers": [],
+          "rateRejected": 0,
+          "selectedActive": 0,
+          "selectedByteLimit": 67112960,
+          "selectedBytes": 0,
+          "selectedLimit": 48,
+          "selectedPeerLimit": 16,
+          "startedOrdinary": 997,
+          "startedSelected": 0
+        },
+        "rejectedFrames": 2,
+        "relayRoutes": [
+          "/ip4/51.91.126.3/tcp/4107/p2p/12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY/p2p-circuit/p2p/12D3KooWCgPwh7bsjZJrMC6qLCFg2ed9WNZWEbqvxogLmqJi7hLp"
+        ],
+        "relayServer": {
+          "acceptedCircuits": 0,
+          "activeCircuits": 0,
+          "activeReservations": 0,
+          "byteLimitedCircuits": 0,
+          "capacity": 16,
+          "circuitBytes": 1048576,
+          "circuitSeconds": 120,
+          "deniedReservations": 0,
+          "enabled": false,
+          "expiredReservations": 0,
+          "maxCircuits": 32,
+          "reservationPeers": [],
+          "reservationSeconds": 300,
+          "timedOutCircuits": 0
+        },
+        "routing": {
+          "addresses": 10,
+          "admitDropped": {
+            "findNode": 1
+          },
+          "blockedByPolicy": false,
+          "dhtAdmission": {
+            "lookup": {
+              "exhausted": false,
+              "peers": 0,
+              "total": 0
+            },
+            "topPeers": {
+              "lookup": []
+            }
+          },
+          "enabled": true,
+          "heldDropped": {
+            "dead": 0,
+            "overflow": 0
+          },
+          "inFlight": 0,
+          "inFlightReq": 0,
+          "kadEv": {
+            "findNodeReq": 0,
+            "findNodeRes": 0,
+            "getRecordReq": 0,
+            "other": 13,
+            "putRecordReq": 0,
+            "qErrKinds": {},
+            "qErrTopPeers": [],
+            "queryError": 0,
+            "queryErrorLive": 0,
+            "queryErrorOrphan": 0
+          },
+          "knownPeers": [
+            "12D3KooWQHPqLdN99EDgRyQvqRK9kbRREctTLoZK7n1RSpiGYFpw",
+            "12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw",
+            "12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg",
+            "12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj",
+            "12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd"
+          ],
+          "lookupRejections": {},
+          "lookups": [],
+          "mode": "client",
+          "outboundHeld": 0,
+          "outboundHeldTotal": 0,
+          "ownedDials": 0,
+          "peers": 5,
+          "repliesDropped": 0,
+          "servingPeers": [
+            "12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw",
+            "12D3KooWBUvL2vxCML9Vir9DoC1zTj2GQCehxr4LJkZw7ozJSZMY",
+            "12D3KooWAiVAY2aL4JedyeLPHC6i6ryf5rvdecSt4jHpTrbYDzw6",
+            "12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg",
+            "12D3KooWPsvtzHonsrEbMyrW7J3UDZ49tin9rohv7zzs7DtPbbQA",
+            "12D3KooWLaUvtaDW3ooHxWqdGcHrMtnQ2cktaBJEKaovoeKce2io",
+            "12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj",
+            "12D3KooWRiVyoXWtewcD75GyKXYeygHdvss79NdLHm7duZmsq5ZS"
+          ]
+        },
+        "transportsUsed": [
+          "quic",
+          "relay",
+          "tcp"
+        ]
+      },
+      {
+        "books": [
+          {
+            "book": "0x4407180176e9bd992e1747c9d009243eaaa2ef224b97265dd7dd658fc88c7bf2",
+            "count": 1000,
+            "kind": "bought",
+            "used": 3,
+            "validUntil": 1793253720
+          }
+        ],
+        "claim": null,
+        "lastClaim": null,
+        "pending": [],
+        "remaining": 997
+      }
+    ],
+    "independent": [
+      {
+        "accessGate": {
+          "bookRefused": 0,
+          "enabled": true,
+          "introduced": 0,
+          "passes": 0,
+          "penalized": 0,
+          "penalties": 0,
+          "probationRefused": 0,
+          "units": 0
+        },
+        "advertisedAddresses": [
+          "/ip4/198.19.113.4/tcp/4001/p2p/12D3KooWLxwJPGnAL9nv341AZwsM7cfPTJ4PMRX8okdkjtZTYBT7",
+          "/ip4/198.19.113.4/udp/4001/quic-v1/p2p/12D3KooWLxwJPGnAL9nv341AZwsM7cfPTJ4PMRX8okdkjtZTYBT7"
+        ],
+        "autoNat": {
+          "configuredPeers": [],
+          "deniedProbes": 0,
+          "failedProbes": 0,
+          "inboundProbes": 0,
+          "probeIntervalSeconds": 60,
+          "publicAddress": null,
+          "refusedProbes": 0,
+          "serverEnabled": false,
+          "status": "unknown",
+          "successfulProbes": 0
+        },
+        "bootstrap": {
+          "action": "",
+          "cachedHints": 5,
+          "candidateHints": 5,
+          "failedAttempts": 0,
+          "inFlight": 0,
+          "networkDomain": "ae2e3182ade817a3e726c29ef308eed15c6ec267ffc01a68da990e576fa0df18",
+          "policyBlockedHints": 0,
+          "rateLimitedRequests": 0,
+          "rejectedRecords": 0,
+          "state": "connected",
+          "verifiedPeers": [
+            {
+              "peerId": "12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd",
+              "rootId": "ain1299b2ded223525517fdfddd7cc9fa99cf6a4feb65e5e4aaccede94a30104f170"
+            },
+            {
+              "peerId": "12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw",
+              "rootId": "ain1e2297af8a3ff53ecc8dfe8a6313d1dff34052f51c59ed8d698d4e7c1b73af02e"
+            },
+            {
+              "peerId": "12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg",
+              "rootId": "ain17aab24e8ff023d67acfc21320af2e1e9c2a6607dc3a973bc9a67f5299ce00488"
+            },
+            {
+              "peerId": "12D3KooWRm52PoTkQwMyquQJS44KC5asZtL6YzdxLni4xDGRRsyi",
+              "rootId": "ain1931dfe10c4078d7f01b0ea325a5c1376578398343b3ca6f71cbf83bfc5b593ee"
+            },
+            {
+              "peerId": "12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj",
+              "rootId": "ain1587965c752fb348435852a7b6dc30e2ee4afdd92d05de61846b2f30da213ae05"
+            }
+          ]
+        },
+        "chain": {
+          "absentBooks": 0,
+          "configured": true,
+          "failures": 0,
+          "learned": 0,
+          "reads": 1,
+          "running": 0,
+          "unpaidPurchases": 0
+        },
+        "connectionCapacity": {
+          "established": 5,
+          "establishedLimit": 192,
+          "ordinaryEstablished": 5,
+          "ordinaryLimit": 128,
+          "pendingLimit": 48,
+          "pendingOrdinaryLimit": 16,
+          "reservedEstablished": 0,
+          "reservedPeerLimit": 64,
+          "reservedPeers": []
+        },
+        "directory": {
+          "ownCommitment": "60af5f60f64bd265d9e0c4813d4c5fb04a62f17d66407a7f78accfae38fad12d",
+          "pulled": 0,
+          "pullsInFlight": 0,
+          "records": 0,
+          "units": 10
+        },
+        "failedAttempts": 0,
+        "failedReservations": 0,
+        "holePunch": {
+          "enabled": false,
+          "failed": 0,
+          "succeeded": 0
+        },
+        "inFlight": 0,
+        "lanDiscovery": {
+          "active": false,
+          "blockedByPolicy": false,
+          "enabled": false,
+          "peers": []
+        },
+        "listeners": [
+          "/ip4/198.19.113.4/tcp/4001/p2p/12D3KooWLxwJPGnAL9nv341AZwsM7cfPTJ4PMRX8okdkjtZTYBT7",
+          "/ip4/198.19.113.4/udp/4001/quic-v1/p2p/12D3KooWLxwJPGnAL9nv341AZwsM7cfPTJ4PMRX8okdkjtZTYBT7"
+        ],
+        "mailboxHolder": {
+          "account": "9208bd32f0eff717be3351cad6390bcef1116c53",
+          "blockedBooks": 0,
+          "blockedIssuers": 0,
+          "equivocations": 0,
+          "grantEquivocations": 0,
+          "grants": 0,
+          "tickets": 0,
+          "unit": null
+        },
+        "mailboxSwarm": {
+          "access": {
+            "accepted": 0,
+            "credential": "none",
+            "refused": {},
+            "showing": 0,
+            "shown": 0,
+            "waiting": 0,
+            "waitingPeers": 0
+          },
+          "asked": {},
+          "blocked": 0,
+          "door": {
+            "admitted": 0,
+            "batches": 0,
+            "published": 0,
+            "rejoins": 0,
+            "waiting": 0
+          },
+          "failureKinds": {
+            "access": 14
+          },
+          "failures": 14,
+          "grants": {
+            "checked": 0,
+            "checking": 0,
+            "learned": 0,
+            "refused": 0
+          },
+          "groups": {
+            "decided": 0,
+            "renewed": 0,
+            "rounds": 0
+          },
+          "held": 0,
+          "holders": 0,
+          "importAttempts": 0,
+          "intro": {
+            "direct": {
+              "ignored": 0,
+              "joined": 0,
+              "pending": 0,
+              "subscribed": 0
+            },
+            "lookups": 0,
+            "published": null,
+            "rejected": 0,
+            "swarm": {
+              "ignored": 0,
+              "joined": 0,
+              "pending": 0,
+              "subscribed": 0
+            }
+          },
+          "lastFailure": "dddddddd: access: book_required",
+          "notary": {
+            "batches": 0,
+            "notarized": 0,
+            "proofs": 0,
+            "waiting": 0
+          },
+          "pollInMs": null,
+          "proofs": {
+            "blockedHolders": 0,
+            "learned": 0
+          },
+          "public": {
+            "archives": 0,
+            "archivesLaid": 0,
+            "followReads": 0,
+            "hardReseeds": 0,
+            "hellos": 0,
+            "keyUpdates": 0,
+            "posts": 0,
+            "published": 0,
+            "rekeyed": 0,
+            "rosters": 0,
+            "subscriberKeys": 0
+          },
+          "reads": [],
+          "receipts": 0,
+          "received": 0,
+          "refusals": 0,
+          "rejectedEntries": 0,
+          "rejectedReceipts": 0,
+          "replication": {
+            "conflicts": 0,
+            "pages": 0,
+            "pulled": 0,
+            "pulls": 0,
+            "summaries": 0
+          },
+          "requests": 0,
+          "resealed": 0,
+          "sends": [],
+          "sent": {},
+          "served": {},
+          "stored": 0
+        },
+        "peerConnections": [
+          {
+            "localAddress": "/ip4/198.19.113.4/udp/4001/quic-v1",
+            "peerId": "12D3KooWRm52PoTkQwMyquQJS44KC5asZtL6YzdxLni4xDGRRsyi",
+            "relayed": false,
+            "remoteAddress": "/ip4/198.19.113.5/udp/55431/quic-v1"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4101/quic-v1/p2p/12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4104/quic-v1/p2p/12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4103/quic-v1/p2p/12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd"
+          },
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw",
+            "relayed": false,
+            "remoteAddress": "/ip4/51.91.126.3/udp/4102/quic-v1/p2p/12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw"
+          }
+        ],
+        "peerId": "12D3KooWLxwJPGnAL9nv341AZwsM7cfPTJ4PMRX8okdkjtZTYBT7",
+        "pendingOutbox": 0,
+        "pendingOutboxTruncated": false,
+        "processingCapacity": {
+          "active": 0,
+          "activeLimit": 64,
+          "capacityRejected": 0,
+          "ordinaryActive": 0,
+          "ordinaryByteLimit": 67112960,
+          "ordinaryBytes": 0,
+          "ordinaryLimit": 16,
+          "ordinaryPeerLimit": 4,
+          "peakActive": 4,
+          "peakOrdinaryActive": 4,
+          "peakOrdinaryBytes": 32768,
+          "peakSelectedActive": 0,
+          "peakSelectedBytes": 0,
+          "peerByteLimit": 33556480,
+          "peers": [],
+          "rateRejected": 0,
+          "selectedActive": 0,
+          "selectedByteLimit": 67112960,
+          "selectedBytes": 0,
+          "selectedLimit": 48,
+          "selectedPeerLimit": 16,
+          "startedOrdinary": 28,
+          "startedSelected": 0
+        },
+        "rejectedFrames": 0,
+        "relayRoutes": [],
+        "relayServer": {
+          "acceptedCircuits": 0,
+          "activeCircuits": 0,
+          "activeReservations": 0,
+          "byteLimitedCircuits": 0,
+          "capacity": 16,
+          "circuitBytes": 1048576,
+          "circuitSeconds": 120,
+          "deniedReservations": 0,
+          "enabled": true,
+          "expiredReservations": 0,
+          "maxCircuits": 32,
+          "reservationPeers": [],
+          "reservationSeconds": 300,
+          "timedOutCircuits": 0
+        },
+        "routing": {
+          "addresses": 10,
+          "admitDropped": {
+            "findNode": 1
+          },
+          "blockedByPolicy": false,
+          "dhtAdmission": {
+            "lookup": {
+              "exhausted": false,
+              "peers": 0,
+              "total": 0
+            },
+            "topPeers": {
+              "lookup": []
+            }
+          },
+          "enabled": true,
+          "heldDropped": {
+            "dead": 0,
+            "overflow": 0
+          },
+          "inFlight": 0,
+          "inFlightReq": 0,
+          "kadEv": {
+            "findNodeReq": 0,
+            "findNodeRes": 0,
+            "getRecordReq": 0,
+            "other": 5,
+            "putRecordReq": 0,
+            "qErrKinds": {},
+            "qErrTopPeers": [],
+            "queryError": 0,
+            "queryErrorLive": 0,
+            "queryErrorOrphan": 0
+          },
+          "knownPeers": [
+            "12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg",
+            "12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd",
+            "12D3KooWRm52PoTkQwMyquQJS44KC5asZtL6YzdxLni4xDGRRsyi",
+            "12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw",
+            "12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj"
+          ],
+          "lookupRejections": {},
+          "lookups": [],
+          "mode": "server",
+          "outboundHeld": 0,
+          "outboundHeldTotal": 0,
+          "ownedDials": 0,
+          "peers": 5,
+          "repliesDropped": 0,
+          "servingPeers": [
+            "12D3KooWLDpVq4yUi4ocFQmvkV4bvDkQvw8EwRL7BQozmBfswcmd",
+            "12D3KooWH5G6VsMuRpuM1LG4rrf2XBGW9Ny2NffrnTDLgn2YxCrj",
+            "12D3KooWKKieFp1J5t3yCUdCKTd4WJ1pZ3dFmyLUG3jLLuf346fw",
+            "12D3KooWRTMMFHgHJN9yngHnMA7NhQxNHjVrJTmGG6g7PU9CuDwg"
+          ]
+        },
+        "transportsUsed": [
+          "quic"
+        ]
+      },
+      {
+        "books": [],
+        "claim": null,
+        "lastClaim": null,
+        "pending": [],
+        "remaining": 0
+      }
+    ],
+    "carol": [
+      {
+        "accessGate": {
+          "bookRefused": 0,
+          "enabled": true,
+          "introduced": 0,
+          "passes": 0,
+          "penalized": 0,
+          "penalties": 0,
+          "probationRefused": 0,
+          "units": 0
+        },
+        "advertisedAddresses": [
+          "/ip4/198.19.116.3/tcp/4001/p2p/12D3KooWRm52PoTkQwMyquQJS44KC5asZtL6YzdxLni4xDGRRsyi",
+          "/ip4/198.19.116.3/udp/4001/quic-v1/p2p/12D3KooWRm52PoTkQwMyquQJS44KC5asZtL6YzdxLni4xDGRRsyi"
+        ],
+        "autoNat": {
+          "configuredPeers": [],
+          "deniedProbes": 0,
+          "failedProbes": 0,
+          "inboundProbes": 0,
+          "probeIntervalSeconds": 60,
+          "publicAddress": null,
+          "refusedProbes": 0,
+          "serverEnabled": false,
+          "status": "unknown",
+          "successfulProbes": 0
+        },
+        "bootstrap": {
+          "action": "",
+          "cachedHints": 1,
+          "candidateHints": 1,
+          "failedAttempts": 0,
+          "inFlight": 0,
+          "networkDomain": "ae2e3182ade817a3e726c29ef308eed15c6ec267ffc01a68da990e576fa0df18",
+          "policyBlockedHints": 0,
+          "rateLimitedRequests": 0,
+          "rejectedRecords": 0,
+          "state": "connected",
+          "verifiedPeers": [
+            {
+              "peerId": "12D3KooWLxwJPGnAL9nv341AZwsM7cfPTJ4PMRX8okdkjtZTYBT7",
+              "rootId": "ain1b7368a098ecb5142e7fc309caeb7e51bfe6f1a1723085f09b1c4403e2ecd7f54"
+            }
+          ]
+        },
+        "chain": {
+          "absentBooks": 0,
+          "configured": true,
+          "failures": 6,
+          "learned": 0,
+          "reads": 8,
+          "running": 0,
+          "unpaidPurchases": 1
+        },
+        "connectionCapacity": {
+          "established": 1,
+          "establishedLimit": 192,
+          "ordinaryEstablished": 1,
+          "ordinaryLimit": 64,
+          "pendingLimit": 48,
+          "pendingOrdinaryLimit": 16,
+          "reservedEstablished": 0,
+          "reservedPeerLimit": 64,
+          "reservedPeers": []
+        },
+        "directory": {
+          "ownCommitment": "8ffabf0e623e72d8bc3f80eb4ccc50840990781aa9c3102dbdfaf5592a76770e",
+          "pulled": 0,
+          "pullsInFlight": 0,
+          "records": 0,
+          "units": 10
+        },
+        "failedAttempts": 0,
+        "failedReservations": 0,
+        "holePunch": {
+          "enabled": true,
+          "failed": 0,
+          "succeeded": 0
+        },
+        "inFlight": 0,
+        "lanDiscovery": {
+          "active": false,
+          "blockedByPolicy": false,
+          "enabled": false,
+          "peers": []
+        },
+        "listeners": [
+          "/ip4/198.19.116.3/tcp/4001/p2p/12D3KooWRm52PoTkQwMyquQJS44KC5asZtL6YzdxLni4xDGRRsyi",
+          "/ip4/198.19.116.3/udp/4001/quic-v1/p2p/12D3KooWRm52PoTkQwMyquQJS44KC5asZtL6YzdxLni4xDGRRsyi"
+        ],
+        "mailboxHolder": {
+          "account": "c4fe9de5251e9403482957e0972233adef3cd0d4",
+          "blockedBooks": 0,
+          "blockedIssuers": 0,
+          "equivocations": 0,
+          "grantEquivocations": 0,
+          "grants": 0,
+          "tickets": 0,
+          "unit": null
+        },
+        "mailboxSwarm": {
+          "access": {
+            "accepted": 0,
+            "credential": "none",
+            "refused": {},
+            "showing": 0,
+            "shown": 0,
+            "waiting": 0,
+            "waitingPeers": 0
+          },
+          "asked": {},
+          "blocked": 0,
+          "door": {
+            "admitted": 0,
+            "batches": 0,
+            "published": 0,
+            "rejoins": 0,
+            "waiting": 0
+          },
+          "failureKinds": {
+            "access": 3
+          },
+          "failures": 3,
+          "grants": {
+            "checked": 0,
+            "checking": 0,
+            "learned": 0,
+            "refused": 0
+          },
+          "groups": {
+            "decided": 0,
+            "renewed": 0,
+            "rounds": 0
+          },
+          "held": 0,
+          "holders": 0,
+          "importAttempts": 0,
+          "intro": {
+            "direct": {
+              "ignored": 0,
+              "joined": 0,
+              "pending": 0,
+              "subscribed": 0
+            },
+            "lookups": 0,
+            "published": null,
+            "rejected": 0,
+            "swarm": {
+              "ignored": 0,
+              "joined": 0,
+              "pending": 0,
+              "subscribed": 0
+            }
+          },
+          "lastFailure": "dddddddd: access: book_required",
+          "notary": {
+            "batches": 0,
+            "notarized": 0,
+            "proofs": 0,
+            "waiting": 0
+          },
+          "pollInMs": null,
+          "proofs": {
+            "blockedHolders": 0,
+            "learned": 0
+          },
+          "public": {
+            "archives": 0,
+            "archivesLaid": 0,
+            "followReads": 0,
+            "hardReseeds": 0,
+            "hellos": 0,
+            "keyUpdates": 0,
+            "posts": 0,
+            "published": 0,
+            "rekeyed": 0,
+            "rosters": 0,
+            "subscriberKeys": 0
+          },
+          "reads": [],
+          "receipts": 0,
+          "received": 0,
+          "refusals": 0,
+          "rejectedEntries": 0,
+          "rejectedReceipts": 0,
+          "replication": {
+            "conflicts": 0,
+            "pages": 0,
+            "pulled": 0,
+            "pulls": 0,
+            "summaries": 0
+          },
+          "requests": 0,
+          "resealed": 0,
+          "sends": [],
+          "sent": {},
+          "served": {},
+          "stored": 0
+        },
+        "peerConnections": [
+          {
+            "localAddress": null,
+            "peerId": "12D3KooWLxwJPGnAL9nv341AZwsM7cfPTJ4PMRX8okdkjtZTYBT7",
+            "relayed": false,
+            "remoteAddress": "/ip4/198.19.113.4/udp/4001/quic-v1/p2p/12D3KooWLxwJPGnAL9nv341AZwsM7cfPTJ4PMRX8okdkjtZTYBT7"
+          }
+        ],
+        "peerId": "12D3KooWRm52PoTkQwMyquQJS44KC5asZtL6YzdxLni4xDGRRsyi",
+        "pendingOutbox": 0,
+        "pendingOutboxTruncated": false,
+        "processingCapacity": {
+          "active": 0,
+          "activeLimit": 64,
+          "capacityRejected": 0,
+          "ordinaryActive": 0,
+          "ordinaryByteLimit": 67112960,
+          "ordinaryBytes": 0,
+          "ordinaryLimit": 16,
+          "ordinaryPeerLimit": 4,
+          "peakActive": 1,
+          "peakOrdinaryActive": 1,
+          "peakOrdinaryBytes": 8192,
+          "peakSelectedActive": 0,
+          "peakSelectedBytes": 0,
+          "peerByteLimit": 33556480,
+          "peers": [],
+          "rateRejected": 0,
+          "selectedActive": 0,
+          "selectedByteLimit": 67112960,
+          "selectedBytes": 0,
+          "selectedLimit": 48,
+          "selectedPeerLimit": 16,
+          "startedOrdinary": 5,
+          "startedSelected": 0
+        },
+        "rejectedFrames": 0,
+        "relayRoutes": [],
+        "relayServer": {
+          "acceptedCircuits": 0,
+          "activeCircuits": 0,
+          "activeReservations": 0,
+          "byteLimitedCircuits": 0,
+          "capacity": 16,
+          "circuitBytes": 1048576,
+          "circuitSeconds": 120,
+          "deniedReservations": 0,
+          "enabled": false,
+          "expiredReservations": 0,
+          "maxCircuits": 32,
+          "reservationPeers": [],
+          "reservationSeconds": 300,
+          "timedOutCircuits": 0
+        },
+        "routing": {
+          "addresses": 2,
+          "admitDropped": {
+            "findNode": 1
+          },
+          "blockedByPolicy": false,
+          "dhtAdmission": {
+            "lookup": {
+              "exhausted": false,
+              "peers": 0,
+              "total": 0
+            },
+            "topPeers": {
+              "lookup": []
+            }
+          },
+          "enabled": true,
+          "heldDropped": {
+            "dead": 0,
+            "overflow": 0
+          },
+          "inFlight": 0,
+          "inFlightReq": 0,
+          "kadEv": {
+            "findNodeReq": 0,
+            "findNodeRes": 0,
+            "getRecordReq": 0,
+            "other": 1,
+            "putRecordReq": 0,
+            "qErrKinds": {},
+            "qErrTopPeers": [],
+            "queryError": 0,
+            "queryErrorLive": 0,
+            "queryErrorOrphan": 0
+          },
+          "knownPeers": [
+            "12D3KooWLxwJPGnAL9nv341AZwsM7cfPTJ4PMRX8okdkjtZTYBT7"
+          ],
+          "lookupRejections": {},
+          "lookups": [],
+          "mode": "client",
+          "outboundHeld": 0,
+          "outboundHeldTotal": 0,
+          "ownedDials": 0,
+          "peers": 1,
+          "repliesDropped": 0,
+          "servingPeers": [
+            "12D3KooWLxwJPGnAL9nv341AZwsM7cfPTJ4PMRX8okdkjtZTYBT7"
+          ]
+        },
+        "transportsUsed": [
+          "quic"
+        ]
+      },
+      {
+        "books": [],
+        "claim": {
+          "claimId": null,
+          "expiresAt": null,
+          "loginUrl": null,
+          "status": "starting"
+        },
+        "lastClaim": null,
+        "pending": [
+          {
+            "book": "0x6ce63becf24e563d3684ee0c21f8fdda0c09487e834eab23d0a0fd77118ef96f",
+            "createdAt": 1790662070,
+            "key": "0x85e9e6792b58d3b75c2e2dd0f9c06682fbe939f8",
+            "salt": "0x7fa03c7da77454f4bf1a8b0e565cb8d11e7ca1fb75470d7edd0998354f875724"
+          }
+        ],
+        "remaining": 0
+      }
+    ]
+  },
+  "cleanupErrors": []
+}

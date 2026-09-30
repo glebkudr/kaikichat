@@ -1,0 +1,58 @@
+{
+  "passed": false,
+  "scope": "actual daemon proving and durable paid-wallet recovery; no spend admission",
+  "cleanupErrors": [],
+  "sourceHash": "c791424cfdd6edc55225f1d9519ccd1afc85ee92c76be6c4122c8646857cf364",
+  "binaries": {
+    "agentic-node": "517d9de7c0cd666d09214d07dd3a576c13538f303cffe72ab096c9121e5a1da7",
+    "agentic-postage": "7c9dca463e6c5db43a0deb6218b0b3299a556a1f31dd425b0223c28122b0dec3",
+    "agentic-postage-verifier": "ac307af30e8928139b6d77a91e6e22eb87c602e29347a10459eab2b70d2fc22b",
+    "receipt-oracle": "aa74037eb8870a44cd8eff938d0897d791946cfb416f7869a514b76b1674b86d"
+  },
+  "packagedApp": "/Users/glebk/Code/chat/target/release/bundle/macos/Agentic Internet.app",
+  "sourceStoppedBeforeProving": true,
+  "negativeIoControls": [
+    "unread-input",
+    "oversize",
+    "stderr",
+    "malformed",
+    "exit-zero-fake"
+  ],
+  "terminalRetentionBoundChecked": true,
+  "observedRealWorkerCpuSeconds": [
+    2.32
+  ],
+  "gracefulShutdownStoppedActiveWorker": true,
+  "actualDaemonSigkill": {
+    "workerPid": 50980,
+    "workerDisappeared": true,
+    "receiptPublished": false
+  },
+  "actualStatementExpiryCancelled": true,
+  "realProof": {
+    "milliseconds": 350927,
+    "receiptBytes": 584953,
+    "sha256": "e80a95aac821ecec0832a43d8fab28737bb4d08e19fb5ed1dec89cca1d8e0336",
+    "nullifier": "0x3ec2710351ceaa8a3c6970d58e41e111637c2e6c11933b6dbaacba828461122e",
+    "context": {
+      "expiresAt": 1788815855,
+      "fundingStateRoot": "0x51928414d3833fce82f21082812f658fb17e4288405630d0fc89ff0a315e4eb3",
+      "issuerCodeHash": "0x466e223945a4ce2e7635a5eff2c81681fc83ed4ba60caac76e8768a5b9043d4e",
+      "issuerDomain": "0x091395bff02929a2262d2b7f7cfc0f51c691ab1979ace965d1ce71674f583d51",
+      "network": "0xae2e3182ade817a3e726c29ef308eed15c6ec267ffc01a68da990e576fa0df18",
+      "notBefore": 1788814056,
+      "operation": "0x182ed5dda0bf4dd0eec90501738cdb1b20293400830932657542c688d6a06478",
+      "registryDomain": "0x66659e63d2b70f512cb9442f9e6620e76f59908362100a4c05354ed045e8706d",
+      "registryEpoch": 1,
+      "registryRoot": "0x1fbef6ba245d5fa71ff373f548c784815cdd69251a2caadc87b0f276688c632c"
+    },
+    "independentOracleAccepted": true
+  },
+  "retainedContext": {
+    "sidecarFreeOwnerRetentionAndStrictEvidence": true,
+    "auxiliaryOwnerCalls": 819
+  },
+  "actualOwnerCalls": 7445,
+  "retainedTestSourceHash": "33b6e8693c2cd0f179fd65aaa70c9bc3da35045b723fa863c6711d0db424b54b",
+  "retainedPhase": "failed"
+}

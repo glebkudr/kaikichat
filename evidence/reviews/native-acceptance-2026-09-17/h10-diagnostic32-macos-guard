@@ -1,0 +1,18 @@
+{
+  "before": {
+    "node": "f9e2f97e2da1328ea018c1dc8be849ac503641d600de45ae3eade757db5311da",
+    "cli": "644400a7fc47a5159d8ae8ac44144d4cc610ca80bc50ef0ddd98eed5bb08147a",
+    "nodeOrigin": "f9e2f97e2da1328ea018c1dc8be849ac503641d600de45ae3eade757db5311da",
+    "cliOrigin": "644400a7fc47a5159d8ae8ac44144d4cc610ca80bc50ef0ddd98eed5bb08147a"
+  },
+  "sourceBefore": "c516305a1964e6d92f8f99dfcb72fa27ea5cfd12d79dd790255c6a34d473ff7f",
+  "sourceUnchanged": true,
+  "binariesUnchanged": true,
+  "after": {
+    "node": "f9e2f97e2da1328ea018c1dc8be849ac503641d600de45ae3eade757db5311da",
+    "cli": "644400a7fc47a5159d8ae8ac44144d4cc610ca80bc50ef0ddd98eed5bb08147a",
+    "nodeOrigin": "f9e2f97e2da1328ea018c1dc8be849ac503641d600de45ae3eade757db5311da",
+    "cliOrigin": "644400a7fc47a5159d8ae8ac44144d4cc610ca80bc50ef0ddd98eed5bb08147a"
+  },
+  "sourceAfter": "c516305a1964e6d92f8f99dfcb72fa27ea5cfd12d79dd790255c6a34d473ff7f"
+}

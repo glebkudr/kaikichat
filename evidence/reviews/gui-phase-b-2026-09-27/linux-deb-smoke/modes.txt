@@ -1,0 +1,2 @@
+700 WORK/profile
+600 WORK/profile/secrets.json

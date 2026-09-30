@@ -1,0 +1,1 @@
+FINAL ACCEPT. Existingtests sufficientonlyforlocalper-calleligibilitycachewhileconnections/relaypolicyimmutable. EachPermit.liveindependent; nocrosscallcache/Permitcacheauthorized. 53hashesmatch912ea01d1cd60d8c15633ceddf226e4b56aafddb4d9d7305488722d1163ab221, testsunchanged14pass. Full64gateRED61/64; allvalidationrequired.

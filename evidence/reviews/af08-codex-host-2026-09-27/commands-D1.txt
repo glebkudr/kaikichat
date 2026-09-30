@@ -1,0 +1,27 @@
+$ /bin/zsh -lc 'cat ./.agents/skills/agentic-messaging/SKILL.md'  [exit 0]
+    -> --- name: agentic-messaging description: Use the installed Agentic Internet CLI to send messages to granted contacts, check recipient delivery and paid storage, and process the agent's durable inbox with scoped local credentials. ---  # Agentic Internet messag
+$ /bin/zsh -lc 'ls -la'  [exit 0]
+    -> total 0 drwxr-xr-x@  4 glebk  wheel  128 Sep 27 18:51 . drwx------@ 18 glebk  wheel  576 Sep 27 18:52 .. drwxr-xr-x@  3 glebk  wheel   96 Sep 27 18:51 .agents drwxr-xr-x@  9 glebk  wheel  288 Sep 27 18:51 .git
+$ /bin/zsh -lc "'/Volumes/ChatBuild/verification-workspaces/mailbox-swarm/target/debug/agentic-cli' --credentials '/private/tmp/af08/alice/runtimes/52f1938f1590376f1560ffa89282dd8449bbea19a10c95191fce105101f74b46.json' context"  [exit 0]
+    -> {"result":{"actions":["read_inbox","send_message"],"agentId":"a91e68d37ac561670cb087dd7b6a256d2382d23a7c97b80918a6956e457d18a4","conversations":[{"id":"2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327","networkId":"ain197234377ceaa1c12c7959fe36
+$ /bin/zsh -lc "python3 -c 'import uuid; print(uuid.uuid4()); print(uuid.uuid4())'"  [exit 0]
+    -> 7d0cefbc-93c0-4bb2-b201-c1f65fdc41bf 767809bf-949c-4f1d-9a74-28ede4a1771e
+$ /bin/zsh -lc "'/Volumes/ChatBuild/verification-workspaces/mailbox-swarm/target/debug/agentic-cli' --credentials '/private/tmp/af08/alice/runtimes/52f1938f1590376f1560ffa89282dd8449bbea19a10c95191fce105101f74b46.json' inbox poll --from 'ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016' --operation-id '7d0cefbc-93c0-4bb2-b201-c1f65fdc41bf' --limit 10 --max-bytes 4096 --lease-seconds 30"  [exit 0]
+    -> {"result":{"conversationId":"2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327","cursor":14,"expiresAt":1790524773,"hasMore":false,"items":[{"author":"ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016","createdAt":1790524373,"
+$ /bin/zsh -lc "'/Volumes/ChatBuild/verification-workspaces/mailbox-swarm/target/debug/agentic-cli' --credentials '/private/tmp/af08/alice/runtimes/52f1938f1590376f1560ffa89282dd8449bbea19a10c95191fce105101f74b46.json' inbox poll --from 'ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016' --operation-id '7d0cefbc-93c0-4bb2-b201-c1f65fdc41bf' --limit 10 --max-bytes 4096 --lease-seconds 30 > .agentic-inbox-page.json"  [exit 0]
+    -> 
+$ /bin/zsh -lc "'/Volumes/ChatBuild/verification-workspaces/mailbox-swarm/target/debug/agentic-cli' --credentials '/private/tmp/af08/alice/runtimes/52f1938f1590376f1560ffa89282dd8449bbea19a10c95191fce105101f74b46.json' inbox ack --from 'ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016' --lease-id '0cdd629e62640e8e62863a9234d6c8eed9d6136273ec2414d74ffdd817a60989'"  [exit 3]
+    -> {"error":{"code":"inbox_lease_expired","message":"Lease expired or was replaced; poll with a new operation ID","retryable":false}}
+$ /bin/zsh -lc "python3 -c 'import uuid; print(uuid.uuid4())'"  [exit 0]
+    -> d8b12d48-1240-4417-b0f3-966d61290a3d
+$ /bin/zsh -lc "'/Volumes/ChatBuild/verification-workspaces/mailbox-swarm/target/debug/agentic-cli' --credentials '/private/tmp/af08/alice/runtimes/52f1938f1590376f1560ffa89282dd8449bbea19a10c95191fce105101f74b46.json' inbox poll --from 'ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016' --operation-id 'd8b12d48-1240-4417-b0f3-966d61290a3d' --limit 10 --max-bytes 4096 --lease-seconds 60 > .agentic-inbox-page-2.json"  [exit 0]
+    -> 
+$ /bin/zsh -lc "python3 -c 'import json; r=json.load(open(\".agentic-inbox-page-2.json\")); x=r.get(\"result\", {}); print(json.dumps({\"error\":r.get(\"error\"),\"leaseId\":x.get(\"leaseId\"),\"itemIds\":[i.get(\"id\") for i in x.get(\"items\",[])],\"hasMore\":x.get(\"hasMore\"),\"expiresAt\":x.get(\"expiresAt\")},ensure_ascii=False))'"  [exit 0]
+    -> {"error": null, "leaseId": "b9a086faff31a852e8e5c1c941bc8380448948ce4a5b48a5491a68b5e17477e5", "itemIds": ["81c606e0bc418db4598bd74b23361d1e7bdd040f67f49ac03b974821e459d0ee", "b9e45078e61cc5fa6090c6d509701bb030f9e9b2f4313b85e46886dc4a4a2f97", "bce6c74387ef1b78
+$ /bin/zsh -lc "'/Volumes/ChatBuild/verification-workspaces/mailbox-swarm/target/debug/agentic-cli' --credentials '/private/tmp/af08/alice/runtimes/52f1938f1590376f1560ffa89282dd8449bbea19a10c95191fce105101f74b46.json' inbox ack --from 'ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016' --lease-id 'b9a086faff31a852e8e5c1c941bc8380448948ce4a5b48a5491a68b5e17477e5'"  [exit 0]
+    -> {"result":{"cursor":14,"leaseId":"b9a086faff31a852e8e5c1c941bc8380448948ce4a5b48a5491a68b5e17477e5"}}
+$ /bin/zsh -lc 'git status --short'  [exit 0]
+    -> ?? .agentic-inbox-page-2.json ?? .agentic-inbox-page.json ?? .agentic-inbox-state.json ?? .agents/ ?? draft.json
+$ /bin/zsh -lc 'python3 -m json.tool draft.json'  [exit 0]
+    -> {     "status": "draft",     "recipientName": "Bob",     "to": "ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575bb016",     "operationId": "767809bf-949c-4f1d-9a74-28ede4a1771e",     "text": "\u0414\u0430, \u043d\u0438\u0447\u0435\u0433\u043e \u
+usage: {'input_tokens': 557627, 'cached_input_tokens': 500864, 'cache_write_input_tokens': 0, 'output_tokens': 5451, 'reasoning_output_tokens': 1828}

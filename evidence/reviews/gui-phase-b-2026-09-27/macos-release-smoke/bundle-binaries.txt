@@ -1,0 +1,5 @@
+agentic
+agentic-cli
+agentic-desktop
+agentic-mcp
+agentic-node

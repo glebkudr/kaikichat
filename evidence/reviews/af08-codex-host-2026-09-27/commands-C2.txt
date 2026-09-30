@@ -1,0 +1,17 @@
+MCP agentic.contacts_list {}
+    -> {"content": [{"type": "text", "text": "{\"contacts\":[{\"conversationId\":\"2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327\",\"name\":\"Bob\"}]}"}], "structured_content": {"contacts": [{"conversationId": "2cd699c2b7b834ace6414ae18b8a344e5cd6c
+MCP agentic.groups_list {}
+    -> {"content": [{"type": "text", "text": "{\"groups\":[{\"admins\":[],\"epoch\":1,\"id\":\"c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4\",\"members\":[\"ain1ad43d8f59ddc3037f9d03da2cecd84c1d1e4ddb0e38392b3259808b92e51f6a8\",\"ain197234377ceaa1
+MCP agentic.inbox_poll {"with": "2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327", "limit": 50, "leaseSeconds": 300}
+    -> {"content": [{"type": "text", "text": "{\"conversationId\":\"2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327\",\"expiresAt\":1790524948,\"hasMore\":false,\"items\":[{\"author\":\"ain197234377ceaa1c12c7959fe36ae9d5965a49e3ebb276ef4d569f0126575b
+MCP agentic.inbox_poll {"with": "c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4", "limit": 50, "leaseSeconds": 300}
+    -> {"content": [{"type": "text", "text": "{\"error\":{\"code\":\"unknown_contact\",\"message\":\"unknown conversation\",\"retryable\":false}}"}], "structured_content": {"error": {"code": "unknown_contact", "message": "unknown conversation", "retryable": false}}}
+MCP agentic.messages {"with": "c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4", "limit": 30}
+    -> {"content": [{"type": "text", "text": "{\"messages\":[{\"createdAt\":1790524334,\"delivery\":\"delivered\",\"id\":\"7277927c4a4e2b9791db651ede52cdf279f992065cb5f879a2f472836c015c79\",\"own\":true,\"text\":\"Plan for Saturday: meet at 9:00 at the railway station.\\n\"},{\"crea
+MCP agentic.inbox_ack {"with": "2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327", "leaseId": "4e06d4eba5705a96ce9af60ad684e8320053f39c1ae59fcfb9a8824f7b8b8702"}
+    -> {"content": [{"type": "text", "text": "{\"conversationId\":\"2cd699c2b7b834ace6414ae18b8a344e5cd6cc1b198b984bf25b608481c85327\",\"leaseId\":\"4e06d4eba5705a96ce9af60ad684e8320053f39c1ae59fcfb9a8824f7b8b8702\"}"}], "structured_content": {"conversationId": "2cd6
+MCP agentic.groups_send {"group": "c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4", "operationId": "reply-bob-pohod-20260927-0930-0942-01", "text": "We leave from the railway station at 9:30, the train is at 9:42."}
+    -> {"content": [{"type": "text", "text": "{\"delivery\":\"queued\",\"messageId\":\"2d4f133533b55a8043f0a2e1de587e90b5dcaff6c2cfe0aa29bd385e6f8ff30d\"}"}], "structured_content": {"delivery": "queued", "messageId": "2d4f133533b55a8043f0a2e1de587e90b5dcaff6c2cfe0aa2
+MCP agentic.messages {"with": "c0f05e84a5a06920c930166adc14fdd16ffe4187a334e4b81461fb13ee2c30c4", "limit": 10}
+    -> {"content": [{"type": "text", "text": "{\"messages\":[{\"createdAt\":1790524334,\"delivery\":\"delivered\",\"id\":\"7277927c4a4e2b9791db651ede52cdf279f992065cb5f879a2f472836c015c79\",\"own\":true,\"text\":\"Plan for Saturday: meet at 9:00 at the railway station.\\n\"},{\"crea
+usage: {'input_tokens': 179034, 'cached_input_tokens': 149760, 'cache_write_input_tokens': 0, 'output_tokens': 1040, 'reasoning_output_tokens': 279}

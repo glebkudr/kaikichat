@@ -1,0 +1,17 @@
+# Encrypted profile store: F04 / I01 slice
+
+Implement real SQLCipher storage for a single local profile. The caller supplies a 32-byte master key. Acquisition of that key from OS credential storage is a later adapter; these tests do not validate keychain integration. The store must require SQLCipher, validate the key before schema writes, enable WAL + FULL synchronous mode + foreign keys, keep temporary pages in memory, and take a lifetime OS file lock per DB path. It must not save a plaintext copy of the master key.
+
+The owner signing seed is generated from OS CSPRNG on first initialization inside the initialization transaction and stored encrypted. Public identity (`public_key`, `network_id`) survives reopen. `network_id` is `ain1` followed by lowercase hex SHA-256 of the Ed25519 public key. There is no OAuth-derived root. Signing is an internal application operation; it is not an exported UI/MCP unrestricted signing tool. Rust key material must not be exposed via Debug or logs.
+
+Store APIs expose immutable public identity, authenticated signed documents, opaque versioned state, ordered message records, and pending outgoing work. Domain cryptography/authorization are consumers' responsibility. SQLCipher storage of a test plaintext does not claim network E2EE.
+
+Atomic outgoing commit: operation ID + trusted application request hash + local message record + destination/wire bytes + 0..16 state changes. State changes use compare-and-swap revisions (missing=0, first committed revision=1). One transaction commits all states, the local message and outbox. If any write fails, none become visible. Duplicate state namespaces in one batch are rejected. Message data and state buffers have explicit limits. State revisions/timestamps use checked SQLite integer conversion.
+
+An existing operation ID with the same request hash returns the original committed message and wire without advancing state, even if a retry prepared different ciphertext. A changed request hash returns IdempotencyConflict and changes nothing. Request hash is computed by the trusted application service from the command and actor, not accepted from an untrusted UI claim. Outbox ack removes pending transport work but preserves history and the operation dedup record. Retrying an acknowledged operation does not recreate pending work.
+
+Atomic incoming commit: verified message record + state changes. Duplicate message ID with the same conversation/author/content/created_at/own flag returns the first cursor and applies no state changes. Changed message content for an existing ID is rejected. Received messages never enter outgoing transport work. Incoming and outgoing records share one monotonically increasing local sequence, but no global network ordering is claimed.
+
+Storage tables `states`, `messages`, `outbox` are exercised by test-only SQLite triggers that abort each write in turn. This is fault injection through the real DB, not a mocked store; assertions use public query APIs. Real SIGKILL/crash/fsync acceptance remains a separate F04/process harness gate. Exceptions/rollback tests do not claim it is complete.
+
+Limits: body/content <=49,152 bytes; wire <=1 MiB (bulk stream chunks may be larger than signed application documents); each state value <=32 MiB; <=16 state changes; identifiers/namespaces bounded to 256 bytes; list page size 1..1000. Bounds are validated before writes. Store methods return typed errors, not panic. File locks, SQLCipher and SQLite transactions are reused rather than reproduced in application code.

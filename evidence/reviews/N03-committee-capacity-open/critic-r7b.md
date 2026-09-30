@@ -1,0 +1,1 @@
+FINAL ACCEPT from /root/capacity_test_critic. R7b adds exactly the reviewed resumed batch pending count improvement and completion model. No other test or production changes. All hashes match manifest SHA256 9094d5baeef052854a173237ab68d200aea46dcf59cb22b49a6af0c4e2b7fd96. R7 integration and full validation gates unchanged.
