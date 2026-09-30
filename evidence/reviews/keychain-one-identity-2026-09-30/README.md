@@ -70,6 +70,12 @@ frontend `owner-screens`, `desktop-api`, `i18n`, `chat-shell` and `tsc`.
 The tests were reviewed by a separate critic before the code (two rounds,
 ACCEPT).
 
-Not automated (the login keychain is off limits to tests): the real
-`KeychainStore::asks_first` in a signed app against a key another signature
-saved. That is an interactive run with the owner.
+Run once by hand (`cargo test -p agentic-node --lib keychain_dialog_tests
+-- --include-ignored`, 2026-10-01): the real `KeychainStore::asks_first`
+reads the login keychain quietly (an account nobody has, nothing written or
+shown) and gives the keychain its dialogs back, so "Continue" does bring up
+macOS's dialog.
+
+Not automated (the login keychain is off limits to tests): a signed app
+against a key another signature saved, where macOS's dialog appears after
+"Continue". That is an interactive run with the owner.

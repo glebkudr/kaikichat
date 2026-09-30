@@ -873,6 +873,7 @@ mod network_status_tests {
 }
 
 #[cfg(all(test, target_os = "macos"))]
+#[allow(clippy::unwrap_used)]
 mod keychain_dialog_tests {
     use super::needs_dialog;
     use apple_native_keyring_store::keychain::decode_error;
@@ -900,5 +901,19 @@ mod keychain_dialog_tests {
                 "{code}"
             );
         }
+    }
+
+    /// The quiet read gives the keychain its dialogs back: else the owner's
+    /// "Continue" would never bring up macOS's dialog. Reads the login
+    /// keychain (an account nobody has; nothing is written or shown), so it
+    /// runs only when asked.
+    #[test]
+    #[ignore = "reads the login keychain; run explicitly"]
+    fn a_quiet_read_gives_the_keychain_its_dialogs_back() {
+        use super::{KeychainStore, SecretStore};
+        use security_framework::os::macos::keychain::SecKeychain;
+        let store = KeychainStore::new("net.agenticinternet.desktop.tests");
+        assert!(!store.asks_first("no-such-account").unwrap());
+        assert!(SecKeychain::user_interaction_allowed().unwrap());
     }
 }
