@@ -172,6 +172,51 @@ class PortableBuildTests(unittest.TestCase):
                     build_storage.main(['check'])
                 execute.assert_not_called()
 
+    def test_mac_checkout_with_a_storage_directory_uses_only_its_own_part_of_the_volume(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root, volume = Path(temporary) / 'checkout', Path(temporary) / 'volume'
+            image = Path(temporary) / 'external/build.sparsebundle'
+            image.mkdir(parents=True)
+            config_path = root / '.local/build-storage.json'
+            config_path.parent.mkdir(parents=True)
+            config = dict(mount=str(volume), image=str(image), volume_uuid='fixture-apfs-uuid',
+                directory='second')
+            config_path.write_text(json.dumps(config))
+            for destination in build_storage.LINKS.values():
+                # Another checkout's directories at the volume's root.
+                (volume / destination).mkdir(parents=True, exist_ok=True)
+            disk = dict(FilesystemType='apfs', VolumeUUID=config['volume_uuid'])
+            images = {'images': [{'image-path': str(image),
+                'system-entities': [{'mount-point': str(volume)}]}]}
+
+            def utility(arguments, **options):
+                name = Path(arguments[0]).name
+                self.assertIn(arguments[1], ('info', 'attach'))
+                return subprocess.CompletedProcess(arguments, 0,
+                    stdout=plistlib.dumps(disk if name == 'diskutil' else images), stderr=b'')
+
+            with mock.patch.multiple(build_storage, ROOT=root, CONFIG=config_path), \
+                    mock.patch.object(build_storage.sys, 'platform', 'darwin'), \
+                    mock.patch.object(build_storage.os.path, 'ismount', return_value=True), \
+                    mock.patch.object(build_storage.subprocess, 'run', side_effect=utility):
+                build_storage.main(['setup'])
+                for relative, destination in build_storage.LINKS.items():
+                    self.assertEqual((root / relative).resolve(),
+                        (volume / 'second' / destination).resolve())
+                build_storage.main(['check'])
+                self.assertEqual(build_storage.environment(config)['npm_config_cache'],
+                    str(volume / 'second/npm/cache'))
+                link = root / 'target'
+                link.unlink()
+                link.symlink_to(volume / build_storage.LINKS['target'], target_is_directory=True)
+                with self.assertRaises(RuntimeError, msg="accepted the other checkout's target"):
+                    build_storage.main(['check'])
+                for escape in ('..', '../elsewhere', str(Path(temporary) / 'elsewhere')):
+                    with self.subTest(directory=escape):
+                        config_path.write_text(json.dumps(dict(config, directory=escape)))
+                        with self.assertRaises(RuntimeError):
+                            build_storage.main(['check'])
+
     @contextlib.contextmanager
     def managed_mac_checkout(self):
         """Healthy mac-apfs fixture: a checkout whose managed links enter a mounted volume."""

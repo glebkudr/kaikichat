@@ -80,3 +80,7 @@ yarn-error.log*
 
 # Local zip-context skill scan output.
 /zip_context_ignore.md
+
+# Machine-specific agent rules (paths, disks, keys, servers); see AGENTS.md.
+/AGENTS.local.md
+/CLAUDE.local.md

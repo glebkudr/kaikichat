@@ -409,8 +409,9 @@ book's double signature.
 
 ## Work and history
 
-Use `/Users/glebk/Code/chat`, branch `implementation/v1`. Builds and checks go
-through `python3 scripts/build-storage.py run …` as specified in
+Work on branches of this repository and merge them into `main`, which
+production builds from. Builds and checks go through
+`python3 scripts/build-storage.py run …` as specified in
 [AGENTS.md](AGENTS.md). Automated native tests use the isolated E2E vault;
 ordinary builds keep the Keychain.
 

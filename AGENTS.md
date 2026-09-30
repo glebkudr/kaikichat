@@ -1,38 +1,35 @@
-# Project storage and builds
+# Agent guide
 
-## Working paths
+**Machine-specific rules first.** If `AGENTS.local.md` exists in the
+repository root, read it before any build, check, release or deployment. It
+is not part of Git (see `.gitignore`) and names this machine's paths, disks,
+toolchains, keys, servers and what the owner allows without asking; where it
+is more specific than this file, it wins. Never commit it, and never copy its
+contents into tracked files.
 
-- Sources and the standalone Git: `/Users/glebk/Code/chat` on the internal APFS.
-  On this macOS machine use this cwd in all existing tasks, even if a task
-  remembers an older one.
-- Published source: `https://github.com/glebkudr/kaikichat`; the development
-  checkout keeps its existing remote and history, working branch `implementation/v1`.
-- Build image: `/Volumes/WD4000/Code2/chat/.storage/build.sparsebundle` on the
-  external WD4000.
-- Mounted APFS volume: `/Volumes/ChatBuild`. The physical data of that volume
-  lives in the image on WD4000, not on the internal disk.
-- Local parameters of the image, UUIDs and tools: `.local/build-storage.json`.
-  This file is not part of Git; its backup lives at
-  `/Volumes/WD4000/Code2/chat/.local/storage-migration/build-storage.json`.
-- Project Node/Foundry/solc: `.local/toolchains`. The shared Cargo/Rust and
-  OrbStack stay in their regular places; do not touch other projects or shared
-  storage.
+# Storage and builds
 
-The external checkout `/Volumes/WD4000/Code2/chat` and the local
-`.local/pre-migration-*-20260906` are archives; do not develop or build there.
-The old path `Library/Caches/agentic-internet/worktree` is a compatibility
-symlink to the main repository, but name the main path in new commands.
-The container `ain-v1-arm` (OrbStack) mounts
-`/Volumes/WD4000/Code2/chat_builds/workspace` as `/workspace`; the Linux
-checkout for builds is `/workspace/chat-arm64`, the data stays on WD4000
-outside the shared btrfs volume. The previous container with the named volume
-is kept as `ain-v1-arm-prev`; do not start new runs on the old volume.
+Every build and check goes through `scripts/build-storage.py`: it checks where
+the heavy build data lives, sets the tool and cache paths and starts the
+command. Pick its profile explicitly: `mac-apfs` (the default) on macOS,
+`portable-linux` on Linux.
+
+## The mac-apfs profile
+
+The heavy build directories (see Placement rules) are symlinks into a
+dedicated APFS volume attached from a disk image. `.local/build-storage.json`
+(not in Git) describes it:
+
+- `image`, `mount`, `volume_uuid`: the sparse bundle, where it is attached
+  and the UUID the volume must have;
+- `directory` (optional): this checkout's directory on the volume, when
+  several checkouts share one image; the volume's root otherwise;
+- `path`, `env`: the project's toolchains put first on `PATH`, and variables
+  such as `AIN_NODE`, `AIN_FOUNDRY_BIN`, `AIN_SOLC`.
 
 ## Commands
 
-Run from `/Users/glebk/Code/chat`. For any build or check use the shared
-wrapper; it attaches the image in the background and sets the tool and cache
-paths.
+Run from the repository root.
 
 ```sh
 python3 scripts/build-storage.py mount          # Attach the image without starting a build
@@ -101,7 +98,7 @@ Docker.
 ### Access to system utilities from a sandbox
 
 - For diagnostics use the regular paths:
-  `/usr/sbin/diskutil info -plist /Volumes/ChatBuild` and
+  `/usr/sbin/diskutil info -plist <mount>` and
   `/usr/bin/hdiutil info -plist`. The error `command not found` is about
   `PATH`; the error `Unable to run because unable to use the DiskManagement
   framework` means the utility ran but got no access to the system framework.
@@ -113,8 +110,8 @@ Docker.
   wrapper's UUID and symlink checks. Do not declare the disk missing or broken
   based on that error alone.
 - If the current task and the session policy allow widening access, on that
-  error rerun `python3 scripts/build-storage.py check` from
-  `/Users/glebk/Code/chat` through `exec_command` with
+  error rerun `python3 scripts/build-storage.py check` from the repository
+  root through `exec_command` with
   `sandbox_permissions: "require_escalated"` and a justification of
   DiskManagement access for verifying the build storage. This is the regular
   way to request execution outside the sandbox, not running via `sudo`; the
@@ -130,31 +127,26 @@ Docker.
   checks. Do not move the build to the internal disk and do not run it
   outside the wrapper.
 
-Before unplugging WD4000, finish builds, tests and apps launched from the
-image, run `python3 scripts/build-storage.py unmount`, then eject WD4000 the
-regular way. The unmount must not be forced. When the disk is missing or the
-APFS/UUID/image/symlinks do not match, stop and restore the attachment; do not
-bypass the check. Sources and Git are available without WD4000. After a sudden
-disconnect the build should be restarted; if damaged, the build data is what
-gets recreated, keeping the sources.
+Before detaching the image, finish builds, tests and apps launched from it,
+then run `python3 scripts/build-storage.py unmount`; never force it. When the
+volume is missing or the APFS/UUID/image/symlinks do not match, stop and
+restore the attachment; do not bypass the check. After a sudden disconnect
+restart the build; if damaged, the build data is what gets recreated, keeping
+the sources.
 
-## Testnet deployment
+## Releases and deployment
 
-Until the mainnet launch, deploy the testnet yourself without asking the
-owner: merge the finished `implementation/v1` into the development `main`,
-then publish its reviewed tracked files as a new commit to
-`glebkudr/kaikichat` on `main`, without importing the development Git history.
-Coolify's existing `chat-production` application builds from
-`git@github.com:glebkudr/kaikichat.git`, branch `main`. Push the production
-commit and start its deployment with the regular Coolify means (API over
-SSH), then verify the services (`/v1/policy` of identity and the directory,
-`kaikichat.com`, nodes healthy). Keep the existing application, volumes and
-runtime secrets. CLI installers and updates continue to use the signed
-network preset and archives at `https://kaikichat.com/downloads`; GitHub
-Releases are not the artifact source. The deployment restarts all application
-containers, including the nodes. Spending on the blockchain (bonds,
-purchases), firewall changes and other projects on the server still require
-agreement. After the mainnet launch, revisit this rule.
+Production builds from `main` of
+[glebkudr/kaikichat](https://github.com/glebkudr/kaikichat): work on a
+branch, merge the reviewed result into `main`, push, then deploy
+`deploy/docker-compose.yml` with the host's own means. A deployment restarts
+every service, the nodes included. Installers and updates of the command line
+come from the signed network preset and the archives at
+`https://kaikichat.com/downloads` (`scripts/publish-cli.sh`); GitHub Releases
+are not the artifact source. The server, the deployment procedure, the keys
+and what needs the owner's agreement are in `AGENTS.local.md`. Spending on
+the blockchain (deployments, bonds, purchases, gas top-ups) always needs the
+owner.
 
 ## Placement rules
 

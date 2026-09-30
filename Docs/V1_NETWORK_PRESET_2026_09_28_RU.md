@@ -97,7 +97,7 @@ Example for the current test network:
 - File size — up to 64 KiB, request timeout — 5 s, the response must be 200,
   redirects are not followed.
 - The signing secret key is kept offline in
-  `/Users/glebk/Code/chat/.local/network-preset/` (mode 0600, never enters
+  `.local/network-preset/` (mode 0600, never enters
   git, never printed in output). The owner keeps a copy.
 - Losing or compromising the key requires a release with a new key. Later a
   second, backup key can be baked in for loss; it does not help against

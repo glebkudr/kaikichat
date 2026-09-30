@@ -57,6 +57,15 @@ def mounted(config):
     return mount
 
 
+def storage(config):
+    """The checkout's directory on the volume: its root, or the configured
+    `directory` beneath it when several checkouts share one image."""
+    directory = Path(config.get('directory', ''))
+    if directory.is_absolute() or '..' in directory.parts:
+        fail(f'The storage directory must stay inside the volume: {directory}')
+    return Path(config['mount']) / directory
+
+
 def mount_image(config):
     if not os.path.ismount(config['mount']):
         image = Path(config['image'])
@@ -67,9 +76,10 @@ def mount_image(config):
 
 
 def check_links(config, create=False):
-    mount = mounted(config)
+    mounted(config)
+    base = storage(config)
     for relative, destination in LINKS.items():
-        link, target = ROOT / relative, mount / destination
+        link, target = ROOT / relative, base / destination
         if create:
             target.mkdir(parents=True, exist_ok=True)
             link.parent.mkdir(parents=True, exist_ok=True)
@@ -87,7 +97,7 @@ def environment(config):
     env.update(config.get('env', {}))
     env['PATH'] = os.pathsep.join(config.get('path', []) + [env.get('PATH', '')])
     env['CARGO_TARGET_DIR'] = str(ROOT / 'target')
-    env['npm_config_cache'] = str(Path(config['mount']) / 'npm/cache')
+    env['npm_config_cache'] = str(storage(config) / 'npm/cache')
     env['AIN_BUILD_STORAGE_PROFILE'] = 'mac-apfs'
     return env
 
@@ -114,7 +124,7 @@ def run_directory(worktree):
 
 def install(config):
     check_links(config)
-    depot = Path(config['mount']) / 'npm/desktop'
+    depot = storage(config) / 'npm/desktop'
     names = ['package.json', 'package-lock.json']
     for name in names:
         shutil.copyfile(ROOT / 'apps/desktop' / name, depot / name)
