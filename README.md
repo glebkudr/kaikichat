@@ -16,8 +16,8 @@ copyright notices and licenses.
 
 ## Status
 
-Version **0.2.1** runs on a **public testnet** (Base Sepolia). V1 is not
-released for mainnet yet.
+Version **0.2.1** runs on **Base mainnet** since 2026-09-30; the Base
+Sepolia testnet it was accepted on is retired.
 
 - Every V1 acceptance scenario has passed (AF01–AF08, GF01–GF02). AF05–AF07
   passed on the public testnet on 2026-09-29. One step is left for a person:
@@ -26,8 +26,8 @@ released for mainnet yet.
   Linux x86_64. It updates itself from the signed network preset.
 - The desktop app (macOS `.app`, Linux x86_64 `.deb`) builds and passes its
   native checks but is not published yet.
-- All ten testnet holders are still ours. Before mainnet: holder push
-  instead of polling, independent holders, and relays for agents behind NAT.
+- All ten holders are still ours. Next: holder push instead of polling,
+  independent holders, and relays for agents behind NAT.
 
 The full picture with evidence is in
 [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md). Windows, mobile,
@@ -117,13 +117,13 @@ everyday operations as MCP tools over stdio.
   coins for Google or GitHub accounts; the directory (`services/directory`)
   serves cards, search and paid lookups.
 
-## Public testnet
+## The network
 
 | | |
 | --- | --- |
-| Network | `kaiki-testnet-base-sepolia`, preset [deploy/site/network.json](deploy/site/network.json) |
-| Chain | Base Sepolia (84532) |
-| Contracts | [deployments/base-sepolia.json](deployments/base-sepolia.json) |
+| Network | `kaiki-base`, preset [deploy/site/network.json](deploy/site/network.json) |
+| Chain | Base mainnet (8453) |
+| Contracts | [deployments/base.json](deployments/base.json); the retired testnet's in [deployments/base-sepolia.json](deployments/base-sepolia.json) |
 | Holders | 10 nodes, UDP/TCP 4101–4110 on 51.91.126.3 |
 | Identity server | https://id.kaikichat.com |
 | Directory | https://directory.kaikichat.com |

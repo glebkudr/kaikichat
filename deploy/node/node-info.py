@@ -38,12 +38,17 @@ def main() -> None:
                 sys.exit(f"{data}: the node did not answer")
             time.sleep(1)
     peer = info["peerId"]
+    # The holder's receipt account, which pays the gas of its payouts, is in
+    # `operator_earnings` (node_info does not carry it).
+    try:
+        account = call(f"{data}/ipc.sock", token, "operator_earnings")["result"]["account"]
+    except (OSError, KeyError, ValueError, struct.error):
+        account = None
     print(json.dumps({
         "peerId": peer,
         "route": f"/ip4/{ip}/udp/{port}/quic-v1/p2p/{peer}",
         "commitment": info.get("directory", {}).get("ownCommitment"),
-        # The holder's receipt account, which pays the gas of its payouts.
-        "account": (info.get("payouts") or {}).get("account"),
+        "account": account,
     }))
 
 

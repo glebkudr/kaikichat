@@ -1,4 +1,17 @@
-# V1 implementation status — 2026-09-29
+# V1 implementation status — 2026-09-30
+
+**Base mainnet since 2026-09-30.** Production moved from the Base Sepolia
+testnet to Base (8453), [deployments/base.json](deployments/base.json):
+GrantIssuer `0xe352…d2DE`, NodeRegistry `0x798C…D3bc` (genesis
+`agentic-internet-base-v1`), RoyaltySplitter `0x3535…118f` (treasury
+`0x809C…4522` a tenth, OperatorPool nine tenths), BookShop `0x8070…A5f9` and
+OperatorPool `0xD4CF…eB08`, deployed by `0x2769…8E0E`. The parameters are the
+testnet's. The identity server signs with a new, mainnet-only issuer key (a
+grant names no chain) into a fresh database; the nodes, the directory and the
+welcome agent start on fresh volumes (`*-base`) and the preset names the
+network `kaiki-base`, so testnet profiles are offered the switch and keep
+their testnet coins behind. The owner runs every spending transaction
+(deployment, bonds, gas, the welcome agent's books).
 
 Every V1 acceptance scenario has passed (AF01–AF08, GF01–GF02; the last,
 AF05–AF07 on the public testnet, on 2026-09-29), except one step no script
