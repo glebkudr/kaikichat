@@ -177,7 +177,10 @@ hash, or the bare file name), so the Keychain keeps trusting an updated
 binary. `kaiki` shares the app's identifier because the Keychain lets only
 code with the app's identifier and team read the profile key the app keeps
 there without the password dialog; its own identifier, the bare file name or
-an ad-hoc signature brings the dialog back.
+an ad-hoc signature brings the dialog back (measured:
+`evidence/reviews/keychain-one-identity-2026-09-30/`). Where macOS still
+asks (a key an older signature saved), the window explains the dialog before
+it reads the key, and `kaiki` says so on stderr.
 
 Signing stays an explicit release step; `scripts/publish-cli.sh` never signs.
 Before packing anything or contacting the server it runs
