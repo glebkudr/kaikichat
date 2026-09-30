@@ -139,7 +139,8 @@ mod owner {
         },
         /// Serve the same operations as MCP tools on stdio.
         Mcp,
-        /// The network this profile follows (the preset from kaikichat.com).
+        /// The network this profile follows (the preset from kaikichat.com),
+        /// and whether it finds nodes on the local network.
         Network {
             #[command(subcommand)]
             command: Option<Network>,
@@ -178,6 +179,12 @@ mod owner {
         Refresh,
         /// Move to the network the preset offers, and start the daemon again.
         Switch,
+        /// Whether the node finds nodes on the local network (mDNS), off by
+        /// default; `on` or `off` changes it.
+        Lan {
+            #[command(subcommand)]
+            command: Option<Switch>,
+        },
     }
 
     #[derive(Subcommand)]
@@ -869,6 +876,40 @@ mod owner {
         serde_json::to_value(status).map_err(|error| Output::unavailable(&error.to_string()))
     }
 
+    /// `kaiki network lan [on|off]`: the node's local discovery. A change
+    /// sends back every network preference as read with only `lanDiscovery`
+    /// changed, as the window's settings do; one that changes nothing
+    /// saves nothing, so a profile that never changed its network keeps
+    /// following its flags.
+    async fn lan(host: &DesktopHost, command: Option<Switch>) -> Result<Value, Output> {
+        let mut conflicts = 0;
+        loop {
+            let settings = call(host, "network_settings", json!({})).await?;
+            let wanted = match command {
+                None => return Ok(settings["status"]["lanDiscovery"].clone()),
+                Some(Switch::On) => true,
+                Some(Switch::Off) => false,
+            };
+            let mut preferences = settings["preferences"].clone();
+            if preferences["lanDiscovery"] == wanted {
+                return Ok(settings["status"]["lanDiscovery"].clone());
+            }
+            preferences["lanDiscovery"] = json!(wanted);
+            let request =
+                json!({"expectedRevision": settings["revision"], "preferences": preferences});
+            match call(host, "configure_network", request).await {
+                Ok(saved) => return Ok(saved["status"]["lanDiscovery"].clone()),
+                // The window saved in between: change only this in what it saved.
+                Err(refused)
+                    if refused.value["error"]["code"] == "state_conflict" && conflicts < 2 =>
+                {
+                    conflicts += 1;
+                }
+                Err(refused) => return Err(refused),
+            }
+        }
+    }
+
     /// The daemon binary beside this CLI, and the listen addresses a
     /// profile without saved ones starts with.
     fn daemon_parts() -> Result<(PathBuf, [String; 2]), Output> {
@@ -1195,7 +1236,7 @@ mod owner {
                 status(Some(&host)).await
             }
             Command::Network {
-                command: Some(command),
+                command: Some(command @ (Network::Refresh | Network::Switch)),
             } => {
                 let preset = preset_source()?;
                 let (node_binary, listen) = daemon_parts()?;
@@ -1975,6 +2016,9 @@ mod owner {
                 None => call(host, "operator_earnings", json!({})).await,
                 Some(Earnings::Withdraw) => call(host, "operator_withdraw", json!({})).await,
             },
+            Command::Network {
+                command: Some(Network::Lan { command }),
+            } => lan(host, command).await,
             Command::Daemon { .. }
             | Command::Skill { .. }
             | Command::Mcp

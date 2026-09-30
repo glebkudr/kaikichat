@@ -45,6 +45,9 @@ kaiki daemon stop
 kaiki network
 kaiki network refresh
 kaiki network switch
+kaiki network lan
+kaiki network lan on
+kaiki network lan off
 kaiki update --check
 kaiki update
 kaiki update --skip
@@ -68,6 +71,17 @@ it: `state` `current` is fine; `unavailable` means the preset could not be
 fetched (try `kaiki network refresh` later); `switch` means another network
 is `offered`. Moving there loses the coins of the current network, so run
 `kaiki network switch` only when the owner asks for it.
+
+Nodes on the same local network (a home or office Wi-Fi) find each other
+only with local discovery, which is off by default. `kaiki network lan` shows
+it: `enabled` (the owner's choice), `active` (running now),
+`blockedByPolicy` (relay-only settings forbid it) and `peers` (nodes found).
+With it on, messages between two contacts there can go directly, also while
+the Internet is down; groups and channels still need the Internet. It also
+tells every device on that network that this node is there, so run `kaiki
+network lan on` or `off` only when the owner asks. The choice is kept, and
+it keeps the node's other network settings as they are now, even when the
+network's preset later changes its routes.
 
 When a newer Kaiki Chat is out, every answer carries `"update": {"current",
 "latest"}`. Tell the owner, and run `kaiki update` only when they agree: it

@@ -33,6 +33,7 @@ daemon status
 network
 network refresh
 network switch
+network lan [on | off]
 update [--check | --skip]
 autostart [on | off]
 init --name NAME
@@ -109,8 +110,8 @@ mcp
   the pool refuses; with no ticket won it pays out what is owed. The pool
   pays the unit's owner, USDC first. Nothing is withdrawn unasked; a
   withdrawal without ETH for gas fails as `no_gas`.
-- Every command except `daemon stop`, `daemon status` and `network` starts
-  the daemon when it is not running.
+- Every command except `daemon stop`, `daemon status` and `network` (without
+  a subcommand) starts the daemon when it is not running.
 - **Network preset** ([the design](../Docs/V1_NETWORK_PRESET_2026_09_28_RU.md)):
   a profile without network flags (`--bootstrap`, the chain flags,
   `--identity-server`) takes its network from the signed preset at
@@ -130,6 +131,24 @@ mcp
     preset; `network switch` takes the offered network, which was checked
     when offered, and starts the daemon again. Without an offer it is
     `no_network_offer` (exit 3) and the daemon keeps running.
+- **Local discovery** (mDNS, [node-runtime-v1.md](node-runtime-v1.md)):
+  whether the node finds nodes on the local network and they find it, so
+  that contacts there reach each other directly. It is off by default.
+  - `network lan` shows `{enabled, active, blockedByPolicy, peers}` (the
+    node's `network_settings.status.lanDiscovery`): `enabled` is the
+    owner's choice, `active` whether mDNS runs, `blockedByPolicy` that
+    relay-only settings forbid it, `peers` the nodes it found.
+  - `network lan on` and `network lan off` change it on the running daemon
+    as the window's settings do: `configure_network` with every network
+    preference as `network_settings` read it and only `lanDiscovery`
+    changed; a save of the window in between is read again. They answer
+    the new state. A choice the profile already has saves nothing.
+  - Like every saved network preference, the choice is kept in the profile
+    and overrides the daemon's flags from then on; so do the other
+    preferences it saves with it, the bootstrap routes of a profile that
+    follows the preset included (the preset's route changes no longer
+    apply; [the design](../Docs/V1_NETWORK_PRESET_2026_09_28_RU.md),
+    "Limitation").
 - **Updates** ([the design](../Docs/V1_NETWORK_PRESET_2026_09_28_RU.md#releases-and-updates)):
   the preset names the latest release, its builds and their SHA-256. A
   daemon start learns it; a command that joins the daemon also asks

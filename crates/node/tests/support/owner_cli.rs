@@ -495,6 +495,116 @@ fn a_profile_with_network_flags_is_manual() {
     );
 }
 
+/// The profile's running daemon over the owner IPC, as the window's
+/// settings panel calls it: the node's result for `method`.
+fn window_call(owner: &Owner, method: &str, request: Value) -> Value {
+    let vault = agentic_node::secrets_file::PasswordFileStore::new(
+        owner.dir.path(),
+        zeroize::Zeroizing::new(PASSWORD.to_owned()),
+    );
+    let answer = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async {
+            let host = agentic_node::host::DesktopHost::attach(owner.dir.path(), &vault)
+                .await
+                .unwrap()
+                .expect("the profile's daemon runs");
+            host.call(method, request).await.unwrap()
+        });
+    assert!(answer.get("error").is_none(), "{method}: {answer}");
+    answer["result"].clone()
+}
+
+/// A route to a peer nobody runs: a valid network preference that reaches
+/// nothing.
+fn nobody() -> String {
+    let peer = libp2p::identity::Keypair::generate_ed25519()
+        .public()
+        .to_peer_id();
+    format!("/ip4/127.0.0.1/tcp/9/p2p/{peer}")
+}
+
+/// `network lan` (spec/owner-cli-v1.md): local discovery is off by default;
+/// `on` and `off` change only it on the running daemon and keep every other
+/// network preference the window saved, and the choice, kept in the
+/// profile, holds when a later command starts the daemon again.
+#[test]
+fn an_owner_turns_local_discovery_on_and_off_and_keeps_the_other_network_settings() {
+    let alice = Owner::new();
+    alice.start();
+    let (daemon, _) = daemon_with(&alice, "--profile");
+    // Showing it, or turning off what is off, saves nothing: a profile that
+    // never changed its network keeps following its flags.
+    let off = json!({"enabled": false, "active": false, "blockedByPolicy": false, "peers": []});
+    assert_eq!(alice.ok(&["network", "lan"], None), off);
+    assert_eq!(alice.ok(&["network", "lan", "off"], None), off);
+    assert_eq!(
+        window_call(&alice, "network_settings", json!({}))["revision"],
+        0
+    );
+
+    // The window saved relays, a verifier, a bootstrap route and the DHT role.
+    let saved = json!({
+        "relays": [nobody()],
+        "relayOnly": false,
+        "autoNatPeers": [nobody()],
+        "bootstrapPeers": [nobody()],
+        "lanDiscovery": false,
+        "dhtServer": true,
+    });
+    let revision = window_call(
+        &alice,
+        "configure_network",
+        json!({"expectedRevision": 0, "preferences": saved}),
+    )["revision"]
+        .as_u64()
+        .unwrap();
+    let on = alice.ok(&["network", "lan", "on"], None);
+    assert_eq!(
+        (&on["enabled"], &on["active"], &on["blockedByPolicy"]),
+        (&json!(true), &json!(true), &json!(false)),
+        "{on}"
+    );
+    assert!(on["peers"].is_array(), "{on}");
+    let mut with_lan = saved.clone();
+    with_lan["lanDiscovery"] = json!(true);
+    let settings = window_call(&alice, "network_settings", json!({}));
+    assert_eq!(settings["preferences"], with_lan, "{settings}");
+    assert_eq!(settings["revision"], revision + 1);
+    // The running daemon took it: nothing was started again.
+    assert_eq!(daemon_with(&alice, "--profile").0, daemon);
+
+    // The daemon a later command starts, from the same saved flags, has it.
+    alice.ok(&["daemon", "stop"], None);
+    let restarted = alice.ok(&["network", "lan"], None);
+    assert_eq!(
+        (&restarted["enabled"], &restarted["active"]),
+        (&json!(true), &json!(true)),
+        "{restarted}"
+    );
+
+    let off_again = alice.ok(&["network", "lan", "off"], None);
+    assert_eq!(
+        (&off_again["enabled"], &off_again["active"]),
+        (&json!(false), &json!(false)),
+        "{off_again}"
+    );
+    let settings = window_call(&alice, "network_settings", json!({}));
+    assert_eq!(settings["preferences"], saved, "{settings}");
+    assert_eq!(settings["revision"], revision + 2);
+
+    // An agent learns the command from the skill.
+    let skill = alice.ok(&["skill", "show"], None);
+    assert!(
+        skill["text"]
+            .as_str()
+            .is_some_and(|text| text.contains("kaiki network lan on")),
+        "the skill lacks `kaiki network lan on`"
+    );
+}
+
 /// A closed port: a node told to use it as its identity server keeps asking.
 fn closed_identity_server() -> String {
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
