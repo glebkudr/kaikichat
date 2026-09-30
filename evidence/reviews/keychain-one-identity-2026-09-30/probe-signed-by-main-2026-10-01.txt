@@ -1,0 +1,11 @@
+signed with the Developer ID, team TRD3MG993U: WORK/cli
+app/agentic-desktop: net.agenticinternet.desktop 1 
+cli/kaiki: net.agenticinternet.desktop 1 
+cli/agentic-node: net.agenticinternet.agentic-node 1 
+--- the app (main executable) saves, the signed CLI reads
+app/agentic-desktop    write app-first    -> written(a)
+cli/kaiki              read  app-first    -> read(b) s1
+cli/agentic-node       read  app-first    -> refused(b) -25293
+--- the signed kaiki saves, the app reads
+cli/kaiki              write cli-first    -> written(b)
+app/agentic-desktop    read  cli-first    -> read(a) s2

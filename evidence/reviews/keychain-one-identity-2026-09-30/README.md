@@ -32,9 +32,16 @@ refusal is errSecAuthFailed (-25293), not errSecInteractionNotAllowed
 So every macOS binary that reads the key is one program for the keychain:
 the app's main executable and `kaiki` (in the bundle and in the install.sh
 archive) are signed with `--identifier net.agenticinternet.desktop`. That is
-`scripts/macos-sign-cli.sh` (branch `claude/cranky-shamir-794327`, the
-session that makes `publish-cli.sh` refuse ad-hoc binaries). `agentic-node`
-gets the secret on stdin; `agentic-cli` and `agentic-mcp` never read it.
+`scripts/macos-sign-cli.sh` (main since b09fe99; `publish-cli.sh` refuses
+anything else). `agentic-node` gets the secret on stdin; `agentic-cli` and
+`agentic-mcp` never read it.
+
+`probe-signed-by-main-2026-10-01.txt`: the probe copied under the command
+line's four names and signed by that script (hardened runtime, timestamp),
+and as the app's main executable with the identifier its table gives
+`agentic-desktop`. The signed `kaiki` reads the key the app saved and the
+app reads the key `kaiki` saved, without a dialog; `agentic-node`, with its
+own identifier, is refused (-25293), as it should be.
 
 ## When macOS still asks, the window says why first
 
