@@ -68,11 +68,15 @@ impl Schedule {
         for hint in lan.into_iter().take(32) {
             if let Some(existing) = hints.get_mut(&hint.peer) {
                 // LAN can repair an address, but cannot erase a signed cache's expected root.
-                for address in hint.addresses.into_iter().take(4) {
-                    if existing.addresses.len() < 8 && !existing.addresses.contains(&address) {
-                        existing.addresses.push(address);
+                // The address the peer answers from now goes first: a full signed record
+                // may list only routes it has left, and routes are dialed two at a time.
+                let mut addresses: Vec<_> = hint.addresses.into_iter().take(4).collect();
+                for address in existing.addresses.drain(..) {
+                    if addresses.len() < 8 && !addresses.contains(&address) {
+                        addresses.push(address);
                     }
                 }
+                existing.addresses = addresses;
             } else if hints.len() < 100 {
                 hints.insert(hint.peer, hint);
             }

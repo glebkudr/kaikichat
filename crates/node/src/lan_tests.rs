@@ -154,3 +154,48 @@ fn signed_cache_root_survives_lan_address_refresh_without_duplicate_bootstrap_wo
         "LAN addresses cannot bypass relay-only"
     );
 }
+
+/// A contact's signed record lists the eight routes it had before it
+/// restarted or moved (a host with bridges lists eight). Offline, the LAN
+/// addresses it answers mDNS from are the only way to reach it: they are
+/// dialed first (two at a time), and the full record neither crowds them out
+/// nor loses its own routes to unsigned hints.
+#[test]
+fn a_fresh_lan_address_reaches_a_moved_peer_whose_signed_record_is_full() {
+    use super::bootstrap_support::{Hint, Schedule};
+    let now = Instant::now();
+    let peer = lan_peer();
+    let left: Vec<_> = (4001..4009).map(|port| address(peer, port)).collect();
+    let fresh: Vec<_> = (5001..5005).map(|port| address(peer, port)).collect();
+    let signed = Hint {
+        peer,
+        addresses: left.clone(),
+        root: Some([91; 32]),
+    };
+    let unsigned = Hint {
+        peer,
+        addresses: fresh.clone(),
+        root: None,
+    };
+    let mut queue = Schedule::new(vec![], now);
+    queue.replace_sources(vec![signed.clone()], vec![unsigned.clone()], now);
+    let request = queue.ready(now, false);
+    assert_eq!(request.len(), 1);
+    assert_eq!(
+        request[0].root,
+        Some([91; 32]),
+        "mDNS cannot erase the expected signed root"
+    );
+    let expected: Vec<_> = fresh.iter().chain(&left[..4]).cloned().collect();
+    assert_eq!(
+        request[0].addresses, expected,
+        "fresh LAN addresses first, then the signed routes"
+    );
+    // The next refresh, after the attempt failed, dials them first again.
+    queue.finished(peer, false, now);
+    let later = now + Duration::from_secs(5);
+    queue.replace_sources(vec![signed], vec![unsigned], later);
+    let retry = queue.ready(later, false);
+    assert_eq!(retry.len(), 1);
+    assert_eq!(retry[0].addresses, expected);
+}
