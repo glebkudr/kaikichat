@@ -428,6 +428,7 @@ production builds from. Builds and checks go through
 [AGENTS.md](AGENTS.md). Automated native tests use the isolated E2E vault;
 ordinary builds keep the Keychain.
 
-[The preserved implementation history](IMPLEMENTATION_HISTORY.md) contains
-earlier entries and evidence links. It is historical context, not current
-acceptance.
+Earlier plans, the step-by-step implementation log and the evidence of the
+replaced custody/history architecture were removed on 2026-09-30; they stay in
+this repository's first commit
+[7563f61](https://github.com/glebkudr/kaikichat/tree/7563f614931f26e7dd1148a5c5053bb1e1537847).

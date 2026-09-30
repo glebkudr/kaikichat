@@ -1,1 +1,0 @@
-FINAL ACCEPT. Fresh custody-first job reaches actual Bob reducer, terms/phase/single effect and usable acknowledgment checked; independent hostile admission, Welcome/Receipt refusal and owner IPC controls accepted. Manifest matched; no production changes before verdict.

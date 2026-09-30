@@ -1,1 +1,0 @@
-FINAL REVISE. Missing signed hostile public admission cases, Job/Welcome/Receipt boundaries, valid agent and strict schema receive denials; process Welcome acknowledgment and stale-time races. Full decision retained in independent critic task. No production edits before revision.

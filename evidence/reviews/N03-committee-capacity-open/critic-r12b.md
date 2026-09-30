@@ -1,1 +1,0 @@
-FINAL ACCEPT. 51hashes of0db55e831bff1f9290fd1b170f65a7c2aee6657d56fbfcf37c398aa862b61ef4match. Prior9testsunchanged; one-slotcase rejectsresetcursorandfixedpriority, bothchannelswithin6callbacks with24pending,channelFIFO/exactacceptedbytes. Existing8passandnew2failbehavioralRED. Fullactual64/regressionsrequired.

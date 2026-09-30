@@ -1,7 +1,7 @@
 # Core receive ordering from conversation creation
 
 Status: Core admission implemented after independent test acceptance; the required
-130-original Core recovery passes. [Checks and native scope](../evidence/reviews/AR2-wallet-flow/RECEIVE_ADMISSION.md).
+130-original Core recovery passes. [Checks and native scope](https://github.com/glebkudr/kaikichat/blob/7563f614931f26e7dd1148a5c5053bb1e1537847/evidence/reviews/AR2-wallet-flow/RECEIVE_ADMISSION.md).
 Ordinary graph traversal and explicit product gap/recovery outcomes remain open.
 
 The previous R19 gate failed on 130 simultaneously live originals with arrival

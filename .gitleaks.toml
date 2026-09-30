@@ -35,20 +35,6 @@ paths = ['''^Cargo\.lock$''']
 regexes = ['''^libcrux-sha3$''']
 
 [[rules.allowlists]]
-description = "SHA-256 digests of source files in historical build evidence"
-condition = "AND"
-paths = ['''^evidence/reviews/P02-daemon-retained-context/source-inputs(?:-initial)?\.json$''']
-regexTarget = "line"
-regexes = ['''^\s*"[^"\n]+\.(?:ts|tsx|rs|md)": "[a-f0-9]{64}",?$''']
-
-[[rules.allowlists]]
-description = "Public message semantic hashes in historical native evidence"
-condition = "AND"
-paths = ['''^evidence/reviews/native-acceptance-2026-09-17/h10-diagnostic32-macos-evidence$''']
-regexTarget = "line"
-regexes = ['''^\s*"semanticKey": "[a-f0-9]{64}",?$''']
-
-[[rules.allowlists]]
 description = "A public book address in a testnet acceptance receipt"
 condition = "AND"
 paths = ['''^evidence/reviews/testnet-acceptance-2026-09-29/af07-first-pass-stale-price\.json$''']

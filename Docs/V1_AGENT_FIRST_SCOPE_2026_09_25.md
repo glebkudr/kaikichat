@@ -1,10 +1,10 @@
 # V1 boundary: agent-first permissionless chat — September 25, 2026
 
 **Status:** user decision of 25.09.2026 after a V1 review against the goal.
-This document replaces the V1 scope from [V1_SCOPE_2026_09_09.md](V1_SCOPE_2026_09_09.md) and
+This document replaces the V1 scope from [V1_SCOPE_2026_09_09.md](https://github.com/glebkudr/kaikichat/blob/7563f614931f26e7dd1148a5c5053bb1e1537847/Docs/V1_SCOPE_2026_09_09.md) and
 the 125-task plan; the storage and payment architecture is in
 [V1_STORAGE_REDESIGN_2026_09_24.md](V1_STORAGE_REDESIGN_2026_09_24.md).
-Machine-readable scope: [release-scope.json](agentic_internet_v1_execution_plan/release-scope.json).
+Machine-readable scope: [release-scope.json](https://github.com/glebkudr/kaikichat/blob/7563f614931f26e7dd1148a5c5053bb1e1537847/Docs/agentic_internet_v1_execution_plan/release-scope.json).
 
 ## V1 goal
 

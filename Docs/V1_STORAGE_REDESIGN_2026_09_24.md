@@ -207,4 +207,4 @@ scenarios, specs, and plan tasks:
 
 Review evidence: `evidence/reviews/a04-retention-gc-2026-09-24/` (branch
 `evidence/v1-a04-retention-gc-20260924`),
-`evidence/reviews/custody-backpressure-2026-09-18/`.
+[`evidence/reviews/custody-backpressure-2026-09-18/`](https://github.com/glebkudr/kaikichat/tree/7563f614931f26e7dd1148a5c5053bb1e1537847/evidence/reviews/custody-backpressure-2026-09-18).

@@ -1,7 +1,0 @@
-{
-  "apps/desktop/tests/native-checkpoints.mjs": "06efb24d3bf43b6c13d3c5a1a5bb8120f045880a6b752e812c24198621628d4b",
-  "apps/desktop/tests/native-e2e.mjs": "a1817b54931a44d671b7f498fb82259c3d72730048f1d4b936f261aa8eb17e79",
-  "apps/desktop/tests/native-checkpoint-fixture.py": "1563dc09a9d14b970b7725cf6ac7776adbe4bcf71217ee924472d6745cd5b768",
-  "apps/desktop/tests/native-network.mjs": "eac219df75743e518440271fe6e93e2c4f06b5b2bb2906b04205d798e324e4e1",
-  "scripts/build-desktop.mjs": "4a99a5599fea292f89487471b79b137f4c61fe51d55fe35bd836bec80c427f94"
-}

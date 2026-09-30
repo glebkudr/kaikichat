@@ -1,1 +1,0 @@
-Verdict: REVISE. Add genuine mismatched SpendRecord admission, independently re-signed receipts binding corrupted native funding/QC for cold verification, and cumulative two-record byte quota/read pagination. Optional legacy rejection and wrong-key reopen added as well. Production unchanged.

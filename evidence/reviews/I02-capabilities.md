@@ -1,9 +1,0 @@
-# I02 grant/budget foundation review
-
-Separate backend-test-critic `/root/core_test_critic`, originally fork_turns=none. Ten integration tests were written before the comment-only capabilities library was implemented. RED was the missing public grant/authorization API.
-
-Initial REVISE: changed retries were already invalid by scope/remaining quota, trusted agent/service context was not tested, and grant-specific expiry bounds were not covered by generic SignedDocument tests. Corrected each oracle: independently allowed smaller amount, second permitted resource and permitted different action conflict under the old operation ID but prepare under a new one; old exact operation still replays and quota is unchanged. Added agent/service mismatch, independently signed generic-valid no-expiry/over-30day/wrong-kind records and positive 30-day grant. Also made recipient omission explicit and tested business state plus quota succeeding atomically after SQL fault and reopen. Reviewer returned final ACCEPT with no blocking or required missing scenarios for this foundation.
-
-Implementation reuses SignedDocument/Ed25519, canonical bounded CBOR and ProfileStore transaction CAS. Chains only attenuate scopes, roles, lifetime, resource/data/delegation bounds; every subject epoch and any ancestor revocation is checked against trusted broker context. Integer quota changes charge every ancestor, preserve operation parameter bindings and are prepared for the same transaction as actual work. Tests use a separate CBOR producer and real SQLCipher fault/restart/CAS evidence, no mocked quota engine.
-
-Validation: ten capability tests pass; scripts/check.sh exit0 with115 Rust integration tests,15 frontend tests, strict Clippy/fmt/TypeScript/Vite. This module is a foundation: current authority registry/fencing, transport authentication and broker/MCP integration remain required. No claim of complete I02 or V1 acceptance.

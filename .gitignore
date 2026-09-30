@@ -61,7 +61,7 @@ yarn-error.log*
 
 # Raw run output inside review evidence: logs, compressed/streamed traces,
 # JSON dumps, diffs and failed-run captures. Reviewed summaries (.md), screenshots
-# and evidence tooling stay tracked; files read by tests are re-included below.
+# and evidence tooling stay tracked.
 /evidence/**/*.log
 /evidence/**/*.gz
 /evidence/**/*.jsonl
@@ -70,13 +70,7 @@ yarn-error.log*
 /evidence/**/*.json
 /evidence/**/*.diff
 /evidence/**/*.patch
-/evidence/**/finalizer-network/
 /evidence/**/development-failures/
-# Evidence inputs read by tests and build checks.
-!/evidence/reviews/P01-p256-runtime-demo/*.json
-!/evidence/reviews/P02-daemon-retained-context/*.json
-!/evidence/reviews/P03-candidate-network/spend-regression-trace.json
-!/evidence/reviews/AR2-wallet-flow/diagnostic32-native-r1.json
 
 # Local zip-context skill scan output.
 /zip_context_ignore.md

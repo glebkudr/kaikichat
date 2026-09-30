@@ -1,3 +1,0 @@
-Verdict: ACCEPT for R2 tests.
-
-Both R1 blockers resolved. Optimized 64-node baseline reaches intended formation deadline with exactly16 routes; no IPC timeout or cleanup errors. Cold recovery independently authenticates original Ed25519/P256 signatures and63 distinct scopes/metadata before original signed expiry; overruns fail. Other127 records explicitly preserved. Nine oracle tests independently passed. Manifest SHA2566c57b0830d9aa9e801fce6d2a00edfdb95c19091a05fca5ca65a9d36fbc06a2d and unchanged8 production inputs verified. Nonblocking: add inner P256 corruption with re-signed envelope. Complete TCP/QUIC gate remains mandatory, zero DHT hints/publications unresolved; scheduling changes require behavioral test and renewed critic review.

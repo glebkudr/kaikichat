@@ -158,7 +158,7 @@ agent.
 | `deploy` | Dockerfiles, the Compose file, the site with `install.sh` and the signed preset |
 | `scripts` | Build, check, release and deploy scripts |
 | `spec`, `Docs` | Protocol specifications and design decisions |
-| `evidence/reviews` | Acceptance evidence of every verified step |
+| `evidence/reviews` | Acceptance evidence of the current V1, linked from `IMPLEMENTATION_STATUS.md` |
 | `tests` | Build, network, site and welcome-agent tests |
 
 ## Building from source
@@ -207,5 +207,6 @@ profiles and the offline Linux toolkit are described in
   [identity penalties](Docs/V1_IDENTITY_PENALTIES_2026_09_30.md)
 - The owner CLI: [spec/owner-cli-v1.md](spec/owner-cli-v1.md); the desktop
   window: [spec/desktop-gui-v1.md](spec/desktop-gui-v1.md)
-- [Implementation history](IMPLEMENTATION_HISTORY.md): earlier stages and
-  their evidence, kept as context rather than current acceptance
+- Earlier plans, the implementation log and the evidence of the replaced
+  custody/history architecture: the first commit
+  [7563f61](https://github.com/glebkudr/kaikichat/tree/7563f614931f26e7dd1148a5c5053bb1e1537847)

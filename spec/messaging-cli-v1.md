@@ -45,8 +45,8 @@ bundled executable and the same private credentials arguments as MCP; the deskto
 renders a quoted command that starts with `context`.
 
 The actual paid CLI gate also passes two sponsored sends, exact retries, budget
-refusal and cold recipient recovery after sender/data/index loss. Evidence lives
-in `evidence/reviews/AR2-wallet-flow/cli-native-candidate-1.json`. The current native
+refusal and cold recipient recovery after sender/data/index loss. Its evidence
+was kept under [`evidence/reviews/AR2-wallet-flow/`](https://github.com/glebkudr/kaikichat/tree/7563f614931f26e7dd1148a5c5053bb1e1537847/evidence/reviews/AR2-wallet-flow). The current native
 platform is macOS/Unix IPC; this does not declare E11, three-platform acceptance or
 the whole wallet complete. Shared paid durability and cold retirement pass the
 real native lifecycle gate. The skill's separately reviewed source is
@@ -55,6 +55,6 @@ text is included in the signed macOS debug bundle and exposed verbatim by the
 native permissions panel. An independent Codex host completed context, send,
 exact retry, signed delivery, oversized-reply recovery, full save, ACK and a fresh
 empty poll using only the packaged CLI and skill. The separately reviewed
-[host evidence](../evidence/reviews/AR2-wallet-flow/skill-host/README.md) covers an
+[host evidence](https://github.com/glebkudr/kaikichat/blob/7563f614931f26e7dd1148a5c5053bb1e1537847/evidence/reviews/AR2-wallet-flow/skill-host/README.md) covers an
 existing granted local contact. New contacts, host/NAT lifecycle and complete E11
 remain open.

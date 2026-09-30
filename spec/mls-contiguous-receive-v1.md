@@ -2,9 +2,9 @@
 
 Status: implemented prerequisite after independent test acceptance. All 21 MLS
 tests pass, including preservation of three past epochs across a contiguous
-commit. [The initial prerequisite run](../evidence/reviews/AR2-wallet-flow/MLS_CONTIGUOUS.md)
+commit. [The initial prerequisite run](https://github.com/glebkudr/kaikichat/blob/7563f614931f26e7dd1148a5c5053bb1e1537847/evidence/reviews/AR2-wallet-flow/MLS_CONTIGUOUS.md)
 retains its then-failing Core gate; the subsequent
-[Core admission integration](../evidence/reviews/AR2-wallet-flow/RECEIVE_ADMISSION.md)
+[Core admission integration](https://github.com/glebkudr/kaikichat/blob/7563f614931f26e7dd1148a5c5053bb1e1537847/evidence/reviews/AR2-wallet-flow/RECEIVE_ADMISSION.md)
 now recovers all 130 originals for protected new conversations.
 
 R19 is reproducible with 130 live originals in one MLS epoch: committing arrival
