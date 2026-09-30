@@ -19,6 +19,7 @@ getrandom.workspace = true
 libp2p = { version = "0.56.0", features = ["tokio", "tcp", "quic", "noise", "yamux", "request-response", "cbor", "macros", "relay", "identify", "dcutr", "autonat", "mdns", "kad"] }
 tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "sync", "net", "io-util", "time", "signal", "process"] }
 futures = "0.3.34"
+if-watch = { version = "3.2.2", features = ["tokio"] }
 clap = { version = "4.6.6", features = ["derive"] }
 serde.workspace = true
 serde_json.workspace = true

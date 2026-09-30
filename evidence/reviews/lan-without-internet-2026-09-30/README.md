@@ -13,9 +13,9 @@ unreachable, within about half a second, once local discovery is on at both
 ends and the peers have found each other. But only when the recipient
 already knows the sender's current **bought** book: a stamp from a free
 grant is never accepted directly, and groups need the holders. Discovery
-itself is not reliable yet on hosts with bridges: 5 of 9 runs passed. One
-discovery defect found on the way is fixed on this branch; another is
-described with a proposed fix.
+was not reliable on hosts with bridges (5 of 9 runs passed); the two
+defects found on the way are fixed (below), and repeated native rounds on
+this Mac now verify every peer every time.
 
 ## Tests
 
@@ -35,8 +35,9 @@ AIN_LAN_ROUNDS=4 AIN_LAN_DEAD=10 python3 scripts/build-storage.py \
   -p agentic-node --test processes -- --ignored --exact swarm_native::lan_discovery_rounds --nocapture
 ```
 
-Unit: `a_fresh_lan_address_reaches_a_moved_peer_whose_signed_record_is_full`
-in `crates/node/src/lan_tests.rs`. Rig (managed time): the characterization
+Unit: `cargo test --locked -p agentic-node --lib lan_tests::` runs
+`a_fresh_lan_address_reaches_a_moved_peer_whose_signed_record_is_full` and
+the route selection tests below (`crates/node/src/lan_tests.rs`). Rig (managed time): the characterization
 in [granted-direct.patch](granted-direct.patch), applied to
 `crates/node/src/reproducer_mailbox_swarm_tests.rs` and run with
 `cargo test --locked -p agentic-node --lib -- reproducer_tests::mailbox_swarm::a_granted_stamp_sent_directly_is_refused --nocapture`.
@@ -130,16 +131,16 @@ Without dead peers (fresh profiles) five rounds took 5.4 s each before the
 fix: the four silent bootstrap routes hold the four exchange slots for the
 5 s QUIC handshake timeout first.
 
-## Found, not fixed: the first four mDNS routes can all be unusable
+## Found and fixed: the first four mDNS routes could all be unusable
 
 Chain 4 was traced. Alice's first four mDNS routes of Bob were
 `172.31.250.0/tcp`, `172.31.250.0/quic`, `172.16.42.0/tcp` and
 `192.168.215.0/tcp`: addresses of this Mac's OrbStack bridges that end in
 `.0` and refuse connections (`EADDRNOTAVAIL`). Carol's first route at Alice
-was `192.168.10.41`, and she connected. `LanHints` keeps the first four
-routes of a peer and refreshes them every 10 s, so a peer whose first four
-are unusable is never reached (`crates/node/src/lan.rs`, `observe`); the
-fixed LAN-first merge cannot help. The traced loop of
+was `192.168.10.41`, and she connected. `LanHints` kept the first four
+routes of a peer and refreshed them every 10 s, so a peer whose first four
+were unusable was never reached (`crates/node/src/lan.rs`, `observe`); the
+fixed LAN-first merge could not help. The traced loop of
 `lan_discovery_rounds` hit the same once in three rounds.
 
 Why the routes carry bridge addresses: libp2p-mdns sends a response from a
@@ -152,9 +153,57 @@ so a Mac with Docker, OrbStack or VPN bridges likely feeds its peers the
 same unusable routes, and OrbStack uses the same subnets on every Mac (from
 the code; not tested on two machines).
 
-A possible fix, for the owner to choose: keep more routes per peer (8) and
-put the ones in a subnet of this node's own LAN interface first, or rotate
-the kept routes after a failed exchange.
+The fix (`crates/node/src/lan.rs`): the node reads its own interface
+subnets (`if-watch`, the watcher libp2p already uses) and
+
+- never keeps a route on a subnet's network or broadcast address (the `.0`
+  bridges; a /31 or /32 has none);
+- keeps up to 8 routes per peer, as many as a hint carries, ordered: another
+  host on one of this host's subnets first, then this host's own addresses
+  (another process here, or a bridge address another Mac shares), then
+  routes outside these subnets; when a peer's routes are full, a better
+  route replaces the worst kept one;
+- puts a route that refused a dial behind the peer's untried routes of the
+  same rank, and lets a route heard again replace it, so a peer is never
+  locked onto the routes heard first, also when the interfaces cannot be
+  read.
+
+The bootstrap schedule still dials a contact's LAN routes first (at most 4
+next to a full signed record), two at a time; they are now the best four.
+Unit tests: `mdns_routes_on_a_host_with_bridges_keep_the_usable_ones_first`,
+`a_peer_heard_from_many_foreign_bridges_is_dialed_on_the_lan_first`,
+`routes_that_refused_a_dial_give_way_to_untried_ones`
+(`crates/node/src/lan_tests.rs`).
+
+Native results on this Mac (debug build; "before" is the same build with
+the old `lan.rs`):
+
+| Run | Rounds or runs | Every peer verified | Not in 120 s |
+|---|---|---|---|
+| `lan_discovery_rounds`, before | 20 + 12 | 24 (23 in 5.2–5.4 s, one in 10.4 s) | 8 |
+| `lan_discovery_rounds`, after | 12 + 30 | 42, all in 5.2–5.4 s | 0 |
+| `lan_discovery_rounds`, `AIN_LAN_DEAD=10`, after | 8 | 8, all in 5.2 s (5.2–10.2 s after the first fix only) | 0 |
+| `native_lan_without_internet`, after | 3 | 3, in 5.2–5.3 s after LAN turned on | 0 |
+
+The rounds that failed before looked like chain 4: every node listed the
+others as mDNS peers, one node verified none of them after 40–48 failed
+attempts and held no connection.
+
+To see the kept routes, a verification worktree printed each node's LAN
+hints at every bootstrap refresh (a temporary `eprintln!`, not committed),
+and the round listed each node's last hints of each other node:
+
+| Node-to-peer route lists | Rounds | Lists | Only `.0` routes | First pair on `.0` | Any `.0` route |
+|---|---|---|---|---|---|
+| Before | 12 | 72 | 20 | 28 | 71 |
+| After | 30 | 180 | 0 | 0 | 0 |
+
+Before, exactly the four failed rounds had a pair whose nodes both held
+only `.0` routes of each other; a pair with one usable direction still
+verified, which is why most rounds passed. After, every list held the
+`192.168.10.41` and `192.168.139.3` routes, which connect. In
+`native_lan_without_internet` the messages again went both ways in 0.51 s,
+and Carol's message arrived 52 s after Bob read the chain.
 
 ## A window without mDNS
 
@@ -217,8 +266,11 @@ stamp). For a granted book it never arrives directly.
 5. **The CLI and the window** try the preset first: up to 5 s
    (`network_preset.rs`, `TIMEOUT`) before the kept preset is used.
 6. **An IP network with multicast.** No Bluetooth or Wi-Fi Direct.
-7. **Discovery is unreliable on hosts with bridges** (Docker, OrbStack,
-   VPN): a peer can be locked onto unusable routes (above).
+7. **Hosts with bridges** (Docker, OrbStack, VPN) announce routes on
+   every bridge. Local discovery now keeps the usable ones (above), but a
+   node's signed record still lists its bridge addresses, `.0` ones
+   included, capped at 8 routes (`Runtime::advertised`), so a contact that
+   reaches it only through that record may try unusable routes first.
 
 ## Not checked here
 
