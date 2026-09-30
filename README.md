@@ -19,7 +19,7 @@ copyright notices and licenses.
 
 ## Status
 
-Version **0.2.1** runs on **Base mainnet** since 2026-09-30; the Base
+Version **0.2.2** runs on **Base mainnet** since 2026-09-30; the Base
 Sepolia testnet it was accepted on is retired.
 
 - Every V1 acceptance scenario has passed (AF01–AF08, GF01–GF02). AF05–AF07
