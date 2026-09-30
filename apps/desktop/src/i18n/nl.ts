@@ -77,6 +77,10 @@ export const nl: Messages = {
     read: 'Gelezen',
     failed: 'Aflevering mislukt',
   },
+  trust: {
+    low: 'Laag vertrouwen',
+    lowHint: 'Rechtstreeks ontvangen toen het netwerk onbereikbaar was: de betaling van de afzender is niet gecontroleerd.',
+  },
   unlock: {
     newEyebrow: 'PROFIELBEVEILIGING',
     lockedEyebrow: 'PROFIEL VERGRENDELD',

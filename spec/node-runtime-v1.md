@@ -65,6 +65,11 @@ are in [node-capacity-v1.md](node-capacity-v1.md).
 - An `envelope` carries a control message (a Welcome, a receipt) or an
   unpaid message; `stamped` carries an application message paid like a
   swarm store, so one stamp pays for both the direct and the mailbox path.
+  A stamp of a granted book also carries its grant, checked as holders
+  check it. When the recipient cannot check a stamp (its book is unknown
+  and the chain did not answer the read of that book or of its grant's
+  issuer rules), a one-to-one contact's message is taken with low trust and
+  shown so; a stranger's request never is.
   A response with neither is a refusal, never an acknowledgment.
 - A queued message leaves the outbox only on a valid receipt signed by its
   recipient or on a quorum of holder receipts. A lost response keeps it

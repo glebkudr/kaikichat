@@ -77,6 +77,10 @@ export const ar: Messages = {
     read: 'مقروءة',
     failed: 'فشل التسليم',
   },
+  trust: {
+    low: 'ثقة منخفضة',
+    lowHint: 'استُلمت مباشرةً عندما تعذّر الوصول إلى الشبكة: لم يُتحقق من دفع المرسل.',
+  },
   unlock: {
     newEyebrow: 'حماية الملف الشخصي',
     lockedEyebrow: 'الملف الشخصي مقفل',

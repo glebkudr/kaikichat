@@ -123,6 +123,20 @@ describe('conversation UI with a replaceable real-core adapter', () => {
   });
 });
 
+describe('low trust', () => {
+  it('marks a received message whose payment could not be checked, and says why; a checked one carries no mark', async () => {
+    const snapshot = initial();
+    snapshot.conversations[0].messages.push({ ...snapshot.conversations[0].messages[0], id: 'm2', text: 'Written on the LAN', createdAt: 101, lowTrust: true });
+    render(<ChatShell api={api(snapshot)} />);
+    const offline = (await messageInHistory('Written on the LAN')).closest('article')!;
+    const mark = within(offline).getByText('Low trust');
+    expect(mark).toBeVisible();
+    expect(mark).toHaveAttribute('title', 'Received directly while the network could not be reached: the sender’s payment was not checked.');
+    const checked = (await messageInHistory('Shall we test delivery?')).closest('article')!;
+    expect(within(checked).queryByText('Low trust')).not.toBeInTheDocument();
+  });
+});
+
 describe('honest delivery statuses', () => {
   it('does not call seven storage receipts delivered or fully replicated', () => {
     render(<DeliveryBadge delivery={{ phase: 'stored', replicas: 7, target: 10 }} />);

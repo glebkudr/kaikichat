@@ -77,6 +77,10 @@ export const fa: Messages = {
     read: 'خوانده شد',
     failed: 'تحویل ناموفق بود',
   },
+  trust: {
+    low: 'اعتماد کم',
+    lowHint: 'مستقیم دریافت شد، زمانی که شبکه در دسترس نبود: پرداخت فرستنده بررسی نشد.',
+  },
   unlock: {
     newEyebrow: 'محافظت از نمایه',
     lockedEyebrow: 'نمایه قفل است',

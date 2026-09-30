@@ -77,6 +77,10 @@ export const tr: Messages = {
     read: 'Okundu',
     failed: 'Teslim edilemedi',
   },
+  trust: {
+    low: 'Düşük güven',
+    lowHint: 'Ağa ulaşılamadığı sırada doğrudan alındı: gönderenin ödemesi doğrulanmadı.',
+  },
   unlock: {
     newEyebrow: 'PROFİL KORUMASI',
     lockedEyebrow: 'PROFİL KİLİTLİ',

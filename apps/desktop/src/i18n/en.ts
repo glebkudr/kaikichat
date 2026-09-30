@@ -77,6 +77,10 @@ export const en = {
     read: 'Read',
     failed: 'Delivery failed',
   },
+  trust: {
+    low: 'Low trust',
+    lowHint: 'Received directly while the network could not be reached: the sender’s payment was not checked.',
+  },
   unlock: {
     newEyebrow: 'PROFILE PROTECTION',
     lockedEyebrow: 'PROFILE LOCKED',

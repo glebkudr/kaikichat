@@ -77,6 +77,10 @@ export const hu: Messages = {
     read: 'Olvasva',
     failed: 'A kézbesítés sikertelen',
   },
+  trust: {
+    low: 'Alacsony bizalom',
+    lowHint: 'Közvetlenül érkezett, amikor a hálózat nem volt elérhető: a feladó fizetését nem ellenőriztük.',
+  },
   unlock: {
     newEyebrow: 'PROFILVÉDELEM',
     lockedEyebrow: 'A PROFIL ZÁROLVA',

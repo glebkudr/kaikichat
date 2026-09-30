@@ -396,8 +396,9 @@ the history (`messages`) and from every agent's cursor. It survives restarts.
 - `inbox poll` returns the incoming text messages after the cursor, oldest
   first, the owner's own messages skipped: at most `--limit` (1–100, default
   10), under a lease of `--lease-seconds` (1–600, default 60).
-  `{conversationId, items: [{id, author, text, createdAt}], leaseId,
-  expiresAt, hasMore}`. While the lease is active, `poll` returns the same
+  `{conversationId, items: [{id, author, text, createdAt, lowTrust?}],
+  leaseId, expiresAt, hasMore}`; `lowTrust: true` marks a message taken
+  directly while its payment could not be checked. While the lease is active, `poll` returns the same
   page. An empty page takes no lease (`leaseId` null).
 - `inbox ack` moves the cursor past the leased page and is idempotent. After
   the lease expires it is still accepted until a later `poll` takes a new

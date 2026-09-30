@@ -45,6 +45,10 @@ struct InboxItem {
     text: String,
     created_at: u64,
     sequence: u64,
+    /// Taken directly while its stamp could not be checked; pages kept
+    /// before it have none.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    low_trust: bool,
 }
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -178,6 +182,7 @@ impl AppCore {
                     text: message.text,
                     created_at: message.created_at,
                     sequence: stored.sequence,
+                    low_trust: message.low_trust,
                 });
             }
             // Skipped owner/control records also need an acknowledged cursor to avoid an endless scan.

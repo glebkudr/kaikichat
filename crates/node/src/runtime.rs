@@ -1,5 +1,5 @@
 use crate::{Bootstrap, NETWORK_DOMAIN, Result, ipc};
-use agentic_core::{AppCore, CoreError, NetworkPreferences, SwarmDelivery};
+use agentic_core::{AppCore, CoreError, DirectPayment, NetworkPreferences, SwarmDelivery};
 use agentic_protocol::network_id;
 use agentic_store::{ProfileStore, StateChange};
 use futures::StreamExt;
@@ -163,6 +163,10 @@ struct StampedDelivery {
     #[serde(with = "serde_bytes")]
     envelope: Vec<u8>,
     stamp: mailbox_holder::StampWire,
+    /// The grant funding the stamp's book, if granted: the recipient checks
+    /// it as a holder does. None goes on the wire as before grants.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    grant: Option<agentic_grant_book::GrantBook>,
 }
 
 impl From<&SwarmDelivery> for StampedDelivery {
@@ -173,6 +177,7 @@ impl From<&SwarmDelivery> for StampedDelivery {
             period: delivery.period,
             envelope: delivery.envelope.clone(),
             stamp: mailbox_holder::StampWire::from(&delivery.stamp),
+            grant: None,
         }
     }
 }
@@ -581,8 +586,9 @@ impl Runtime {
             // A request by id, paid for this profile's intro mailbox.
             let intro = self.core.own_intro_mailbox(at)?;
             if stamped.mailbox.as_slice() == intro.as_slice() {
+                // A stranger's request is taken only with a checked stamp.
                 if self.chain_configured() {
-                    self.check_direct_stamp(stamped, intro, now)?;
+                    self.check_direct_stamp(stamped, intro, false, now)?;
                 }
                 let (outcome, received) = self.core.receive_intro_from(
                     &stamped.envelope,
@@ -595,10 +601,14 @@ impl Runtime {
             }
             // A node that reads the chain checks payment like a holder; one
             // without chain flags takes messages unpaid.
-            if self.chain_configured() {
+            let payment = if self.chain_configured() {
                 let own = self.core.swarm_mailbox(&stamped.conversation, true, at)?;
-                self.check_direct_stamp(stamped, own, now)?;
-            }
+                self.check_direct_stamp(stamped, own, true, now)?
+            } else {
+                DirectPayment::Checked
+            };
+            // Core opens it only for a one-to-one contact: groups never
+            // arrive this way.
             return Ok(self
                 .core
                 .receive_stamped_from(
@@ -607,6 +617,7 @@ impl Runtime {
                     &stamped.envelope,
                     &delivery.node_record,
                     &peer,
+                    payment,
                     now,
                 )?
                 .reply);
@@ -623,13 +634,17 @@ impl Runtime {
 
     /// A stamped direct delivery pays like a swarm store: for `own`, this
     /// node's incoming mailbox it is meant for, over those exact bytes, with a
-    /// slot of a known book taken once.
+    /// slot of a known book taken once. A granted book is learned as holders
+    /// learn it. A `contact`'s stamp whose book cannot be read now (the
+    /// chain did not answer the last read of the book, or of its grant's
+    /// issuer rules) is taken unchecked: low trust.
     fn check_direct_stamp(
         &mut self,
         stamped: &StampedDelivery,
         own: [u8; 32],
+        contact: bool,
         now: u64,
-    ) -> Result<()> {
+    ) -> Result<DirectPayment> {
         use agentic_mailbox_swarm::stamp::Stamp;
         let mailbox: [u8; 32] = stamped
             .mailbox
@@ -644,8 +659,33 @@ impl Runtime {
             return Err("stamp for another operation".into());
         }
         let Some(terms) = self.mailbox_holder.book_terms(&stamp.book) else {
-            self.book_wanted(stamp.book, false);
-            return Err(mailbox_holder::Refusal::UnknownBook.code().into());
+            let (refusal, unreadable) = match stamped
+                .grant
+                .as_ref()
+                .filter(|grant| grant.id() == stamp.book)
+            {
+                Some(grant) => {
+                    let pending = mailbox_holder::Refusal::GrantPending.code();
+                    if let mailbox_holder::Response::Refused { code } =
+                        self.offer_grant(grant.clone())
+                        && code != pending
+                    {
+                        return Err(code.into());
+                    }
+                    (pending, self.grant_day_unreadable(grant.server, grant.day))
+                }
+                None => {
+                    self.book_wanted(stamp.book, false);
+                    (
+                        mailbox_holder::Refusal::UnknownBook.code(),
+                        self.book_unreadable(&stamp.book),
+                    )
+                }
+            };
+            if contact && unreadable {
+                return Ok(DirectPayment::Unchecked);
+            }
+            return Err(refusal.into());
         };
         stamp
             .verify(&NETWORK_DOMAIN, &terms, now)
@@ -671,7 +711,7 @@ impl Runtime {
         }
         // On record with the ticket's notaries: a reuse elsewhere is proven.
         self.notarize_later(statement);
-        Ok(())
+        Ok(DirectPayment::Checked)
     }
     fn event(&mut self, event: SwarmEvent<NetworkEvent>) {
         self.relay_event(&event);
@@ -910,7 +950,14 @@ impl Runtime {
                         Ok(paid) => Delivery {
                             node_record: binding.clone(),
                             envelope: vec![],
-                            stamped: Some(StampedDelivery::from(&paid)),
+                            stamped: Some(StampedDelivery {
+                                grant: self
+                                    .core
+                                    .mailbox_book_grant(&paid.stamp.book)
+                                    .ok()
+                                    .flatten(),
+                                ..StampedDelivery::from(&paid)
+                            }),
                         },
                         // A Welcome, or no book: unstamped, which only a node
                         // without payment takes for a message.

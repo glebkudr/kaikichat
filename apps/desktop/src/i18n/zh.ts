@@ -77,6 +77,10 @@ export const zh: Messages = {
     read: '已读',
     failed: '发送失败',
   },
+  trust: {
+    low: '低信任',
+    lowHint: '在无法连接网络时直接收到：未核实发送者的付款。',
+  },
   unlock: {
     newEyebrow: '资料保护',
     lockedEyebrow: '资料已锁定',

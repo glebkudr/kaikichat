@@ -817,7 +817,10 @@ impl AppCore {
             &network_id(&post.author),
             post.issued_at,
             false,
-            Event::Text { text: post.text },
+            Event::Text {
+                text: post.text,
+                low_trust: false,
+            },
         )?;
         self.store
             .commit_incoming(agentic_store::IncomingCommit { message, states })?;

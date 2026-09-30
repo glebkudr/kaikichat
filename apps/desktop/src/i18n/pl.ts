@@ -77,6 +77,10 @@ export const pl: Messages = {
     read: 'Przeczytano',
     failed: 'Nie dostarczono',
   },
+  trust: {
+    low: 'Niskie zaufanie',
+    lowHint: 'Odebrano bezpośrednio, gdy sieć była niedostępna: płatność nadawcy nie została sprawdzona.',
+  },
   unlock: {
     newEyebrow: 'OCHRONA PROFILU',
     lockedEyebrow: 'PROFIL ZABLOKOWANY',

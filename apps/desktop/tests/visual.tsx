@@ -20,6 +20,7 @@ const snapshot:Snapshot={identity:{name:'Alice',networkId:own},network:{state:'o
     {id:'2',author:own,own:true,text:'Yes, I read it. Let us start with transport and check delivery between our nodes.',createdAt:1788563180,delivery:{phase:'delivered',replicas:10,target:10}},
     {id:'3',author:own,own:true,text:'Sending the results of the latest run.',createdAt:1788563240,delivery:{phase:'stored',replicas:7,target:10}},
     {id:'4',author:boris,own:false,text:hostile,createdAt:1788563260,delivery:{phase:'delivered',replicas:10,target:10}},
+    {id:'5',author:boris,own:false,text:'Written over the office LAN while the Internet was down.',createdAt:1788563280,delivery:{phase:'delivered',replicas:10,target:10},lowTrust:true},
   ]},
   {id:'team',title:'Release team',unread:2,messages:[
     {id:'g1',author:anna,own:false,text:'The Linux build is ready, I am checking the package.',createdAt:1788563300,delivery:{phase:'delivered',replicas:10,target:10}},

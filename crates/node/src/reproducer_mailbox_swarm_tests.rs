@@ -3902,6 +3902,443 @@ async fn a_direct_message_pays_with_the_stamp_of_its_swarm_copy() {
     let _ = sent;
 }
 
+/// Whether each of `node`'s incoming messages in `conversation` is shown
+/// with low trust.
+fn low_trust(rig: &Rig, node: usize, conversation: &str) -> Vec<bool> {
+    rig.nodes[node]
+        .core
+        .snapshot()
+        .unwrap()
+        .conversations
+        .into_iter()
+        .find(|c| c.id == conversation)
+        .map(|c| {
+            c.messages
+                .into_iter()
+                .filter(|m| !m.own)
+                .map(|m| m.low_trust)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// The owner's inbox of `node` as its IPC answers it: the first page's items.
+fn inbox_items(rig: &mut Rig, node: usize, conversation: &str) -> Vec<Value> {
+    let answer = rig.nodes[node].command(
+        "inbox_poll",
+        json!({"conversationId": conversation, "limit": 10, "leaseSeconds": 60}),
+    );
+    answer["result"]["items"]
+        .as_array()
+        .cloned()
+        .unwrap_or_else(|| panic!("{answer}"))
+}
+
+/// The delivery phase of Alice's first message in `conversation`.
+fn alice_phase(rig: &Rig, conversation: &str) -> String {
+    rig.nodes[ALICE]
+        .core
+        .snapshot()
+        .unwrap()
+        .conversations
+        .into_iter()
+        .find(|c| c.id == conversation)
+        .unwrap()
+        .messages[0]
+        .delivery
+        .phase
+        .clone()
+}
+
+/// A book of Alice's the chain shows once bought (`confirmed`), or does not
+/// show yet.
+fn alice_bought(rig: &mut Rig, confirmed: bool) -> [u8; 32] {
+    let key = rig.nodes[ALICE].core.mailbox_book_account().unwrap();
+    let book = [0xb7; 32];
+    let valid_until = rig.clock.wall() + 30 * PERIOD_SECONDS;
+    rig.nodes[ALICE]
+        .core
+        .add_mailbox_book(book, 100, valid_until)
+        .unwrap();
+    let record = crate::runtime::chain::BookRecord {
+        key,
+        count: 100,
+        valid_until,
+    };
+    if confirmed {
+        rig.chain.buy(book, record);
+    } else {
+        rig.chain.buy_unconfirmed(book, record);
+    }
+    book
+}
+
+/// The ticket of the stamp Alice's node pays her message `id` with.
+fn alice_ticket(rig: &mut Rig, id: &str) -> [u8; 32] {
+    let time = rig.clock.wall();
+    rig.nodes[ALICE]
+        .core
+        .prepare_swarm_delivery(id, time)
+        .unwrap()
+        .stamp
+        .ticket_id(&NETWORK_DOMAIN)
+}
+
+/// A stamp of a granted book, sent directly, is checked the way holders
+/// check it: the sender shows the grant, the recipient's node reads its
+/// issuer's rules and asks its notaries, never the shop, and takes the
+/// message paid. Other chain reads failing meanwhile (the rig's registry
+/// never answers) lower no trust.
+#[tokio::test(flavor = "current_thread")]
+async fn a_granted_stamp_sent_directly_pays_once_its_notaries_vouch() {
+    let Chat {
+        mut rig,
+        conversation: c,
+        ..
+    } = chat(Setup {
+        // Exact counts of this lane.
+        silent_cards: true,
+        direct: true,
+        books_on_chain: true,
+        alice_granted: true,
+        // Alice reaches no holder: what Bob gets comes directly. Bob reaches
+        // every holder, the grant's notaries among them.
+        hidden_from_alice: (0..HOLDERS).collect(),
+        ..Setup::default()
+    })
+    .await;
+    accept_grants(&mut rig);
+    let grant = grant_alice(&mut rig, period(WALL), 0);
+    send_alice(&mut rig, &c, "on the grant", 1);
+    rig.run_until(STEPS, |r| incoming(r, BOB, &c).len() == 1)
+        .await;
+    assert_eq!(
+        incoming(&rig, BOB, &c),
+        ["on the grant 0"],
+        "{:?}",
+        rig.trace
+    );
+    assert_eq!(low_trust(&rig, BOB, &c), [false]);
+    let items = inbox_items(&mut rig, BOB, &c);
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0].get("lowTrust"), None, "{items:?}");
+    assert!(rig.nodes[BOB].chain.info()["failures"].as_u64().unwrap() > 0);
+    let mailbox = to_bob(&rig, &c);
+    assert!((0..HOLDERS).all(|h| held(&rig, h, &mailbox) == 0));
+    // Checked by its grant once; the shop was never asked for the book.
+    assert_eq!(grant_checks(&rig, BOB), (1, 1, 0));
+    assert_eq!(
+        rig.nodes[BOB].mailbox_holder.granted(&grant.id()).unwrap(),
+        Some(grant.clone())
+    );
+    assert_eq!(rig.chain.book_reads(BOB, &grant.id()), 0);
+    // Delivered by Bob's receipt, for one slot of the grant.
+    rig.run_until(STEPS, |r| alice_phase(r, &c) == "delivered")
+        .await;
+    assert_eq!(alice_phase(&rig, &c), "delivered", "{:?}", rig.trace);
+    assert_eq!(used(&rig, ALICE), 1);
+}
+
+/// A grant its notaries first saw after its day pays nothing directly
+/// either: while the chain answers, the recipient refuses it as holders do.
+#[tokio::test(flavor = "current_thread")]
+async fn a_granted_stamp_its_notaries_saw_late_is_refused_directly() {
+    let Chat {
+        mut rig,
+        conversation: c,
+        ..
+    } = chat(Setup {
+        silent_cards: true,
+        direct: true,
+        books_on_chain: true,
+        alice_granted: true,
+        hidden_from_alice: (0..HOLDERS).collect(),
+        ..Setup::default()
+    })
+    .await;
+    accept_grants(&mut rig);
+    // Two days old and never on record.
+    let grant = grant_alice(&mut rig, period(WALL) - 2, 0);
+    send_alice(&mut rig, &c, "backdated", 1);
+    rig.run_until(STEPS, |r| grant_checks(r, BOB).2 == 1).await;
+    assert_eq!(grant_checks(&rig, BOB), (1, 0, 1), "{:?}", rig.trace);
+    idle(&mut rig, 61).await;
+    assert!(incoming(&rig, BOB, &c).is_empty());
+    assert_eq!(
+        rig.nodes[BOB].mailbox_holder.granted(&grant.id()).unwrap(),
+        None
+    );
+    assert_eq!(alice_phase(&rig, &c), "queued");
+}
+
+/// A user funded by a grant writes a contact on a LAN without the
+/// Internet: no holder answers and the chain does not either. The
+/// recipient's node cannot read the grant's issuer rules, so it takes the
+/// message with low trust, and says so.
+#[tokio::test(flavor = "current_thread")]
+async fn an_unreachable_chain_takes_a_contacts_granted_stamp_with_low_trust() {
+    let Chat {
+        mut rig,
+        conversation: c,
+        ..
+    } = chat(Setup {
+        silent_cards: true,
+        direct: true,
+        books_on_chain: true,
+        alice_granted: true,
+        bob_offline: true,
+        offline: (0..HOLDERS).collect(),
+        ..Setup::default()
+    })
+    .await;
+    accept_grants(&mut rig);
+    let grant = grant_alice(&mut rig, period(WALL), 0);
+    rig.chain.set_down(true);
+    send_alice(&mut rig, &c, "offline", 1);
+    rig.run_until(STEPS, |r| incoming(r, BOB, &c).len() == 1)
+        .await;
+    assert_eq!(incoming(&rig, BOB, &c), ["offline 0"], "{:?}", rig.trace);
+    assert_eq!(low_trust(&rig, BOB, &c), [true]);
+    let items = inbox_items(&mut rig, BOB, &c);
+    assert_eq!(items[0]["lowTrust"], true, "{items:?}");
+    // Bob's node tried the grant's issuer rules, not the shop, and learned
+    // nothing it could not check.
+    assert!(rig.chain.grant_reads(BOB, &grant.server, grant.day) >= 1);
+    assert_eq!(rig.chain.book_reads(BOB, &grant.id()), 0);
+    assert_eq!(
+        rig.nodes[BOB].mailbox_holder.granted(&grant.id()).unwrap(),
+        None
+    );
+    rig.run_until(STEPS, |r| alice_phase(r, &c) == "delivered")
+        .await;
+    assert_eq!(alice_phase(&rig, &c), "delivered", "{:?}", rig.trace);
+}
+
+/// A contact's direct message paid from a book the chain does not show is
+/// refused while the chain answers, taken with low trust while it does not
+/// (its slot is not taken as evidence), and checked again once it answers;
+/// a book known here is checked without the chain.
+#[tokio::test(flavor = "current_thread")]
+async fn a_contacts_unknown_book_is_taken_with_low_trust_only_while_the_chain_is_unreachable() {
+    let Chat {
+        mut rig,
+        conversation: c,
+        ..
+    } = chat(Setup {
+        silent_cards: true,
+        direct: true,
+        books_on_chain: true,
+        // Alice's only book is the one below.
+        alice_granted: true,
+        bob_offline: true,
+        offline: (0..HOLDERS).collect(),
+        ..Setup::default()
+    })
+    .await;
+    // Bought, but below the confirmations: the chain answers it is absent.
+    let book = alice_bought(&mut rig, false);
+    let first = send_alice(&mut rig, &c, "unconfirmed", 1).remove(0);
+    let unchecked = alice_ticket(&mut rig, &first.id);
+    // Within the minute an absent book is not read again (`ABSENT_FOR`).
+    idle(&mut rig, 50).await;
+    assert!(incoming(&rig, BOB, &c).is_empty());
+    assert_eq!(rig.chain.book_reads(BOB, &book), 1);
+    // The chain stops answering: Bob's next read of the book fails.
+    rig.chain.set_down(true);
+    rig.run_until(STEPS, |r| incoming(r, BOB, &c).len() == 1)
+        .await;
+    assert_eq!(
+        incoming(&rig, BOB, &c),
+        ["unconfirmed 0"],
+        "{:?}",
+        rig.trace
+    );
+    assert_eq!(low_trust(&rig, BOB, &c), [true]);
+    assert_eq!(
+        rig.nodes[BOB]
+            .mailbox_holder
+            .notary_record(&unchecked)
+            .unwrap(),
+        None
+    );
+    rig.run_until(STEPS, |r| alice_phase(r, &c) == "delivered")
+        .await;
+    assert_eq!(alice_phase(&rig, &c), "delivered", "{:?}", rig.trace);
+    // It answers again, with the purchase confirmed. Past the minute, the
+    // message that finds it back may still be taken unchecked; once Bob's
+    // node has read the book, its stamps are checked.
+    rig.chain.set_down(false);
+    rig.chain.confirm(&book);
+    idle(&mut rig, 61).await;
+    send_alice(&mut rig, &c, "back", 1);
+    rig.run_until(STEPS, |r| {
+        incoming(r, BOB, &c).len() == 2 && r.nodes[BOB].mailbox_holder.knows_book(&book)
+    })
+    .await;
+    assert!(
+        rig.nodes[BOB].mailbox_holder.knows_book(&book),
+        "{:?}",
+        rig.trace
+    );
+    let checked = send_alice(&mut rig, &c, "checked", 1).remove(0);
+    let taken = alice_ticket(&mut rig, &checked.id);
+    rig.run_until(STEPS, |r| incoming(r, BOB, &c).len() == 3)
+        .await;
+    assert_eq!(
+        incoming(&rig, BOB, &c),
+        ["unconfirmed 0", "back 0", "checked 0"],
+        "{:?}",
+        rig.trace
+    );
+    assert!(!low_trust(&rig, BOB, &c)[2]);
+    assert!(
+        rig.nodes[BOB]
+            .mailbox_holder
+            .notary_record(&taken)
+            .unwrap()
+            .is_some()
+    );
+    // The chain goes again: a book known here needs none. Its stamps are
+    // checked as ever, and a message pays with its own slot only.
+    rig.chain.set_down(true);
+    let known = send_alice(&mut rig, &c, "known", 1).remove(0);
+    let time = rig.clock.wall();
+    let paid = rig.nodes[ALICE]
+        .core
+        .prepare_swarm_delivery(&known.id, time)
+        .unwrap();
+    let mut forged = StampedDelivery::from(&paid);
+    forged.stamp.index += 1;
+    let alice = *rig.nodes[ALICE].swarm.local_peer_id();
+    let delivery = Delivery {
+        node_record: rig.nodes[ALICE].binding(time).unwrap(),
+        envelope: vec![],
+        stamped: Some(forged),
+    };
+    assert!(
+        rig.nodes[BOB]
+            .receive(&delivery, alice, None, time)
+            .is_err()
+    );
+    rig.run_until(STEPS, |r| incoming(r, BOB, &c).len() == 4)
+        .await;
+    assert_eq!(incoming(&rig, BOB, &c)[3], "known 0", "{:?}", rig.trace);
+    assert!(!low_trust(&rig, BOB, &c)[3]);
+}
+
+/// Low trust is for contacts: a stranger's contact request is taken
+/// directly only with a stamp this node checked.
+#[tokio::test(flavor = "current_thread")]
+async fn an_unreachable_chain_takes_no_strangers_request_unchecked() {
+    let Chat { mut rig, .. } = chat(Setup {
+        strangers: true,
+        silent_cards: true,
+        books_on_chain: true,
+        bob_offline: true,
+        alice_granted: true,
+        offline: (0..HOLDERS).collect(),
+        ..Setup::default()
+    })
+    .await;
+    rig.chain.set_down(true);
+    let time = rig.clock.wall();
+    let bob = network_id_of(&rig, BOB);
+    let card = rig.nodes[BOB].core.intro_card(vec![], time).unwrap();
+    // The chain would show it, if it answered.
+    let book = alice_bought(&mut rig, true);
+    rig.nodes[ALICE]
+        .core
+        .request_contact("Bob", &bob, &card.envelope, "ask-1", time)
+        .unwrap();
+    let id = rig.nodes[ALICE].core.swarm_outbox(64).unwrap()[0]
+        .message_id
+        .clone();
+    let paid = rig.nodes[ALICE]
+        .core
+        .prepare_swarm_delivery(&id, time)
+        .unwrap();
+    let delivery = Delivery {
+        node_record: rig.nodes[ALICE].binding(time).unwrap(),
+        envelope: vec![],
+        stamped: Some(StampedDelivery::from(&paid)),
+    };
+    let alice = *rig.nodes[ALICE].swarm.local_peer_id();
+    // Refused while the first read runs, and while its failed read is
+    // remembered (within `ABSENT_FOR`): where a contact's message would be
+    // taken with low trust.
+    assert!(
+        rig.nodes[BOB]
+            .receive(&delivery, alice, None, time)
+            .is_err()
+    );
+    idle(&mut rig, 1).await;
+    assert!(
+        rig.nodes[BOB]
+            .receive(&delivery, alice, None, time)
+            .is_err()
+    );
+    assert_eq!(rig.chain.book_reads(BOB, &book), 1);
+    assert!(contacts(&rig, BOB).is_empty());
+    // The same request is taken once the chain answers: it was paid.
+    rig.chain.set_down(false);
+    idle(&mut rig, 61).await;
+    let mut taken = false;
+    for _ in 0..50 {
+        if rig.nodes[BOB].receive(&delivery, alice, None, time).is_ok() {
+            taken = true;
+            break;
+        }
+        rig.step().await;
+    }
+    assert!(taken, "{:?}", rig.trace);
+    assert_eq!(contacts(&rig, BOB).len(), 1);
+}
+
+/// A bought book's stamp goes on the wire as it did before grants were
+/// carried, both ways: nodes not updated yet refuse unknown fields, and
+/// their deliveries carry no grant. (Any self-describing serde format; the
+/// wire is CBOR.)
+#[test]
+fn a_bought_books_stamped_delivery_keeps_the_wire_of_nodes_before_grants() {
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct Before {
+        conversation: String,
+        #[serde(with = "serde_bytes")]
+        mailbox: Vec<u8>,
+        period: u64,
+        #[serde(with = "serde_bytes")]
+        envelope: Vec<u8>,
+        stamp: mailbox_holder::StampWire,
+    }
+    let stamp = mailbox_holder::StampWire::from(&agentic_mailbox_swarm::stamp::Stamp {
+        book: [0xb7; 32],
+        index: 0,
+        operation: [3; 32],
+        signature: [0; 65],
+        holders: None,
+    });
+    let bought = StampedDelivery {
+        conversation: "c".into(),
+        mailbox: vec![7; 32],
+        period: 19_675,
+        envelope: vec![1, 2, 3],
+        stamp: stamp.clone(),
+        grant: None,
+    };
+    serde_json::from_slice::<Before>(&serde_json::to_vec(&bought).unwrap()).unwrap();
+    let before = Before {
+        conversation: "c".into(),
+        mailbox: vec![7; 32],
+        period: 19_675,
+        envelope: vec![1, 2, 3],
+        stamp,
+    };
+    let decoded: StampedDelivery =
+        serde_json::from_slice(&serde_json::to_vec(&before).unwrap()).unwrap();
+    assert!(decoded.grant.is_none());
+}
+
 /// A node that reads the chain takes no unpaid message, even directly; it
 /// arrives once its sender has a book.
 #[tokio::test(flavor = "current_thread")]
@@ -4060,6 +4497,8 @@ async fn a_stamped_delivery_counts_only_for_its_own_mailbox_and_stamp() {
         incoming(&rig, BOB, &c),
         ["stamp check", "in the free network"]
     );
+    // A free network checks nothing, so it lowers no trust either.
+    assert_eq!(low_trust(&rig, BOB, &c), [false, false]);
 }
 
 /// A slot pays for one message: a second, different delivery on a ticket the
@@ -4089,6 +4528,7 @@ async fn a_slot_paid_for_one_direct_message_pays_for_no_other() {
             period: period(WALL),
             envelope: envelope.to_vec(),
             stamp: mailbox_holder::StampWire::from(&paid(book, 0, &mailbox, envelope, &key)),
+            grant: None,
         }),
     };
     // Whatever the envelope holds, its stamp took slot 0, and Bob put it on

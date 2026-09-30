@@ -77,6 +77,10 @@ export const pt: Messages = {
     read: 'Lida',
     failed: 'Falha na entrega',
   },
+  trust: {
+    low: 'Confiança baixa',
+    lowHint: 'Recebida diretamente enquanto a rede estava inacessível: o pagamento do remetente não foi verificado.',
+  },
   unlock: {
     newEyebrow: 'PROTEÇÃO DO PERFIL',
     lockedEyebrow: 'PERFIL BLOQUEADO',

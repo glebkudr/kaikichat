@@ -2,7 +2,7 @@
 //! same rotating mailbox per direction, each conversation has its own stamp
 //! book, and stamps spend its slots durably, once per operation.
 use super::*;
-use agentic_core::{CoreError, MailboxBook, SwarmDelivery, SwarmPending};
+use agentic_core::{CoreError, DirectPayment, MailboxBook, SwarmDelivery, SwarmPending};
 use agentic_crypto::CryptoError;
 use agentic_crypto::mailbox::MailboxError;
 use agentic_mailbox_swarm::Account;
@@ -690,6 +690,7 @@ fn a_stamped_envelope_is_received_from_its_author_with_a_receipt() {
                 &d.envelope,
                 &stranger,
                 "peer-C",
+                DirectPayment::Checked,
                 NOW
             )
             .is_err()
@@ -704,6 +705,7 @@ fn a_stamped_envelope_is_received_from_its_author_with_a_receipt() {
                 &altered,
                 &record,
                 "peer-A",
+                DirectPayment::Checked,
                 NOW
             )
             .is_err()
@@ -718,6 +720,7 @@ fn a_stamped_envelope_is_received_from_its_author_with_a_receipt() {
             &d.envelope,
             &record,
             "peer-A",
+            DirectPayment::Checked,
             NOW,
         )
         .unwrap();
@@ -732,6 +735,7 @@ fn a_stamped_envelope_is_received_from_its_author_with_a_receipt() {
             &d.envelope,
             &record,
             "peer-A",
+            DirectPayment::Checked,
             NOW,
         )
         .unwrap();
@@ -742,6 +746,106 @@ fn a_stamped_envelope_is_received_from_its_author_with_a_receipt() {
     p.alice
         .receive_control_from(&outcome.reply.unwrap(), &bob_record, "peer-B", NOW)
         .unwrap();
+}
+
+/// Bob takes Alice's message directly, its payment checked or not.
+fn take_directly(p: &mut Pair, text: &str, operation: &str, paid: DirectPayment) -> SwarmDelivery {
+    let sent = p
+        .alice
+        .send_message(&p.conversation, text, operation, NOW)
+        .unwrap();
+    let d = p.alice.prepare_swarm_delivery(&sent.id, NOW).unwrap();
+    let record = p.alice.create_node_record("peer-A", vec![], NOW).unwrap();
+    p.bob
+        .receive_stamped_from(
+            &d.conversation_id,
+            d.period,
+            &d.envelope,
+            &record,
+            "peer-A",
+            paid,
+            NOW,
+        )
+        .unwrap();
+    d
+}
+
+/// A message taken directly while its stamp could not be checked is shown
+/// with low trust wherever it is read: the snapshot, the window's history,
+/// the owner's inbox and an agent's, also after a restart. A checked
+/// message is not, even if a copy of it arrives unchecked later.
+#[test]
+fn a_message_taken_without_checking_its_stamp_is_shown_with_low_trust() {
+    let mut p = pair();
+    fund(&mut p.alice);
+    take_directly(&mut p, "offline", "o1", DirectPayment::Unchecked);
+    let online = take_directly(&mut p, "online", "o2", DirectPayment::Checked);
+    let record = p.alice.create_node_record("peer-A", vec![], NOW).unwrap();
+    p.bob
+        .receive_stamped_from(
+            &online.conversation_id,
+            online.period,
+            &online.envelope,
+            &record,
+            "peer-A",
+            DirectPayment::Unchecked,
+            NOW,
+        )
+        .unwrap();
+    let marks = |bob: &AppCore| -> Vec<(String, bool)> {
+        bob.snapshot().unwrap().conversations[0]
+            .messages
+            .iter()
+            .map(|m| (m.text.clone(), m.low_trust))
+            .collect()
+    };
+    let expected = [("offline".to_owned(), true), ("online".to_owned(), false)];
+    assert_eq!(marks(&p.bob), expected);
+    let history = p.bob.conversation_history(&p.conversation, None).unwrap();
+    assert_eq!(
+        history
+            .messages
+            .iter()
+            .map(|m| (m.text.clone(), m.low_trust))
+            .collect::<Vec<_>>(),
+        expected
+    );
+    let inbox = p
+        .bob
+        .owner_inbox_poll(&p.conversation, 10, 60, NOW)
+        .unwrap();
+    assert_eq!(
+        inbox
+            .items
+            .iter()
+            .map(|i| (i.text.clone(), i.low_trust))
+            .collect::<Vec<_>>(),
+        expected
+    );
+    // An agent reads the mark where it is set; a checked item has none.
+    let key = runtime_key(72);
+    let grant = grant_runtime(&mut p.bob, &key, &p.conversation, &[Action::ReadInbox]);
+    let page = agent_inbox::call_at(
+        &mut p.bob,
+        &key,
+        &grant,
+        "inbox_poll",
+        agent_inbox::poll(&p.conversation, "low-trust", 10, 4096, 30),
+        1,
+        NOW,
+    )
+    .unwrap();
+    let items = page["items"].as_array().unwrap();
+    assert_eq!(
+        items
+            .iter()
+            .map(|i| (i["text"].as_str().unwrap(), i.get("lowTrust").cloned()))
+            .collect::<Vec<_>>(),
+        [("offline", Some(json!(true))), ("online", None)]
+    );
+    drop(p.bob);
+    let bob = core(&p.bob_root, DOMAIN);
+    assert_eq!(marks(&bob), expected);
 }
 
 /// A node that takes payment receives unpaid only control messages: a

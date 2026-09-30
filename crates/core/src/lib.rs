@@ -15,8 +15,8 @@ mod broker;
 mod inbox;
 mod mailbox_swarm;
 pub use mailbox_swarm::{
-    EnvelopeOrder, MailboxAccess, MailboxBook, MailboxClaim, MailboxPurchase, SwarmDelivery,
-    SwarmPending, SwarmReceived,
+    DirectPayment, EnvelopeOrder, MailboxAccess, MailboxBook, MailboxClaim, MailboxPurchase,
+    SwarmDelivery, SwarmPending, SwarmReceived,
 };
 mod door;
 pub use door::{DoorApplication, DoorEntry, DoorInfo, DoorRequest};
@@ -125,6 +125,9 @@ pub struct Message {
     pub text: String,
     pub created_at: u64,
     pub delivery: Delivery,
+    /// Taken directly while its stamp could not be checked.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub low_trust: bool,
 }
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -222,6 +225,9 @@ enum Event {
     Notice,
     Text {
         text: String,
+        /// Taken directly while its stamp could not be checked.
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        low_trust: bool,
     },
 }
 
@@ -511,7 +517,10 @@ impl AppCore {
                 request_hash,
                 now,
                 payload: text.as_bytes().to_vec(),
-                event: Event::Text { text: text.into() },
+                event: Event::Text {
+                    text: text.into(),
+                    low_trust: false,
+                },
             },
             authorization,
         )?;
@@ -523,7 +532,7 @@ impl AppCore {
         authorization: broker::AuthorizationChanges,
     ) -> Result<StoredMessage, CoreError> {
         if self.is_group(input.conversation_id)? {
-            let Event::Text { text } = &input.event else {
+            let Event::Text { text, .. } = &input.event else {
                 return Err(CoreError::InvalidInput);
             };
             let text = text.clone();
@@ -588,14 +597,16 @@ impl AppCore {
         addresses: Vec<String>,
         now: u64,
     ) -> Result<ReceiveOutcome, CoreError> {
-        self.receive_verified_with_states(verified, addresses, now, vec![])
+        self.receive_verified_with_states(verified, addresses, now, vec![], false)
     }
+    /// `low_trust` marks a new text message taken with an unchecked stamp.
     fn receive_verified_with_states(
         &mut self,
         verified: VerifiedDocument,
         addresses: Vec<String>,
         now: u64,
         completion: Vec<StateChange>,
+        low_trust: bool,
     ) -> Result<ReceiveOutcome, CoreError> {
         root_epoch(&verified)?;
         let packet = Packet::decode(verified.body(), verified.kind())?;
@@ -693,7 +704,7 @@ impl AppCore {
                 }
                 let text = String::from_utf8(received.value.plaintext).map_err(invalid)?;
                 valid_text(&text)?;
-                let event = Event::Text { text };
+                let event = Event::Text { text, low_trust };
                 let mut states = vec![];
                 let (mls, records) =
                     crypto_change(Some(&crypto), &received.next_state, crypto_revision);
@@ -958,7 +969,7 @@ impl AppCore {
     fn present_message(&self, stored: &StoredMessage) -> Result<Option<Message>, CoreError> {
         let event: Event =
             serde_json::from_slice(&stored.record.content).map_err(|_| CoreError::InvalidState)?;
-        let Event::Text { text } = event else {
+        let Event::Text { text, low_trust } = event else {
             return Ok(None);
         };
         Ok(Some(Message {
@@ -968,6 +979,7 @@ impl AppCore {
             text,
             created_at: stored.record.created_at,
             delivery: self.delivery_status(&stored.record)?,
+            low_trust,
         }))
     }
     fn delivery_status(&self, record: &MessageRecord) -> Result<Delivery, CoreError> {

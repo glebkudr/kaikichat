@@ -2491,7 +2491,10 @@ impl AppCore {
         } else {
             let text = String::from_utf8(received.value.plaintext).map_err(invalid)?;
             valid_text(&text)?;
-            Event::Text { text }
+            Event::Text {
+                text,
+                low_trust: false,
+            }
         };
         if !state.roots.contains_key(&peer) {
             state
@@ -2860,7 +2863,7 @@ impl AppCore {
         };
         let record = &item.message.record;
         let plaintext = match serde_json::from_slice(&record.content).map_err(invalid)? {
-            Event::Text { text } => text.into_bytes(),
+            Event::Text { text, .. } => text.into_bytes(),
             Event::Notice => match self.store.state(&format!("{NOTICE_BODIES}{message_id}"))? {
                 Some(kept) => kept.bytes.clone(),
                 None => return Ok(None),
@@ -2991,7 +2994,10 @@ impl AppCore {
             &identity,
             now,
             true,
-            Event::Text { text: text.into() },
+            Event::Text {
+                text: text.into(),
+                low_trust: false,
+            },
         )?;
         let (mls, records) = crypto_change(Some(&crypto), &prepared.next_state, revision);
         let mut states = vec![mls, Self::send_epoch(&message_id, epoch)?];
@@ -3066,7 +3072,10 @@ impl AppCore {
             &identity,
             now,
             true,
-            Event::Text { text: text.into() },
+            Event::Text {
+                text: text.into(),
+                low_trust: false,
+            },
         )?;
         let mut states = vec![
             Self::send_epoch(&message_id, epoch)?,

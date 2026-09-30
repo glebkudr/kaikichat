@@ -77,6 +77,10 @@ export const ko: Messages = {
     read: '읽음',
     failed: '전달 실패',
   },
+  trust: {
+    low: '낮은 신뢰',
+    lowHint: '네트워크에 연결할 수 없는 동안 직접 받았습니다. 보낸 사람의 결제는 확인되지 않았습니다.',
+  },
   unlock: {
     newEyebrow: '프로필 보호',
     lockedEyebrow: '프로필 잠김',

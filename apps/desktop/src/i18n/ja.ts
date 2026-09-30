@@ -77,6 +77,10 @@ export const ja: Messages = {
     read: '既読',
     failed: '配信に失敗しました',
   },
+  trust: {
+    low: '信頼度低',
+    lowHint: 'ネットワークに接続できない間に直接受信しました。送信者の支払いは確認されていません。',
+  },
   unlock: {
     newEyebrow: 'プロフィールの保護',
     lockedEyebrow: 'プロフィールはロック中',

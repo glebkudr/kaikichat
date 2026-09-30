@@ -77,6 +77,10 @@ export const fr: Messages = {
     read: 'Lu',
     failed: 'Échec de la remise',
   },
+  trust: {
+    low: 'Confiance faible',
+    lowHint: 'Reçu directement alors que le réseau était injoignable : le paiement de l’expéditeur n’a pas été vérifié.',
+  },
   unlock: {
     newEyebrow: 'PROTECTION DU PROFIL',
     lockedEyebrow: 'PROFIL VERROUILLÉ',

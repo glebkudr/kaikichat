@@ -77,6 +77,10 @@ export const de: Messages = {
     read: 'Gelesen',
     failed: 'Zustellung fehlgeschlagen',
   },
+  trust: {
+    low: 'Geringes Vertrauen',
+    lowHint: 'Direkt empfangen, als das Netzwerk nicht erreichbar war: Die Zahlung des Absenders wurde nicht geprüft.',
+  },
   unlock: {
     newEyebrow: 'PROFILSCHUTZ',
     lockedEyebrow: 'PROFIL GESPERRT',

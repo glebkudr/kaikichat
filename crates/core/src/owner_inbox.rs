@@ -18,6 +18,9 @@ pub struct OwnerInboxItem {
     pub author: String,
     pub text: String,
     pub created_at: u64,
+    /// Taken directly while its stamp could not be checked.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub low_trust: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -116,6 +119,7 @@ impl AppCore {
                     author: message.author,
                     text: message.text,
                     created_at: message.created_at,
+                    low_trust: message.low_trust,
                 });
             }
             scan.end = stored.sequence;

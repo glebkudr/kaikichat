@@ -1,5 +1,6 @@
 export type Delivery = {phase:'queued'|'stored'|'delivered'|'read'|'failed';replicas:number;target:number};
-export type Message = {id:string;author:string;own:boolean;text:string;createdAt:number;delivery:Delivery};
+/** `lowTrust`: taken directly while its payment could not be checked. */
+export type Message = {id:string;author:string;own:boolean;text:string;createdAt:number;delivery:Delivery;lowTrust?:boolean};
 export type Identity = {name:string;networkId:string};
 export type Conversation = {id:string;title:string;unread:number;messages:Message[]};
 export type Snapshot = {identity:Identity|null;network:{connectedPeers:number;state:'online'|'offline'|'connecting'};conversations:Conversation[]};

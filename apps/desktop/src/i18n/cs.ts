@@ -77,6 +77,10 @@ export const cs: Messages = {
     read: 'Přečteno',
     failed: 'Doručení selhalo',
   },
+  trust: {
+    low: 'Nízká důvěra',
+    lowHint: 'Přijato přímo, když byla síť nedostupná: platba odesílatele nebyla ověřena.',
+  },
   unlock: {
     newEyebrow: 'OCHRANA PROFILU',
     lockedEyebrow: 'PROFIL ZAMČEN',

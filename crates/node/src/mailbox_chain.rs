@@ -110,15 +110,26 @@ struct ClaimLane {
     last: Option<Value>,
 }
 
+/// `failed`: the last read that ended did not reach the chain.
 enum BookRead {
     /// Under way; `first` is when the book was first found absent.
-    Reading { first: Option<Instant> },
+    Reading {
+        first: Option<Instant>,
+        failed: bool,
+    },
     /// Not on the chain yet, or the read failed.
-    Absent { first: Instant, retry_at: Instant },
+    Absent {
+        first: Instant,
+        retry_at: Instant,
+        failed: bool,
+    },
 }
 
 enum DayRead {
-    Reading,
+    /// Under way; `failed` as the read before it ended.
+    Reading {
+        failed: bool,
+    },
     /// Answered at `read_at`; days before the chain's today never change.
     Known {
         read_at: Instant,
@@ -247,32 +258,41 @@ impl Lane {
         let Some(source) = self.source.clone() else {
             return BookState::PassOver;
         };
-        let first = match self.books.get(&book) {
+        let (first, failed) = match self.books.get(&book) {
             Some(BookRead::Reading { .. }) => return BookState::Reading,
-            Some(BookRead::Absent { first, retry_at }) => {
+            Some(BookRead::Absent {
+                first,
+                retry_at,
+                failed,
+            }) => {
                 if replica && instant >= *first + HOLD_FOR {
                     return BookState::PassOver;
                 }
                 if instant < *retry_at {
                     return BookState::Absent;
                 }
-                Some(*first)
+                (Some(*first), *failed)
             }
-            None => None,
+            None => (None, false),
         };
         if self.running.load(Ordering::SeqCst) >= MAX_RUNNING {
             return BookState::Absent;
         }
-        self.books.insert(book, BookRead::Reading { first });
+        self.books.insert(book, BookRead::Reading { first, failed });
         self.spawn(async move { Answer::Book(book, source.book(book).await) });
         BookState::Reading
     }
 
-    fn book_absent(&mut self, book: [u8; 32], instant: Instant) {
+    /// `failed`: the read did not reach the chain, rather than finding no
+    /// such book.
+    fn book_absent(&mut self, book: [u8; 32], instant: Instant, failed: bool) {
         let first = match self.books.get(&book) {
-            Some(BookRead::Reading { first: Some(first) } | BookRead::Absent { first, .. }) => {
-                *first
-            }
+            Some(
+                BookRead::Reading {
+                    first: Some(first), ..
+                }
+                | BookRead::Absent { first, .. },
+            ) => *first,
             _ => instant,
         };
         self.books.insert(
@@ -280,6 +300,7 @@ impl Lane {
             BookRead::Absent {
                 first,
                 retry_at: instant + ABSENT_FOR,
+                failed,
             },
         );
     }
@@ -347,6 +368,23 @@ impl Runtime {
         self.chain.want_book(book, replica, clock::instant())
     }
 
+    /// Whether the last read of `book` that ended did not reach the chain.
+    pub(super) fn book_unreadable(&self, book: &[u8; 32]) -> bool {
+        matches!(
+            self.chain.books.get(book),
+            Some(BookRead::Reading { failed: true, .. } | BookRead::Absent { failed: true, .. })
+        )
+    }
+
+    /// Whether the last read of `server`'s rules for `day` that ended did
+    /// not reach the chain.
+    pub(super) fn grant_day_unreadable(&self, server: Account, day: u64) -> bool {
+        matches!(
+            self.chain.days.get(&(server, day)),
+            Some(DayRead::Reading { failed: true } | DayRead::Failed { .. })
+        )
+    }
+
     /// Apply the answers of finished reads and read own purchases due.
     pub(super) fn maintain_chain(&mut self) {
         let instant = clock::instant();
@@ -366,14 +404,14 @@ impl Runtime {
                         self.chain.books.remove(&book);
                         self.chain.learned += 1;
                     } else {
-                        self.chain.book_absent(book, instant);
+                        self.chain.book_absent(book, instant, false);
                     }
                 }
                 Answer::Book(book, outcome) => {
                     if outcome.is_err() {
                         self.chain.failures += 1;
                     }
-                    self.chain.book_absent(book, instant);
+                    self.chain.book_absent(book, instant, outcome.is_err());
                 }
                 Answer::Purchase(book, outcome) => self.purchase_answer(book, outcome, instant),
                 claim @ (Answer::ClaimPosted(_) | Answer::ClaimRead(_)) => {
@@ -942,17 +980,21 @@ impl Runtime {
         let Some(source) = self.chain.source.clone() else {
             return true;
         };
-        match self.chain.days.get(&(server, day)) {
-            Some(DayRead::Reading) => return false,
+        let failed = match self.chain.days.get(&(server, day)) {
+            Some(DayRead::Reading { .. }) => return false,
             Some(DayRead::Known { read_at, settled }) => {
                 if *settled || instant < *read_at + TODAY_FOR {
                     return true;
                 }
+                false
             }
             Some(DayRead::Failed { retry_at }) if instant < *retry_at => return false,
-            _ => {}
-        }
-        self.chain.days.insert((server, day), DayRead::Reading);
+            Some(DayRead::Failed { .. }) => true,
+            None => false,
+        };
+        self.chain
+            .days
+            .insert((server, day), DayRead::Reading { failed });
         self.chain.spawn(async move {
             Answer::GrantDay(server, day, source.grant_day(server, day).await)
         });

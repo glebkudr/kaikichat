@@ -77,6 +77,10 @@ export const vi: Messages = {
     read: 'Đã đọc',
     failed: 'Chuyển thất bại',
   },
+  trust: {
+    low: 'Độ tin cậy thấp',
+    lowHint: 'Nhận trực tiếp khi không kết nối được mạng: khoản thanh toán của người gửi chưa được kiểm tra.',
+  },
   unlock: {
     newEyebrow: 'BẢO VỆ HỒ SƠ',
     lockedEyebrow: 'HỒ SƠ ĐANG KHÓA',

@@ -1625,13 +1625,18 @@ mod owner {
                         .into_iter()
                         .skip(skip)
                         .map(|m| {
-                            json!({
+                            let mut shown = json!({
                                 "id": m["id"],
                                 "own": m["own"],
                                 "text": m["text"],
                                 "createdAt": m["createdAt"],
                                 "delivery": m["delivery"]["phase"],
-                            })
+                            });
+                            // Taken directly while its payment could not be checked.
+                            if m["lowTrust"] == true {
+                                shown["lowTrust"] = json!(true);
+                            }
+                            shown
                         })
                         .collect(),
                 ))

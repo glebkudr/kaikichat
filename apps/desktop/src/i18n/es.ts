@@ -77,6 +77,10 @@ export const es: Messages = {
     read: 'Leído',
     failed: 'Error de entrega',
   },
+  trust: {
+    low: 'Confianza baja',
+    lowHint: 'Recibido directamente mientras no se podía acceder a la red: no se comprobó el pago del remitente.',
+  },
   unlock: {
     newEyebrow: 'PROTECCIÓN DEL PERFIL',
     lockedEyebrow: 'PERFIL BLOQUEADO',

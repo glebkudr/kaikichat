@@ -113,7 +113,9 @@ leaseSeconds 1–600}` needs `read_inbox` on that conversation.
   conversation), shared by that agent's runtimes, under
   `authorization/inbox/…`.
 - A page is `{conversationId, items: [{id, author, text, createdAt,
-  sequence}], cursor, leaseId, expiresAt, hasMore}`. It scans at most 1000
+  sequence, lowTrust?}], cursor, leaseId, expiresAt, hasMore}`; `lowTrust:
+  true` marks a message taken directly while its payment could not be
+  checked. It scans at most 1000
   stored records, skips the owner's own messages and non-text events, never
   truncates a text and never exceeds `maxBytes` or the grant's limit. When
   the first item does not fit, the answer is `inbox_item_too_large` with

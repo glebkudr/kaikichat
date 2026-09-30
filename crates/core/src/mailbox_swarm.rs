@@ -201,6 +201,18 @@ pub struct SwarmPending {
     pub conversation_id: String,
 }
 
+/// Whether the recipient's node checked the stamp of a message it took
+/// directly.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DirectPayment {
+    /// Checked as a holder checks it, or not asked for: the node reads no
+    /// chain.
+    Checked,
+    /// Not checked: its book is unknown here and the chain did not answer.
+    /// The message is shown with low trust.
+    Unchecked,
+}
+
 /// What a sender stores at every holder of the swarm of `mailbox`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SwarmDelivery {
@@ -1261,6 +1273,8 @@ impl AppCore {
 
     /// A direct delivery paid like a swarm store: the sealed envelope of the
     /// conversation's incoming mailbox for `period`, from its author's node.
+    /// A new message taken `Unchecked` is kept with low trust.
+    #[allow(clippy::too_many_arguments)]
     pub fn receive_stamped_from(
         &mut self,
         conversation_id: &str,
@@ -1268,6 +1282,7 @@ impl AppCore {
         envelope: &[u8],
         node_record: &[u8],
         actual_peer: &str,
+        payment: DirectPayment,
         now: u64,
     ) -> Result<ReceiveOutcome, CoreError> {
         let record = self.verify_node_record(node_record, actual_peer, now)?;
@@ -1285,7 +1300,13 @@ impl AppCore {
             Packet::Application { group: g, .. } if g == group => {}
             _ => return Err(CoreError::InvalidInput),
         }
-        let outcome = self.receive_verified(verified, record.addresses.clone(), now)?;
+        let outcome = self.receive_verified_with_states(
+            verified,
+            record.addresses.clone(),
+            now,
+            vec![],
+            payment == DirectPayment::Unchecked,
+        )?;
         self.remember_verified_node_record(record, now)?;
         Ok(outcome)
     }

@@ -104,6 +104,7 @@ main{background:var(--g0a)}
 .error-banner{background:var(--danger-bg);color:var(--danger);border-bottom:1px solid var(--danger-line)}
 .inline-error{border:1px solid var(--danger-line)}
 .delivery-failed,.network-validation,.history-error{color:var(--danger)}
+.trust-low{border:1px solid var(--g6a);border-radius:3px;padding:0 5px;cursor:help}
 .network-notice{background:var(--g12);border:1px solid var(--g2e);color:var(--gd8);border-radius:4px}
 .nav-menu-items .agent-nav{border-radius:4px}
 .nav-menu-items .agent-nav.current{background:var(--gf2);color:var(--g0a);border-color:var(--gf2)}

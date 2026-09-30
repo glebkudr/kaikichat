@@ -414,6 +414,26 @@ publication channel"):
 - A node without chain flags neither sells nor checks payment: it accepts
   unstamped messages (a free local network for tests and private setups).
   A sender without a book sends unstamped, which only such nodes take.
+- A stamp of a granted book carries its grant (`StampedDelivery.grant`,
+  2026-09-30; absent for a bought book, whose wire is unchanged for nodes
+  not updated yet). The recipient checks it as a holder does
+  (`offer_grant`): the issuer's rules for its day from `GrantIssuer`, then
+  the grant's notaries; meanwhile the delivery is refused as
+  `grant_pending` and the sender retries. A grant refused by its rules or
+  notaries is refused. A learned grant is kept, so its later stamps are
+  checked without the chain.
+- Low trust (the owner's decision, 2026-09-30): when a stamp cannot be
+  checked now (its book is unknown here and the latest read of its source
+  failed: the book from `BookShop`, or a granted book's issuer rules for its
+  day from `GrantIssuer`; as on a LAN without the Internet), a one-to-one
+  contact's message is taken anyway and shown with low trust (`Message.lowTrust`, also in the
+  owner's and the agents' inboxes). Its slot is not recorded: an unchecked
+  stamp is not evidence. Stamps defend against Sybil senders; a contact was
+  accepted by its owner. A stranger's contact request by ID and group
+  traffic are never taken this way; a book the chain answered absent, and a
+  grant whose rules were read while its notaries have not vouched yet, are
+  refused. Once that source is read again, stamps are checked again; the
+  message whose delivery starts the read may still be marked.
 
 ## Next
 

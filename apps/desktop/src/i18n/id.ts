@@ -77,6 +77,10 @@ export const id: Messages = {
     read: 'Dibaca',
     failed: 'Gagal terkirim',
   },
+  trust: {
+    low: 'Kepercayaan rendah',
+    lowHint: 'Diterima langsung saat jaringan tidak dapat dijangkau: pembayaran pengirim tidak diperiksa.',
+  },
   unlock: {
     newEyebrow: 'PERLINDUNGAN PROFIL',
     lockedEyebrow: 'PROFIL TERKUNCI',
