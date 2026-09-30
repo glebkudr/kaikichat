@@ -248,6 +248,10 @@ of the app the processes ran under, are guesses).
 
 ## A book from a grant is never accepted directly
 
+**Fixed 2026-09-30**, with the owner's low-trust rule for limits 2 and 3:
+[granted-direct-2026-09-30](../granted-direct-2026-09-30/README.md). What
+follows is the finding as it was.
+
 Rig characterization ([granted-direct.patch](granted-direct.patch)), the
 mirror of `a_direct_message_pays_with_the_stamp_of_its_swarm_copy`: Alice
 pays with a granted book, Bob is reachable only directly and reads the
@@ -290,7 +294,7 @@ stamp). For a granted book it never arrives directly.
    each other directly, so they do not know each other's books. Every new
    book starts over. Contacts made offline (an invitation passed by hand)
    cannot write each other until each recipient reads the chain.
-3. **Granted books never work directly** (above).
+3. **Granted books never work directly** (above; fixed, see there).
 4. **One-to-one only.** Group and channel messages go only through the
    holders; only invitations go directly (`AppCore::outbox`,
    `crates/core/src/lib.rs`). From the code; not run.

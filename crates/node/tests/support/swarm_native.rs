@@ -1515,6 +1515,24 @@ fn invite(from: &Node, to: &Node, name: &str) -> String {
     id
 }
 
+/// Whether `node` shows the message `text` it received with low trust.
+fn low_trust(node: &Node, conversation: &str, text: &str) -> bool {
+    node.snapshot()["conversations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["id"] == conversation)
+        .and_then(|c| {
+            c["messages"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|m| m["own"] == false && m["text"] == text)
+                .map(|m| m["lowTrust"] == true)
+        })
+        .unwrap_or(false)
+}
+
 /// The delivery phase of `node`'s own message `text`.
 fn phase(node: &Node, conversation: &str, text: &str) -> String {
     node.snapshot()["conversations"]
@@ -1715,25 +1733,25 @@ fn native_lan_without_internet() {
         },
     );
 
-    // Bob never read Carol's book: her message waits; his goes.
+    // Bob never read Carol's book and cannot read it now: once his read of
+    // it fails, her message is taken with low trust; his goes.
     let rejected_before = info(&bob)["rejectedFrames"].as_u64().unwrap();
+    let sent_at = Instant::now();
     carol.send(&cb, "offline from Carol", "c-1");
     bob.send(&cb, "offline from Bob to Carol", "b-5");
     let carol_read = until(Duration::from_secs(120), "Carol reads Bob offline", || {
         texts(&carol, &cb, false).last().map(String::as_str) == Some("offline from Bob to Carol")
     });
-    let book_failed = until(
-        Duration::from_secs(60),
-        "Bob fails to read her book",
-        || info(&bob)["chain"]["absentBooks"].as_u64() >= Some(1),
+    until(
+        Duration::from_secs(120),
+        "Bob takes Carol's message with low trust",
+        || texts(&bob, &cb, false) == ["offline from Carol"],
     );
-    thread::sleep(Duration::from_secs(30));
-    assert!(
-        texts(&bob, &cb, false).is_empty(),
-        "{:?}",
-        texts(&bob, &cb, false)
-    );
-    assert_eq!(phase(&carol, &cb, "offline from Carol"), "queued");
+    let low_trust_taken = sent_at.elapsed();
+    assert!(low_trust(&bob, &cb, "offline from Carol"));
+    let delivered_low = until(Duration::from_secs(60), "Carol's message delivered", || {
+        phase(&carol, &cb, "offline from Carol") == "delivered"
+    });
     let waiting = json!({
         "carolPhase": phase(&carol, &cb, "offline from Carol"),
         "carolPendingOutbox": info(&carol)["pendingOutbox"],
@@ -1741,21 +1759,20 @@ fn native_lan_without_internet() {
         "bobRejectedFrames": info(&bob)["rejectedFrames"].as_u64().unwrap() - rejected_before,
         "bobChain": info(&bob)["chain"],
     });
-    assert!(
-        waiting["bobRejectedFrames"].as_u64() >= Some(1),
-        "{waiting}"
-    );
 
     // The Internet comes back for Bob alone (the holders stay gone): he
-    // reads her book and her queued message arrives over the LAN.
+    // reads her book, and her next message is checked, without the mark.
     bob.kill();
     bob.arguments = with_routes(&net.flags, &net.chain.url, &bootstrap);
     bob.launch();
+    carol.send(&cb, "back from Carol", "c-2");
     let recovered = until(
         Duration::from_secs(180),
         "Bob reads Carol with the chain",
-        || texts(&bob, &cb, false) == ["offline from Carol"],
+        || texts(&bob, &cb, false) == ["offline from Carol", "back from Carol"],
     );
+    assert!(!low_trust(&bob, &cb, "back from Carol"));
+    assert!(low_trust(&bob, &cb, "offline from Carol"));
     let report = json!({
         "holders": HOLDERS,
         "seconds": {
@@ -1767,7 +1784,8 @@ fn native_lan_without_internet() {
             "offlineDeliveredBothWays": receipted.as_secs_f64(),
             "readBothWaysAfterPause": after_pause.as_secs_f64(),
             "bobToCarolOffline": carol_read.as_secs_f64(),
-            "bobBookReadFailed": book_failed.as_secs_f64(),
+            "carolTakenWithLowTrust": low_trust_taken.as_secs_f64(),
+            "carolLowTrustDeliveredAfter": delivered_low.as_secs_f64(),
             "carolDeliveredOnceBobReadsChain": recovered.as_secs_f64(),
         },
         "onlineChain": online_chain,

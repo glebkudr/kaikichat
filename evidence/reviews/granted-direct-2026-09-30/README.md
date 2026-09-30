@@ -1,7 +1,7 @@
 # A granted stamp sent directly; low trust while the chain is silent (2026-09-30)
 
-The LAN research ([lan-without-internet-2026-09-30](../lan-without-internet-2026-09-30/README.md)
-on branch `claude/priceless-chandrasekhar-8fc244`) found that a stamp from a
+The LAN research ([lan-without-internet-2026-09-30](../lan-without-internet-2026-09-30/README.md))
+found that a stamp from a
 granted book, how the identity server funds every new user, was never
 accepted on direct delivery: the recipient read its book from `BookShop`
 only, and the grant was shown only to holders. Online the holders carried
@@ -67,24 +67,25 @@ stranger test fails); the window without the mark (its test fails).
 
 ## Results
 
-- `cargo test --locked -p agentic-node --lib`: 268 passed, 3 ignored.
+- `cargo test --locked -p agentic-node --lib`: 276 passed, 3 ignored (after
+  the rebase onto `main` at `2fdc126`; 268 before it).
 - `cargo test --locked -p agentic-core`: 164 + 11 passed.
 - Workspace clippy with `-D warnings` and `cargo fmt --check`: clean.
 - The window: vitest 131 passed (the translation checks included), `tsc`,
   `vite build`.
 - Native `swarm_native::native_lan_without_internet` (debug build, one Mac),
-  run in a throwaway worktree of this branch merged with
-  `claude/priceless-chandrasekhar-8fc244`, its unknown-book step changed as
-  in [lan-scenario.patch](lan-scenario.patch). Carol writes Bob, who never
-  read her bought book, while his chain RPC hangs: before, the message stayed
-  "Queued"; now it is taken with low trust **16.2 s** after sending (the RPC's
-  10 s timeout, then the sender's backoff), "Delivered" at Carol at once.
-  Bob gets the chain back: her next message is checked, without the mark,
-  12.1 s after his restart. Report: [native-lan.json](native-lan.json).
-  The native scenario pays with bought books; the grant path is covered by
-  the rig.
-- Native `swarm_native::native_contacts_and_groups` on this branch: passed
-  (287 s): contacts, direct and swarm delivery with bought books, groups.
+  its unknown-book step changed in this branch
+  (`crates/node/tests/support/swarm_native.rs`), two passing runs (before
+  and after the rebase onto `main`). Carol writes Bob, who never read her
+  bought book, while his chain RPC hangs: before, the message stayed
+  "Queued"; now it is taken with low trust **16.2 s and 16.3 s** after
+  sending (the RPC's 10 s timeout, then the sender's backoff), "Delivered"
+  at Carol at once. Bob gets the chain back: her next message is checked,
+  without the mark, 12.1 s and 6.1 s after his restart. The native scenario
+  pays with bought books; the grant path is covered by the rig.
+- Native `swarm_native::native_contacts_and_groups` (before the rebase):
+  passed (287 s): contacts, direct and swarm delivery with bought books,
+  groups.
 
 ## Screenshots
 
@@ -93,9 +94,3 @@ with low trust: [dark, English](chat-low-trust-dark-en.png),
 [light, Russian](chat-low-trust-light-ru.png),
 [dark, Arabic](chat-low-trust-dark-ar.png).
 
-## When both branches land
-
-`native_lan_without_internet` (on `claude/priceless-chandrasekhar-8fc244`)
-still expects the old behavior at "Bob never read Carol's book": apply
-[lan-scenario.patch](lan-scenario.patch) there, and update that README's
-"A book from a grant is never accepted directly" and limits 2 and 3.
