@@ -205,6 +205,37 @@ verified, which is why most rounds passed. After, every list held the
 `native_lan_without_internet` the messages again went both ways in 0.51 s,
 and Carol's message arrived 52 s after Bob read the chain.
 
+## Found and fixed: the signed record listed the `.0` bridges
+
+A daemon listening on `0.0.0.0` signed every interface address into its
+record, private ones in text order, capped at 8 routes
+(`Runtime::advertised`). On this Mac a node's record was `172.16.42.0`,
+`172.31.250.0`, `192.168.10.41`, `192.168.139.3` (TCP and QUIC each), and
+`192.168.215.0` was cut: two of four addresses refuse connections, and on
+a host with more bridges sorting before its LAN address (Docker's
+`172.17.0.1` and up) the LAN address itself fell out. A contact that reaches the
+node only through the cached record dials these routes, two at a time.
+
+The fix (`crates/node/src/interfaces.rs`): the node watches its own
+interface subnets (`if-watch`, once per process) and the address its
+default route leaves from (a UDP `connect`, which sends nothing), and its
+record
+
+- never lists a subnet's network or broadcast address (the check of
+  `lan.rs`; a /31 or /32 has none, so a tailnet's `.0` address stays);
+- within public, private and this host's routes, puts the default route's
+  address first and the 172.16.0.0/12 block, where Docker and OrbStack
+  number their bridges, last; otherwise text order stays.
+
+Unit tests in `crates/node/src/record_route_tests.rs`: this Mac, a Linux
+laptop with Docker on a phone's hotspot (172.20.10.2/28), a VPN default
+route with Docker bridges, and a `.0` lease in a /22 next to a bridge on a
+broadcast address. Native, after the fix: `native_lan_without_internet`
+passed (LAN peers verified 5.2 s after turned on, messages both ways in
+0.51 s); every node's record was `192.168.10.41`, `192.168.139.3`,
+`127.0.0.1` (TCP and QUIC each). `lan_discovery_rounds` with
+`AIN_LAN_DEAD=10`: 4 of 4 rounds in 5.1–5.4 s.
+
 ## A window without mDNS
 
 From about 19:07 to 19:19 (runs 4 and 5) no test process received mDNS at
@@ -266,11 +297,6 @@ stamp). For a granted book it never arrives directly.
 5. **The CLI and the window** try the preset first: up to 5 s
    (`network_preset.rs`, `TIMEOUT`) before the kept preset is used.
 6. **An IP network with multicast.** No Bluetooth or Wi-Fi Direct.
-7. **Hosts with bridges** (Docker, OrbStack, VPN) announce routes on
-   every bridge. Local discovery now keeps the usable ones (above), but a
-   node's signed record still lists its bridge addresses, `.0` ones
-   included, capped at 8 routes (`Runtime::advertised`), so a contact that
-   reaches it only through that record may try unusable routes first.
 
 ## Not checked here
 

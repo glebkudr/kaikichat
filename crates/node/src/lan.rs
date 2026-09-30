@@ -20,7 +20,7 @@ const ROUTES: usize = 8;
 
 /// Where a route leads, best first.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-enum Reach {
+pub(super) enum Reach {
     /// Another host on one of this host's subnets.
     Neighbor,
     /// This host: another process here, or a bridge address another host shares.
@@ -30,7 +30,7 @@ enum Reach {
     /// A subnet's network or broadcast address is never a host's.
     Never,
 }
-fn reach(networks: &[Ipv4Net], address: &Multiaddr) -> Reach {
+pub(super) fn reach(networks: &[Ipv4Net], address: &Multiaddr) -> Reach {
     let Some(Protocol::Ip4(ip)) = address.iter().next() else {
         return Reach::Never;
     };

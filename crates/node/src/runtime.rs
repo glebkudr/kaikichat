@@ -53,6 +53,9 @@ use bootstrap_support::{Discovery, Exchange};
 #[path = "lan.rs"]
 mod lan_support;
 use lan_support::GuardedLan;
+#[path = "interfaces.rs"]
+mod interfaces_support;
+use interfaces_support::Interfaces;
 #[path = "routing.rs"]
 mod routing_support;
 use routing_support::GuardedRouting;
@@ -218,6 +221,8 @@ struct Runtime {
     listen_ids: HashMap<ListenerId, usize>,
     listen_retry: Instant,
     listeners: BTreeSet<String>,
+    /// This host's subnets and default route: they rank the listeners' routes.
+    interfaces: Interfaces,
     /// The operator's public addresses as routes: told instead of the
     /// listeners.
     public_routes: Vec<String>,
@@ -372,6 +377,7 @@ pub async fn run(mut config: NodeConfig) -> Result<()> {
         listen_ids,
         listen_retry: clock::instant(),
         listeners: BTreeSet::new(),
+        interfaces: Interfaces::default(),
         public_routes,
         transports: BTreeSet::new(),
         pending: HashMap::new(),
@@ -419,6 +425,8 @@ pub async fn run(mut config: NodeConfig) -> Result<()> {
     let mut serviced: Option<Instant> = None;
     const WAKEUP_FLOOR: Duration = Duration::from_millis(10);
     let mut terminate = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())?;
+    let mut interfaces = interfaces_support::Watcher::new();
+    runtime.interfaces.primary = interfaces_support::default_route();
     loop {
         tokio::select! {
             Some(command)=commands.recv()=>{
@@ -428,6 +436,11 @@ pub async fn run(mut config: NodeConfig) -> Result<()> {
                 });
             }
             event=runtime.swarm.select_next_some()=>runtime.event(event),
+            event=interfaces.next()=>{
+                if runtime.interfaces.change(&event) {
+                    runtime.interfaces.primary = interfaces_support::default_route();
+                }
+            }
             _=tick.tick()=>{
                 runtime.pump();
                 pumped=std::time::Instant::now();
@@ -522,7 +535,7 @@ impl Runtime {
             if !self.public_routes.is_empty() {
                 addresses.extend(self.public_routes.iter().cloned());
             } else if self.nat.peers.is_empty() {
-                addresses.extend(by_reach(&self.listeners));
+                addresses.extend(self.interfaces.by_reach(&self.listeners));
             } else if let Some(address) = self.nat.public_route(*self.swarm.local_peer_id()) {
                 addresses.push(address);
             }
@@ -1631,35 +1644,6 @@ fn public_routes(addresses: &[String], own: PeerId) -> Result<Vec<String>> {
         })
         .collect()
 }
-/// Listener routes, those reached from farther first: public ones, then
-/// private networks', then this host's and its links'. A host with many
-/// bridges keeps its public address among the eight a record lists.
-fn by_reach(listeners: &BTreeSet<String>) -> Vec<String> {
-    let mut routes: Vec<String> = listeners.iter().cloned().collect();
-    routes.sort_by_key(|route| reach(route));
-    routes
-}
-/// How far a route is reached from: 0 anywhere, 1 on a private network,
-/// 2 on this host or its links only.
-fn reach(route: &str) -> u8 {
-    let Ok(address) = route.parse::<Multiaddr>() else {
-        return 2;
-    };
-    match address.iter().next() {
-        Some(Protocol::Ip4(ip)) if ip.is_loopback() || ip.is_link_local() => 2,
-        // RFC 1918, and carrier-grade NAT's 100.64.0.0/10.
-        Some(Protocol::Ip4(ip))
-            if ip.is_private() || (ip.octets()[0] == 100 && ip.octets()[1] & 0xc0 == 64) =>
-        {
-            1
-        }
-        Some(Protocol::Ip4(_)) => 0,
-        Some(Protocol::Ip6(ip)) if ip.is_loopback() || ip.is_unicast_link_local() => 2,
-        Some(Protocol::Ip6(ip)) if ip.is_unique_local() => 1,
-        Some(Protocol::Ip6(_)) => 0,
-        _ => 2,
-    }
-}
 /// Ordinary first-hop connections do not need the listener-port reuse reserved for DCUtR.
 fn provider_connected(swarm: &mut Swarm<Network>, peer: PeerId, address: Multiaddr) -> bool {
     if swarm.is_connected(&peer) {
@@ -1757,3 +1741,7 @@ mod lan_tests;
 #[cfg(test)]
 #[path = "routing_tests.rs"]
 mod routing_tests;
+
+#[cfg(test)]
+#[path = "record_route_tests.rs"]
+mod record_route_tests;

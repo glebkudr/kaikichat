@@ -78,6 +78,7 @@ pub(in crate::runtime) fn runtime(directory: &std::path::Path) -> Runtime {
         listen_ids: HashMap::new(),
         listen_retry: clock::instant(),
         listeners: BTreeSet::new(),
+        interfaces: Interfaces::default(),
         public_routes: vec![],
         transports: BTreeSet::new(),
         pending: HashMap::new(),
