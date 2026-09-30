@@ -1,0 +1,27 @@
+app identifier=net.agenticinternet.desktop
+app authority=Developer ID
+cli-app-id identifier=net.agenticinternet.desktop
+cli-app-id authority=Developer ID
+cli-kaiki identifier=kaiki
+cli-kaiki authority=Developer ID
+cli-named identifier=net.agenticinternet.kaiki
+cli-named authority=Developer ID
+cli-adhoc identifier=bin-55554944994bb8a19e0434c28334fd9e72b51444
+cli-adhoc authority=adhoc
+--- the app creates the key, the command line reads it
+app         write app-first  -> written(a)
+cli-app-id  read  app-first  -> read(b) secret-1
+cli-kaiki   read  app-first  -> refused(b) -25293
+cli-named   read  app-first  -> refused(b) -25293
+cli-adhoc   read  app-first  -> refused(b) -25293
+--- the command line creates the key, the app reads it
+cli-app-id  write cli-app-id-first -> written(b)
+app         read  cli-app-id-first -> read(a) secret-cli-app-id
+cli-kaiki   write cli-kaiki-first -> written(b)
+app         read  cli-kaiki-first -> refused(a) -25293
+cli-named   write cli-named-first -> written(b)
+app         read  cli-named-first -> refused(a) -25293
+cli-adhoc   write cli-adhoc-first -> written(b)
+app         read  cli-adhoc-first -> refused(a) -25293
+--- the creator itself
+app         read  app-first  -> read(a) secret-1
