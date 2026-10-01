@@ -256,6 +256,28 @@ describe('what the network recommends at the first run',()=>{
     expect(await screen.findByRole('heading',{name:'Connect your agent'})).toBeVisible();
   });
 
+  it('goes on at once while the node is still following and joining, and keeps the choice until it is done',async()=>{
+    const api=newOwner();const user=userEvent.setup();
+    api.networkPreset.mockResolvedValue(preset({recommended}));
+    api.coinsBalance.mockResolvedValueOnce(emptyBalance()).mockResolvedValue(granted());
+    let followed=()=>{};let joined=()=>{};
+    api.followGroup.mockImplementationOnce(({group,owner,name})=>new Promise(resolve=>{followed=()=>resolve({id:group,name,owner,since:1788563000,closed:false});}));
+    api.joinGroup.mockImplementationOnce(()=>new Promise(resolve=>{joined=()=>resolve({groupId:'g1',messageId:'m'});}));
+    await pastTheLogin(api,user);
+    await user.click(await screen.findByRole('button',{name:'Subscribe'}));
+    // The node is still at work: the owner is already on the next screen.
+    expect(await screen.findByRole('heading',{name:'Connect your agent'})).toBeVisible();
+    expect(api.followGroup).toHaveBeenCalledTimes(1);
+    // A window closed now would take the choice at its next start.
+    expect(JSON.parse(localStorage.getItem('agentic.recommended.pending')??'[]')).toEqual(recommended);
+    followed();
+    await waitFor(()=>expect(api.joinGroup).toHaveBeenCalledWith({groupRef:lobbyRef,note:'',operationId:expect.any(String)}));
+    joined();
+    await waitFor(()=>expect(localStorage.getItem('agentic.recommended.pending')).toBeNull());
+    expect(api.followGroup).toHaveBeenCalledTimes(1);
+    expect(api.joinGroup).toHaveBeenCalledTimes(1);
+  });
+
   it('takes only what the owner leaves chosen, and a skip takes nothing',async()=>{
     const api=newOwner();const user=userEvent.setup();
     api.networkPreset.mockResolvedValue(preset({recommended}));

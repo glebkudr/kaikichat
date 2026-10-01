@@ -5,7 +5,7 @@ import {LanguageSelect,useDescribe,useT} from './i18n';
 import {ClaimOutcome,useClaim,useClaimOutcome} from './WalletPanel';
 import {ProviderButtons} from './ProviderButtons';
 import {CopyStep,useAgentInstruction} from './Connect';
-import {known,takeChosen} from './Recommended';
+import {choose,known} from './Recommended';
 
 /** A password-sealed profile: the password opens it (or seals a new one). */
 export function UnlockScreen({api,status,onOpened}:{api:DesktopApi;status:ProfileStatus;onOpened:()=>void}) {
@@ -145,13 +145,13 @@ function LoginStep({api,onNext,onTopUp}:{api:DesktopApi;onNext:()=>void;onTopUp:
 }
 
 /** The channels and groups the network's signed preset recommends, all
- * chosen: one press follows and joins them; without a book yet the choice is
- * kept and taken once the free messages arrive. Nothing to offer, no screen. */
+ * chosen: one press keeps the choice and goes on at once; the window follows
+ * and joins them meanwhile, and without a book yet takes them once the free
+ * messages arrive. Nothing to offer, no screen. */
 function RecommendedStep({api,onNext}:{api:DesktopApi;onNext:()=>void}) {
   const t=useT();
   const [offered,setOffered]=useState<Recommended[]>();
   const [chosen,setChosen]=useState<Set<string>>(new Set());
-  const [busy,setBusy]=useState(false);
   useEffect(()=>{
     let live=true;
     api.networkPreset().then(preset=>known(preset.recommended),()=>[]).then(list=>{
@@ -164,11 +164,7 @@ function RecommendedStep({api,onNext}:{api:DesktopApi;onNext:()=>void}) {
   useEffect(()=>{if(offered&&!offered.length)onNext();},[offered]);
   if(!offered?.length)return null;
   const toggle=(ref:string)=>setChosen(now=>{const next=new Set(now);if(!next.delete(ref))next.add(ref);return next;});
-  async function subscribe() {
-    if(busy)return;setBusy(true);
-    try {await takeChosen(api,offered!.filter(r=>chosen.has(r.ref)));}
-    finally {setBusy(false);onNext();}
-  }
+  function subscribe() {choose(offered!.filter(r=>chosen.has(r.ref)));onNext();}
   return <Screen title={t.recommended.title} text={t.recommended.text}>
     <div className="recommended-list">
       {offered.map(r=><label key={r.ref} className="recommended-item">
@@ -176,7 +172,7 @@ function RecommendedStep({api,onNext}:{api:DesktopApi;onNext:()=>void}) {
         <span><b>{r.name}</b><small>{r.kind==='channel'?t.recommended.channel:t.recommended.group}</small></span>
       </label>)}
     </div>
-    <button type="button" autoFocus disabled={busy} onClick={()=>void subscribe()}>{t.recommended.subscribe}</button>
+    <button type="button" autoFocus onClick={subscribe}>{t.recommended.subscribe}</button>
     <div className="wizard-links"><button type="button" className="link" onClick={onNext}>{t.recommended.skip}</button></div>
   </Screen>;
 }

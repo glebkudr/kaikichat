@@ -1,4 +1,4 @@
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useState} from 'react';
 import {CoreError} from './core-error';
 import type {DesktopApi,Recommended} from './types';
 
@@ -20,66 +20,67 @@ const waiting=new Set(['book_required','network_unavailable','card_pending','una
 const shouldWait=(error:unknown)=>error instanceof CoreError&&(error.retryable||waiting.has(error.code));
 
 const storageKey='agentic.recommended.pending';
-// Tells the window a choice was kept, so it starts watching for its book.
+// Tells the window a choice was kept, so it starts taking it.
 const keptEvent='agentic-recommended-kept';
+// The choice when the window cannot store it: it lasts for this window only.
+let unsaved:Recommended[]=[];
 function pending():Recommended[] {
   try {const kept=JSON.parse(localStorage.getItem(storageKey)??'[]') as unknown;return Array.isArray(kept)?known(kept as Recommended[]):[];}
-  catch {return [];}
+  catch {return unsaved;}
 }
 function keep(list:Recommended[]) {
+  unsaved=list;
   try {if(list.length)localStorage.setItem(storageKey,JSON.stringify(list));else localStorage.removeItem(storageKey);}
-  catch { /* the choice lasts for this window only */ }
+  catch { /* unsaved holds it */ }
 }
 
-/** Takes what the owner chose; what has to wait for the free messages (or the
- * network) is kept and taken later by useRecommendedPending. */
-export async function takeChosen(api:DesktopApi,chosen:Recommended[]) {
-  const later:Recommended[]=[];
-  for(const r of chosen) {
-    try {await take(api,r);}
-    catch(error) {if(shouldWait(error))later.push(r);}
-  }
-  if(later.length) {
-    keep([...pending().filter(p=>!later.some(l=>l.ref===p.ref)),...later]);
-    window.dispatchEvent(new Event(keptEvent));
-  }
+/** Keeps what the owner chose and returns at once: the node may take a while
+ * to follow and join, so useRecommendedPending takes the choice meanwhile and
+ * keeps what has to wait for the free messages (or the network). */
+export function choose(chosen:Recommended[]) {
+  if(!chosen.length)return;
+  keep([...pending().filter(p=>!chosen.some(c=>c.ref===p.ref)),...chosen]);
+  window.dispatchEvent(new Event(keptEvent));
 }
 
-/** Takes the kept choice whenever the node says something changed (a book
- * arriving, the network coming back); a final refusal drops it. */
+// One pass at a time for the whole window: the onboarding and the shell
+// both watch, and a follow already under way is not asked for again.
+let passing:Promise<void>|undefined;
+/** Takes the kept choice, and what is chosen meanwhile; a final refusal drops
+ * it, what has to wait stays kept. */
+function takePending(api:DesktopApi):Promise<void> {
+  return passing??=(async()=>{
+    const tried=new Set<string>();
+    const untried=()=>pending().filter(r=>!tried.has(r.ref));
+    for(let list=untried();list.length;list=untried()) {
+      const settled=new Set<string>();
+      for(const r of list) {
+        tried.add(r.ref);
+        try {await take(api,r);settled.add(r.ref);}
+        catch(error) {if(!shouldWait(error))settled.add(r.ref);}
+      }
+      keep(pending().filter(r=>!settled.has(r.ref)));
+    }
+  })().finally(()=>{passing=undefined;});
+}
+
+/** Takes the kept choice at once and again whenever the node says something
+ * changed (a book arriving, the network coming back). */
 export function useRecommendedPending(api:DesktopApi) {
-  const running=useRef(false);
   // Bumped when a choice is kept or the last one is taken: the watch below
   // runs only while something waits.
   const [round,setRound]=useState(0);
-  // A choice kept just now failed a moment ago: wait for the node to say
-  // something changed instead of asking again at once.
-  const justKept=useRef(false);
   useEffect(()=>{
-    const kept=()=>{justKept.current=true;setRound(n=>n+1);};
+    const kept=()=>setRound(n=>n+1);
     window.addEventListener(keptEvent,kept);
     return ()=>window.removeEventListener(keptEvent,kept);
   },[]);
   useEffect(()=>{
     if(!pending().length)return;
     let live=true;
-    const attempt=async()=>{
-      if(running.current)return;
-      const list=pending();if(!list.length)return;
-      running.current=true;
-      try {
-        const left:Recommended[]=[];
-        for(const r of list) {
-          try {await take(api,r);}
-          catch(error) {if(shouldWait(error))left.push(r);}
-        }
-        keep(left);
-        if(!left.length&&live)setRound(n=>n+1);
-      } finally {running.current=false;}
-    };
-    if(!justKept.current)void attempt();
-    justKept.current=false;
-    const stop=api.subscribe(()=>{void attempt();});
+    const attempt=()=>{void takePending(api).then(()=>{if(live&&!pending().length)setRound(n=>n+1);});};
+    attempt();
+    const stop=api.subscribe(attempt);
     return ()=>{live=false;stop();};
   },[api,round]);
 }
