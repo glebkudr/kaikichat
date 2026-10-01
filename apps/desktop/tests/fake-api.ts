@@ -35,6 +35,8 @@ export function fakeApi() {
     autostart:vi.fn<DesktopApi['autostart']>(async()=>autostart()),
     setAutostart:vi.fn<DesktopApi['setAutostart']>(async({on})=>autostart({state:on?'on':'off'})),
     openLoginItems:vi.fn<DesktopApi['openLoginItems']>(async()=>undefined),
+    moveOffer:vi.fn<DesktopApi['moveOffer']>(async()=>false),
+    moveToApplications:vi.fn<DesktopApi['moveToApplications']>(async()=>undefined),
     snapshot:vi.fn<DesktopApi['snapshot']>(async()=>({identity:{name:'Alice',networkId:ownId},network:{connectedPeers:3,state:'online' as const},conversations:[]})),
     conversationHistory:vi.fn<DesktopApi['conversationHistory']>(async({conversationId}:{conversationId:string;before:string|null})=>({conversationId,messages:[],nextBefore:null as string|null})),
     networkSettings:vi.fn<DesktopApi['networkSettings']>(async()=>networkFixture()),configureNetwork:vi.fn<DesktopApi['configureNetwork']>(async()=>networkFixture()),

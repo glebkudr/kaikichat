@@ -27,6 +27,10 @@ export interface DesktopApi {
   setAutostart(request:{on:boolean}):Promise<Autostart>;
   /** Opens the system's login items, where the owner allows the app. */
   openLoginItems():Promise<void>;
+  /** Whether the app runs outside the Applications folder and can move there. */
+  moveOffer():Promise<boolean>;
+  /** Moves the app into the Applications folder and opens it from there. */
+  moveToApplications():Promise<void>;
   snapshot():Promise<Snapshot>;
   conversationHistory(request:{conversationId:string;before:string|null}):Promise<ConversationHistory>;
   networkSettings():Promise<NetworkSettings>;

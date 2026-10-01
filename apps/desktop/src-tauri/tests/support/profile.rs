@@ -841,6 +841,8 @@ async fn the_window_names_a_newer_release_and_what_this_app_can_do_with_it() {
 
     let refused = w.refused("install_update", json!({}));
     assert_eq!(refused["code"], "not_updatable", "{refused}");
+    // A build outside any app bundle is not offered the move to Applications.
+    assert_eq!(w.ok("move_offer"), json!(false));
     w.ok("open_downloads");
     assert_eq!(
         w.opened.0.lock().unwrap().clone(),
@@ -878,6 +880,10 @@ async fn the_window_names_a_newer_release_and_what_this_app_can_do_with_it() {
         bundled.ok("release_status")["installable"],
         json!(agentic_desktop_host::update::platform().is_some())
     );
+    // It is where it stays: nothing to move.
+    assert_eq!(bundled.ok("move_offer"), json!(false));
+    let refused = bundled.refused("move_to_applications", json!({}));
+    assert_eq!(refused["code"], "not_movable", "{refused}");
 }
 
 /// The system's login items: whether they block Kaiki Chat until the owner

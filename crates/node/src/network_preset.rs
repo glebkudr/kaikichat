@@ -444,7 +444,7 @@ impl Preset {
     }
 }
 
-fn version_of(text: &str) -> Result<(u64, u64, u64)> {
+pub(crate) fn version_of(text: &str) -> Result<(u64, u64, u64)> {
     let parts: Vec<u64> = text
         .split('.')
         .map(str::parse)

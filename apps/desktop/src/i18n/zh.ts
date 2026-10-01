@@ -588,6 +588,12 @@ export const zh: Messages = {
     blocked: '系统的登录项阻止了 Kaiki Chat 在登录时打开。请在那里允许它。',
     allow: '打开登录项',
   },
+  move: {
+    notice: '移动提示',
+    text: 'Kaiki Chat 不在“应用程序”文件夹中：它无法在登录时打开，而且应用退出后你的智能体就找不到它了。',
+    go: '移到“应用程序”',
+    moving: '正在移动…',
+  },
   release: {
     title: '更新',
     notice: '更新通知',
@@ -602,6 +608,7 @@ export const zh: Messages = {
     failed: '无法从 kaikichat.com 检查更新。',
   },
   errors: {
+    move_failed: '无法移动 Kaiki Chat：请自行把它拖到“应用程序”文件夹。',
     not_updatable: '此 Kaiki Chat 副本无法自行替换：请下载新版本。',
     no_build: '暂时没有适用于这台电脑的此版本构建。',
     no_update: '没有更新的版本。',

@@ -53,6 +53,18 @@ project; the bundle identifier and the data directory stay
   - When the system blocks it (turned off in macOS Login Items), the app
     opens the system's login items once for the owner to allow it; the
     settings say so and `open_login_items` opens them again.
+  - A copy opened outside the Applications folder cannot open at login:
+    a download macOS runs from its quarantine folder (App Translocation), a
+    disk image's app, or a quarantined download elsewhere in the home
+    folder (a build has no quarantine and is not offered). `move_offer`
+    says whether this copy is one; the window then offers one button, and
+    `move_to_applications` copies the app without the quarantine into
+    `/Applications` (`~/Applications` when the owner may not write there),
+    replacing an older copy whole and keeping a newer one, sends the
+    owner's download to the Trash, stops the daemon and quits; the moved
+    app opens once this one is gone and puts itself into the login items.
+    `not_movable` where the app already stays, `move_failed` when the copy
+    fails (nothing changed then).
   - When the owner stops the daemon (`kaiki daemon stop`), the window shows
     that it is stopped and starts it again only when the owner asks
     (`reconnect`).
@@ -104,7 +116,7 @@ signing seed or the password.
 | Wallet | `coins_balance`, `coins_buy`, `claim_coins`, `open_payment` |
 | Network | `network_settings`, `configure_network`, `network_preset`, `refresh_network` |
 | Updates | `release_status`, `check_release`, `skip_release`, `install_update`, `open_downloads` |
-| Start at login | `autostart_status`, `set_autostart`, `open_login_items` |
+| Start at login | `autostart_status`, `set_autostart`, `open_login_items`, `move_offer`, `move_to_applications` |
 
 - A refusal is `{code, message, retryable}`: the daemon's code, or
   `profile_locked`, `secrets_locked`, `keychain_consent`, `keychain_denied`,

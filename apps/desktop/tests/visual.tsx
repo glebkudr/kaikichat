@@ -3,7 +3,8 @@ import {networkFixture} from './network-fixture';
 // `?state=locked|new|keychain|stopped|onboarding|coins|elsewhere|again|home` shows the profile gates
 // (`keychain`: a key another program saved, which macOS asks about first)
 // (`?release=newer|download|failed` a newer release;
-// `?autostart=off|blocked|none` opening at login)
+// `?autostart=off|blocked|none` opening at login;
+// `?move=offered|failed` an app outside the Applications folder)
 // (`elsewhere`: the login's account already got its coins on another device;
 // `again`: the owner logs in once more on the device that holds them);
 // `?lang=ar&theme=light` starts in that language and theme; the
@@ -99,6 +100,9 @@ const refusal=(code:string,message:string,retryable=false)=>Promise.reject(coreE
  * was refused). */
 const releaseState=params.get('release')??'current';
 const autostartState=params.get('autostart')??'on';
+/** An app outside the Applications folder as `?move=` shows it: none
+ * (default), offered, or failed (the move was refused). */
+const moveState=params.get('move')??'none';
 const loginItem='/Users/owner/Library/LaunchAgents/com.kaikichat.app.plist';
 let release:Release={current:'0.2.0',latest:releaseState==='current'?'0.2.0':'0.3.0',available:releaseState!=='current',skipped:false,checkedAt:1790550000,error:null,installable:releaseState!=='download'};
 const api:DesktopApi={
@@ -117,6 +121,9 @@ const api:DesktopApi={
   autostart:async()=>autostartState==='none'?null:{state:autostartState as Autostart['state'],path:loginItem},
   setAutostart:async({on})=>({state:!on?'off':autostartState==='blocked'?'blocked':'on',path:loginItem}),
   openLoginItems:async()=>{},
+  moveOffer:async()=>moveState!=='none',
+  // The moved app quits and opens from its new place: no answer comes.
+  moveToApplications:()=>moveState==='failed'?refusal('move_failed','ditto: Permission denied'):new Promise<void>(()=>{}),
   snapshot:async()=>locked?refusal('profile_locked','locked'):keychain?refusal('keychain_consent','keychain'):stopped?refusal('daemon_unavailable','stopped',true):structuredClone(snapshot),
   conversationHistory:async({conversationId})=>({conversationId,messages:structuredClone(snapshot.conversations.find(c=>c.id===conversationId)?.messages??[]),nextBefore:null}),
   networkSettings:async()=>structuredClone(network),

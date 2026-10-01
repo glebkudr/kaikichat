@@ -15,6 +15,8 @@ fn main() {
             "autostart_status",
             "set_autostart",
             "open_login_items",
+            "move_offer",
+            "move_to_applications",
             "snapshot",
             "desktop_overview",
             "conversation_history",

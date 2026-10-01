@@ -9,6 +9,7 @@ import {DiscoverPanel} from './DiscoverPanel';
 import {KeychainScreen,Onboarding,UnlockScreen} from './Onboarding';
 import {StartHere} from './StartHere';
 import {RecommendedPending} from './Recommended';
+import {MoveNotice} from './MoveApp';
 import {DeliveryBadge} from './DeliveryBadge';
 import {NavMenu} from './NavMenu';
 import {NetworkNotice} from './NetworkPreset';
@@ -100,7 +101,7 @@ function Shell({api}:{api:DesktopApi}) {
   const identity=snapshot?.identity;
   const ready=gate.kind==='ready'&&snapshot;
   useEffect(()=>{if(ready&&!identity)setFirstRun(true);},[ready,identity]);
-  const notice=<>{ready&&<NetworkNotice api={api} onChanged={()=>void reload()}/>}<ReleaseNotice api={api}/></>;
+  const notice=<><MoveNotice api={api}/>{ready&&<NetworkNotice api={api} onChanged={()=>void reload()}/>}<ReleaseNotice api={api}/></>;
   if(ready&&(!identity||firstRun))return <><RecommendedPending api={api}/><Onboarding api={api} notice={notice} identity={identity??null} onCreated={()=>void reload()} onFinish={()=>{setFirstRun(false);setPanel('chat');}} onTopUp={()=>{setFirstRun(false);setPanel('wallet');}}/></>;
   const time=(seconds:number)=>new Date(seconds*1000).toLocaleTimeString(t.tag,{hour:'2-digit',minute:'2-digit'});
   const nav=(id:string,target:Panel,label:string,badge?:number)=>({id,label,badge,current:panel===target,onSelect:()=>show(target)});

@@ -11,6 +11,6 @@ pub use agentic_node::host::{
 };
 pub use agentic_node::secrets_file::{PasswordFileStore, SecretsLocked};
 pub use agentic_node::{NETWORK_DOMAIN, discover};
-pub use agentic_node::{autostart, network_preset, update};
+pub use agentic_node::{autostart, network_preset, relocate, update};
 #[cfg(all(feature = "e2e", unix))]
 pub use e2e_secrets::E2eFileStore;

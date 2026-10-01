@@ -13,6 +13,8 @@ pub mod messaging_cli;
 #[cfg(unix)]
 pub mod network_preset;
 #[cfg(unix)]
+pub mod relocate;
+#[cfg(unix)]
 mod runtime;
 #[cfg(unix)]
 mod runtime_client;

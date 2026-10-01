@@ -21,6 +21,8 @@ export function createDesktopApi(core:CoreTransport):DesktopApi {
     autostart:()=>transport.invoke('autostart_status') as Promise<Autostart|null>,
     setAutostart:request=>transport.invoke('set_autostart',{request}) as Promise<Autostart>,
     openLoginItems:async()=>{await transport.invoke('open_login_items');},
+    moveOffer:async()=>(await transport.invoke('move_offer'))===true,
+    moveToApplications:async()=>{await transport.invoke('move_to_applications');},
     installSkill:request=>transport.invoke('install_skill',{request}) as Promise<{path:string}>,
     ownerCli:()=>transport.invoke('owner_cli') as Promise<OwnerCli>,
     requestContact:request=>transport.invoke('request_contact',{request}) as Promise<{conversationId:string;name:string}>,

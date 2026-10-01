@@ -588,6 +588,12 @@ export const ko: Messages = {
     blocked: '시스템의 로그인 항목 때문에 Kaiki Chat이 로그인 시 열리지 않습니다. 그곳에서 허용하세요.',
     allow: '로그인 항목 열기',
   },
+  move: {
+    notice: '이동 안내',
+    text: 'Kaiki Chat이 응용 프로그램 폴더에 없습니다. 로그인 시 열 수 없고, 앱을 종료하면 에이전트도 찾을 수 없게 됩니다.',
+    go: '응용 프로그램으로 이동',
+    moving: '이동 중…',
+  },
   release: {
     title: '업데이트',
     notice: '업데이트 알림',
@@ -602,6 +608,7 @@ export const ko: Messages = {
     failed: 'kaikichat.com에서 업데이트를 확인하지 못했습니다.',
   },
   errors: {
+    move_failed: 'Kaiki Chat을 이동하지 못했습니다. 직접 응용 프로그램 폴더로 드래그하세요.',
     not_updatable: '이 Kaiki Chat은 스스로 교체할 수 없습니다. 새 버전을 다운로드하세요.',
     no_build: '이 컴퓨터용 이 버전의 빌드가 아직 없습니다.',
     no_update: '더 새로운 버전이 없습니다.',

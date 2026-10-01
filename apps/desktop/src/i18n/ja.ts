@@ -588,6 +588,12 @@ export const ja: Messages = {
     blocked: 'システムのログイン項目により、Kaiki Chat はログイン時に起動できません。そこで許可してください。',
     allow: 'ログイン項目を開く',
   },
+  move: {
+    notice: '移動のお知らせ',
+    text: 'Kaiki Chat は「アプリケーション」フォルダーにありません。ログイン時に起動できず、アプリを終了するとエージェントからも見つからなくなります。',
+    go: '「アプリケーション」に移動',
+    moving: '移動中…',
+  },
   release: {
     title: 'アップデート',
     notice: 'アップデートのお知らせ',
@@ -602,6 +608,7 @@ export const ja: Messages = {
     failed: 'kaikichat.com でアップデートを確認できませんでした。',
   },
   errors: {
+    move_failed: 'Kaiki Chat を移動できませんでした。「アプリケーション」フォルダーへご自身でドラッグしてください。',
     not_updatable: 'この Kaiki Chat は自分で置き換えられません：新しいバージョンをダウンロードしてください。',
     no_build: 'このコンピューター向けのこのバージョンのビルドはまだありません。',
     no_update: '新しいバージョンはありません。',

@@ -5,6 +5,7 @@ use agentic_desktop_host::autostart::Autostart;
 use agentic_desktop_host::network_preset::{
     self, NoNetworkOffer, PresetSource, PresetStatus, RELEASE_CHECK_EVERY, ReleaseStatus,
 };
+use agentic_desktop_host::relocate::{self, SystemTrash};
 use agentic_desktop_host::update::{self, UpdateError};
 use agentic_desktop_host::{
     DesktopHost, PasswordFileStore, SKILL_ROOTS, SecretStore, SecretsLocked, asks_before_opening,
@@ -33,6 +34,8 @@ const RETRYABLE: [&str; 6] = [
 const CARD_WAIT: Duration = Duration::from_secs(75);
 /// Where the app is downloaded, for a window that cannot replace itself.
 const DOWNLOADS: &str = "https://kaikichat.com/#get";
+/// The app bundle's name in the Applications folder.
+const APP_BUNDLE: &str = "Kaiki Chat.app";
 
 /// A refusal as the webview gets it.
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -599,6 +602,44 @@ impl NativeBridge {
             .ask()
             .map_err(|error| CommandError::new("open_failed", error.to_string()))?;
         Ok(Value::Null)
+    }
+
+    /// The app outside the Applications folder, when it is a download or on
+    /// a disk image.
+    fn unsettled(&self) -> Option<relocate::Unsettled> {
+        relocate::here(self.app.as_deref()?, self.home.as_deref()?)
+    }
+
+    fn move_offer(&self) -> Answer {
+        Ok(self.unsettled().is_some().into())
+    }
+
+    /// Moves the app into the Applications folder and stops the daemon,
+    /// which the moved app starts again; answers the bundle to open.
+    async fn move_to_applications(&self) -> std::result::Result<PathBuf, CommandError> {
+        let (Some(app), Some(home)) = (self.unsettled(), self.home.clone()) else {
+            return Err(CommandError::new(
+                "not_movable",
+                "This app is already where it stays",
+            ));
+        };
+        let folders = [PathBuf::from("/Applications"), home.join("Applications")];
+        let moved = tokio::task::spawn_blocking(move || {
+            relocate::move_app(&app, &folders, APP_BUNDLE, &SystemTrash)
+                .map_err(|error| error.to_string())
+        })
+        .await
+        .map_err(|error| CommandError::new("move_failed", error.to_string()))?
+        .map_err(|error| CommandError::new("move_failed", error))?;
+        if let Some(profile) = self.profile.as_ref() {
+            let link = self.link.lock().await;
+            if let Some(vault) = link.vault.as_ref()
+                && let Err(error) = stop_profile(&profile.data_dir, vault.as_ref()).await
+            {
+                eprintln!("The daemon was not stopped for the move: {error}");
+            }
+        }
+        Ok(moved)
     }
 
     fn open_downloads(&self) -> Answer {
@@ -1344,6 +1385,28 @@ async fn open_login_items<R: Runtime>(
     bridge.open_login_items()
 }
 #[tauri::command]
+async fn move_offer<R: Runtime>(
+    window: WebviewWindow<R>,
+    bridge: State<'_, NativeBridge>,
+) -> Answer {
+    owner_window(&window)?;
+    bridge.move_offer()
+}
+/// Moves the app into the Applications folder, then quits; the moved app
+/// opens once this one is gone.
+#[tauri::command]
+async fn move_to_applications<R: Runtime>(
+    window: WebviewWindow<R>,
+    bridge: State<'_, NativeBridge>,
+) -> Answer {
+    owner_window(&window)?;
+    let moved = bridge.move_to_applications().await?;
+    relocate::open_after_exit(&moved)
+        .map_err(|error| CommandError::new("open_failed", error.to_string()))?;
+    window.app_handle().exit(0);
+    Ok(Value::Null)
+}
+#[tauri::command]
 async fn refresh_network<R: Runtime>(
     window: WebviewWindow<R>,
     bridge: State<'_, NativeBridge>,
@@ -1370,6 +1433,8 @@ pub fn configure<R: Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<R> {
         autostart_status,
         set_autostart,
         open_login_items,
+        move_offer,
+        move_to_applications,
         snapshot,
         desktop_overview,
         conversation_history,

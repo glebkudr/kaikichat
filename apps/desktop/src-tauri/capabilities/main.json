@@ -21,6 +21,8 @@
     "allow-autostart-status",
     "allow-set-autostart",
     "allow-open-login-items",
+    "allow-move-offer",
+    "allow-move-to-applications",
     "allow-snapshot",
     "allow-desktop-overview",
     "allow-conversation-history",
