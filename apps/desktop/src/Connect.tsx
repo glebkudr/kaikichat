@@ -94,16 +94,16 @@ export function InviteCard({identity}:{identity:Identity}) {
   </section>;
 }
 
-/** The first screens' copy step: the text in full, then one button. */
+/** The first screens' copy step: the text in full, then one button; once
+ * copied, the way on, and the copy button stays for another copy. */
 export function CopyStep({label,text,placeholder,rows,copyLabel,copied,manual,next,skip,onNext}:{label:string;text:string;placeholder?:string;rows:number;copyLabel:string;copied:string;manual:string;next:string;skip:string;onNext:()=>void}) {
   const copy=useCopy();
   return <>
     <label className="copy-text">{label}<textarea ref={copy.box} readOnly rows={rows} value={text||placeholder||''} onFocus={select}/></label>
     {copy.state&&<p className="claim-outcome" role="status">{copy.state==='copied'?copied:manual}</p>}
-    {copy.state?<button type="button" onClick={onNext}>{next}</button>:<>
-      <button type="button" disabled={!text} onClick={()=>void copy.copy(text)}>{copyLabel}</button>
-      <div className="wizard-links"><button type="button" className="link" onClick={onNext}>{skip}</button></div>
-    </>}
+    <button type="button" className={copy.state?'secondary':''} disabled={!text} onClick={()=>void copy.copy(text)}>{copyLabel}</button>
+    {copy.state?<button type="button" onClick={onNext}>{next}</button>:
+      <div className="wizard-links"><button type="button" className="link" onClick={onNext}>{skip}</button></div>}
   </>;
 }
 

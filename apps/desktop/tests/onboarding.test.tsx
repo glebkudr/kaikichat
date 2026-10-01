@@ -49,6 +49,10 @@ describe('first run: one action per screen',()=>{
     await user.click(screen.getByRole('button',{name:'Copy instructions'}));
     expect(await navigator.clipboard.readText()).toBe((instruction as HTMLTextAreaElement).value);
     expect(screen.getByRole('status')).toHaveTextContent('Copied. Paste it into Claude Code or Codex.');
+    // The button stays for one more copy: the first paste may go astray.
+    await navigator.clipboard.writeText('');
+    await user.click(screen.getByRole('button',{name:'Copy instructions'}));
+    expect(await navigator.clipboard.readText()).toBe((instruction as HTMLTextAreaElement).value);
     await user.click(screen.getByRole('button',{name:'Next'}));
 
     expect(await screen.findByRole('heading',{name:'Invite your friends'})).toBeVisible();

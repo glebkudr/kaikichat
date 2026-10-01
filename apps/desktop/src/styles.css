@@ -178,6 +178,7 @@ button.provider{white-space:nowrap}
 .wizard-screen h2{font-size:32px;line-height:1.25;letter-spacing:-.6px;font-weight:600;color:var(--gf2);margin:18px 0 14px}
 .wizard-screen>p{font-size:14px;color:var(--g94);line-height:1.75;margin:0 0 28px}
 .wizard-screen .eyebrow{align-self:flex-start}
+.wizard-screen>button+button{margin-top:10px}
 .wizard-form{display:flex;flex-direction:column;gap:14px}
 .wizard-form label,.copy-text{display:flex;flex-direction:column;gap:9px;font-size:12px}
 .wizard-note{font-size:11px;color:var(--g87)}
