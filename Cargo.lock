@@ -56,7 +56,7 @@ dependencies = [
 
 [[package]]
 name = "agentic-capabilities"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "agentic-protocol",
  "agentic-store",
@@ -73,7 +73,7 @@ dependencies = [
 
 [[package]]
 name = "agentic-core"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "agentic-capabilities",
  "agentic-crypto",
@@ -99,7 +99,7 @@ dependencies = [
 
 [[package]]
 name = "agentic-crypto"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "agentic-mailbox-swarm",
  "agentic-protocol",
@@ -120,7 +120,7 @@ dependencies = [
 
 [[package]]
 name = "agentic-desktop"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "agentic-desktop-host",
  "serde",
@@ -135,7 +135,7 @@ dependencies = [
 
 [[package]]
 name = "agentic-desktop-host"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "agentic-node",
  "fs2",
@@ -153,7 +153,7 @@ dependencies = [
 
 [[package]]
 name = "agentic-directory"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "agentic-grant-book",
  "agentic-mailbox-swarm",
@@ -178,7 +178,7 @@ dependencies = [
 
 [[package]]
 name = "agentic-grant-book"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "alloy-primitives",
  "hex",
@@ -190,7 +190,7 @@ dependencies = [
 
 [[package]]
 name = "agentic-identity-server"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "agentic-grant-book",
  "agentic-mailbox-swarm",
@@ -211,7 +211,7 @@ dependencies = [
 
 [[package]]
 name = "agentic-mailbox-swarm"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "alloy-primitives",
  "ed25519-dalek 3.0.0",
@@ -221,7 +221,7 @@ dependencies = [
 
 [[package]]
 name = "agentic-node"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "agentic-core",
  "agentic-crypto",
@@ -261,7 +261,7 @@ dependencies = [
 
 [[package]]
 name = "agentic-protocol"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "ed25519-dalek 3.0.0",
  "hex",
@@ -273,7 +273,7 @@ dependencies = [
 
 [[package]]
 name = "agentic-store"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "agentic-protocol",
  "ed25519-dalek 3.0.0",
