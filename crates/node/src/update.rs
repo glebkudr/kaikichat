@@ -20,7 +20,7 @@ pub type Result<T> = crate::Result<T>;
 /// Beside the binaries of an install from the archive: the build it is.
 pub const MARKER: &str = "install.json";
 /// The files every command-line build has.
-const CLI_FILES: [&str; 3] = ["kaiki", "agentic-node", MARKER];
+const CLI_FILES: [&str; 3] = ["kaiki", "kaiki-agentic-node", MARKER];
 /// No build is larger.
 const DOWNLOAD_LIMIT: u64 = 1 << 30;
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);

@@ -4,10 +4,9 @@
 # a build and where it is:
 #   scripts/publish-cli.sh macos-arm64 target/release linux-x86_64 DIR \
 #       app-macos-arm64 "target/release/bundle/macos/Kaiki Chat.app"
-# A command-line platform becomes kaiki-<platform>.tar.gz: a kaiki/
-# directory with kaiki, agentic-node, agentic-cli, agentic-mcp and
-# install.json, the marker that lets that install update itself. The app
-# becomes kaiki-chat-<platform>.tar.gz, its bundle. Each is published twice,
+# A command-line platform becomes kaiki-<platform>.tar.gz, packed by
+# scripts/pack-cli.sh (its binaries and the marker that lets the install
+# update itself). The app becomes kaiki-chat-<platform>.tar.gz, its bundle. Each is published twice,
 # with its .sha256: at downloads/ (the latest, for install.sh) and at
 # downloads/<version>/ (kept, for the release the network preset names).
 # deployments/release.json then names the version and every build's URL and
@@ -45,12 +44,7 @@ while [ $# -gt 0 ]; do
   case "$build" in
     macos-arm64|linux-x86_64)
       name="cli-$build" archive="kaiki-$build.tar.gz"
-      mkdir -p "$out/$build/kaiki"
-      for binary in kaiki agentic-node agentic-cli agentic-mcp; do
-        install -m 755 "$from/$binary" "$out/$build/kaiki/$binary"
-      done
-      printf '{"build":"%s"}\n' "$name" > "$out/$build/kaiki/install.json"
-      "${pack[@]}" -czf "$out/$archive" -C "$out/$build" kaiki ;;
+      bash "$(dirname "$0")/pack-cli.sh" "$build" "$from" "$out" ;;
     app-macos-arm64)
       name="$build" archive="kaiki-chat-${build#app-}.tar.gz"
       [ -d "$from/Contents/MacOS" ] || { echo "$from is not an app bundle" >&2; exit 2; }

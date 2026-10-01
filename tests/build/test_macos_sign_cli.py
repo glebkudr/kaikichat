@@ -10,10 +10,11 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 SIGN = ROOT / "scripts/macos-sign-cli.sh"
-CLI = ("kaiki", "agentic-node", "agentic-cli", "agentic-mcp")
+CLI = ("kaiki", "kaiki-agentic-node", "agentic-cli", "agentic-mcp")
 APP = ("agentic-desktop", *CLI)
 IDENTIFIERS = {"agentic-desktop": "net.agenticinternet.desktop", "kaiki": "net.agenticinternet.desktop",
-               "agentic-node": "net.agenticinternet.agentic-node",
+               # The daemon's file is named for Activity Monitor; its identifier stays.
+               "kaiki-agentic-node": "net.agenticinternet.agentic-node",
                "agentic-cli": "net.agenticinternet.agentic-cli",
                "agentic-mcp": "net.agenticinternet.agentic-mcp"}
 DEVELOPER_ID = "Developer ID Application: Test (TESTTEAM)"
@@ -140,7 +141,7 @@ class AdHocBinaries(unittest.TestCase):
             for name in names:
                 shutil.copy2(work / "dummy", directory / name)  # the linker's ad-hoc signature
         # Ad-hoc even with the right identifier, and one not signed at all.
-        for name in ("kaiki", "agentic-node", "agentic-cli"):
+        for name in ("kaiki", "kaiki-agentic-node", "agentic-cli"):
             subprocess.run(["codesign", "--force", "--sign", "-", "--identifier", IDENTIFIERS[name],
                             str(release / name)], check=True, capture_output=True)
         subprocess.run(["codesign", "--remove-signature", str(release / "agentic-mcp")], check=True)

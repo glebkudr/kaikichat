@@ -173,7 +173,7 @@ class SealedBuildTests(unittest.TestCase):
         self.artifacts = {'bundle': self.root / 'target/release/bundle/macos/Kaiki Chat.app'}
         bundle = self.artifacts['bundle'] / 'Contents/MacOS'
         bundle.mkdir(parents=True)
-        for name in ('agentic-desktop', 'agentic-node', 'agentic-mcp', 'agentic-cli'):
+        for name in ('agentic-desktop', 'kaiki-agentic-node', 'agentic-mcp', 'agentic-cli'):
             binary = bundle / name
             binary.write_bytes(('built ' + name).encode())
             binary.chmod(0o755)

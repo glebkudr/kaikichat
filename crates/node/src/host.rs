@@ -109,7 +109,7 @@ pub struct HostConfig {
     pub data_dir: PathBuf,
     pub node_binary: PathBuf,
     pub listen: Vec<String>,
-    /// More `agentic-node serve` flags (bootstrap, chain, identity server).
+    /// More `kaiki-agentic-node serve` flags (bootstrap, chain, identity server).
     pub serve_args: Vec<String>,
 }
 pub struct DesktopHost {
@@ -535,7 +535,7 @@ impl DaemonFlags {
         )
     }
 
-    /// The `agentic-node serve` flags besides the listen addresses.
+    /// The `kaiki-agentic-node serve` flags besides the listen addresses.
     pub fn serve_args(&self) -> Vec<String> {
         let mut args = Vec::new();
         for bootstrap in &self.bootstrap {

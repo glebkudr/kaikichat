@@ -73,7 +73,7 @@ impl Node {
         self.root.path().join("node.sock")
     }
     fn launch(&mut self) {
-        let mut cmd = Command::new(env!("CARGO_BIN_EXE_agentic-node"));
+        let mut cmd = Command::new(env!("CARGO_BIN_EXE_kaiki-agentic-node"));
         cmd.arg("serve")
             .arg("--profile")
             .arg(self.root.path().join("profile.db"))

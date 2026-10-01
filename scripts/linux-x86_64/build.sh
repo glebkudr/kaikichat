@@ -14,7 +14,7 @@ target=$(rustc --print host-tuple)
 if [ "$mode" = release ]; then
   storage run cargo build --locked --release -p agentic-node --bins
   mkdir -p apps/desktop/src-tauri/binaries
-  for name in agentic-node agentic-mcp agentic-cli kaiki; do
+  for name in kaiki-agentic-node agentic-mcp agentic-cli kaiki; do
     cp "target/release/$name" "apps/desktop/src-tauri/binaries/$name-$target"
   done
   storage run sh -c 'cd apps/desktop && node node_modules/@tauri-apps/cli/tauri.js build --ci --bundles deb --config src-tauri/tauri.bundle.conf.json -- --locked'

@@ -47,7 +47,7 @@ refused, never chmodded. It holds:
 - Under `.bootstrap.lock` (waiting up to 20 seconds for another start), the
   host asks `node_info` over `node.sock`. A running daemon whose listeners
   are ready is reused.
-- Otherwise it starts `agentic-node serve --profile … --ipc … --secrets-stdin`
+- Otherwise it starts `kaiki-agentic-node serve --profile … --ipc … --secrets-stdin`
   with the saved listen addresses and flags (taking the network from the
   signed preset when the profile has none), writes the secret as one JSON
   line on the child's stdin and removes the password variables from its

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Signs the command line's macOS binaries with the Developer ID before
 # publish-cli.sh packs them, or checks that a build is signed so:
-#   macos-sign-cli.sh DIR                 sign DIR's kaiki, agentic-node, agentic-cli, agentic-mcp
+#   macos-sign-cli.sh DIR                 sign DIR's kaiki, kaiki-agentic-node, agentic-cli, agentic-mcp
 #   macos-sign-cli.sh --check PATH...     check such a DIR, or an app bundle's executables
 #   macos-sign-cli.sh --identifier NAME   print the identifier NAME is signed with
 # Each binary gets the hardened runtime, a timestamp and a stable identifier
@@ -13,14 +13,16 @@
 # exists, as in macos-notarize.sh; the check needs none.
 set -euo pipefail
 usage() { echo "usage: $0 DIR | --check DIR|APP.app... | --identifier NAME" >&2; exit 2; }
-cli=(kaiki agentic-node agentic-cli agentic-mcp)
+cli=(kaiki kaiki-agentic-node agentic-cli agentic-mcp)
 # The one table of identifiers, for macos-notarize.sh too. kaiki reads the
 # profile key the app keeps in the Keychain; only code with the app's
-# identifier and team reads it without the password dialog.
+# identifier and team reads it without the password dialog. The daemon's file
+# was renamed kaiki-agentic-node for Activity Monitor; its identifier stays.
 identifier() {
   case $1 in
     agentic-desktop|kaiki) echo net.agenticinternet.desktop ;;
-    agentic-node|agentic-cli|agentic-mcp) echo "net.agenticinternet.$1" ;;
+    kaiki-agentic-node) echo net.agenticinternet.agentic-node ;;
+    agentic-cli|agentic-mcp) echo "net.agenticinternet.$1" ;;
     *) return 1 ;;
   esac
 }

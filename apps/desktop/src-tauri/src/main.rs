@@ -40,7 +40,7 @@ fn profile(app: &tauri::App) -> Result<ProfileConfig, Box<dyn std::error::Error>
     let node_binary = std::env::current_exe()?
         .parent()
         .ok_or("desktop binary has no parent directory")?
-        .join("agentic-node");
+        .join("kaiki-agentic-node");
     #[cfg(feature = "e2e")]
     {
         let _ = app;

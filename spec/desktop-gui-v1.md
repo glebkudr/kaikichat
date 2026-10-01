@@ -34,7 +34,7 @@ project; the bundle identifier and the data directory stay
     program for the keychain (the same Developer ID and identifier), so a
     key either saved opens silently in the other.
 - **The daemon.** The window and the CLI start the daemon the same way: under
-  the profile's start lock, the first one starts `agentic-node serve` with the
+  the profile's start lock, the first one starts `kaiki-agentic-node serve` with the
   flags saved in `daemon.json` (listen addresses, bootstrap peers, chain,
   identity server), and the others use it through `node.sock`.
   - Closing the window leaves the daemon running.
@@ -138,7 +138,7 @@ signing seed or the password.
   then `buy`. A book or step the daemon gave no call for is
   `unknown_payment`. The price is shown in USD and the calls for copying.
 - `owner_cli` answers how an agent runs the owner CLI on this profile:
-  `{command, args}`, the `kaiki` binary beside the app's `agentic-node` (the
+  `{command, args}`, the `kaiki` binary beside the app's `kaiki-agentic-node` (the
   app's bundle is not on PATH) and `--data-dir DIR` only when the profile is
   not the one the CLI opens by itself. The window builds the agent's
   instructions from it.
@@ -275,7 +275,7 @@ the app's own scripts.
 
 ## Distribution
 
-- macOS: `Kaiki Chat.app` with `agentic-node`, `kaiki`, `agentic-cli` and
+- macOS: `Kaiki Chat.app` with `kaiki-agentic-node`, `kaiki`, `agentic-cli` and
   `agentic-mcp` beside the app binary.
 - Linux x86_64: a `.deb` named after the product (`kaiki-chat`) with the
   same binaries; it depends on WebKitGTK 4.1

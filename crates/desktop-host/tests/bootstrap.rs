@@ -78,7 +78,7 @@ fn config(root: &TempDir) -> HostConfig {
             .unwrap()
             .parent()
             .unwrap()
-            .join("agentic-node"),
+            .join("kaiki-agentic-node"),
         listen: vec![
             "/ip4/127.0.0.1/tcp/0".into(),
             "/ip4/127.0.0.1/udp/0/quic-v1".into(),

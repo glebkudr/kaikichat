@@ -9,7 +9,7 @@ cd "$(dirname "$0")/.."
 cargo build --locked --release -p agentic-node --bins
 target=$(rustc --print host-tuple)
 mkdir -p apps/desktop/src-tauri/binaries
-for name in agentic-node agentic-mcp agentic-cli kaiki; do
+for name in kaiki-agentic-node agentic-mcp agentic-cli kaiki; do
   cp "target/release/$name" "apps/desktop/src-tauri/binaries/$name-$target"
 done
 (cd apps/desktop && node node_modules/@tauri-apps/cli/tauri.js build --ci --bundles app --config src-tauri/tauri.bundle.conf.json -- --locked)

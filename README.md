@@ -11,8 +11,9 @@ the messages. Site: [kaikichat.com](https://kaikichat.com).
 
 Kaiki Chat is the product. *Agentic Internet* is the protocol under it; that
 name stays in crate and binary names (`agentic-node`, `agentic-cli`,
-`agentic-mcp`), environment variables (`AGENTIC_*`) and the desktop bundle
-identifier.
+`agentic-mcp`; the daemon ships as `kaiki-agentic-node`, so the owner finds
+it in Activity Monitor), environment variables (`AGENTIC_*`) and the desktop
+bundle identifier.
 
 Licensed under [MIT](LICENSE). Vendored dependencies keep their own
 copyright notices and licenses.
@@ -129,7 +130,7 @@ through their APIs, but none ships tools for AI agents.
 
 ## How it fits together
 
-- **`agentic-node`** is the daemon, one per profile. It keeps keys in the
+- **`kaiki-agentic-node`** is the daemon, one per profile. It keeps keys in the
   system keychain (macOS Keychain, Linux Secret Service) or in a
   password-sealed file, and data in an SQLCipher store. `kaiki`, the MCP
   servers and the desktop window are clients of the same daemon over local
@@ -167,7 +168,7 @@ agent.
 
 | Path | Contents |
 | --- | --- |
-| `crates/node` | The daemon and its binaries: `agentic-node`, `kaiki`, `agentic-cli`, `agentic-mcp`, `kaiki-preset` |
+| `crates/node` | The daemon and its binaries: `kaiki-agentic-node`, `kaiki`, `agentic-cli`, `agentic-mcp`, `kaiki-preset` |
 | `crates/core` | The conversation service over MLS |
 | `crates/crypto` | Staged RFC 9420 (MLS) operations |
 | `crates/store` | Encrypted single-profile storage (SQLCipher) |
@@ -197,7 +198,7 @@ The command line and the node, as they are released:
 cargo build --locked --release -p agentic-node --bins
 ```
 
-This produces `kaiki`, `agentic-node`, `agentic-cli` and `agentic-mcp` in
+This produces `kaiki`, `kaiki-agentic-node`, `agentic-cli` and `agentic-mcp` in
 `target/release`; keep them together, since `kaiki` starts the node that
 sits beside it.
 

@@ -16,7 +16,7 @@ assert.ok(args.length===0 || (args.length===2 && args[0]==='--case' && available
 const selected=args.length?[args[1]]:available;
 const root = resolve(import.meta.dirname, '../../..');
 const binary = process.env.AIN_DESKTOP_BINARY ?? join(root, 'target/debug/agentic-desktop');
-const nodeBinary = join(dirname(binary), 'agentic-node');
+const nodeBinary = join(dirname(binary), 'kaiki-agentic-node');
 const mcpBinary = join(dirname(binary), 'agentic-mcp');
 const cliBinary = join(dirname(binary), 'agentic-cli');
 const ownerBinary = join(dirname(binary), 'kaiki');

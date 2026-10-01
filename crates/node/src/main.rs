@@ -5,7 +5,7 @@ use std::{
 };
 use zeroize::Zeroizing;
 #[derive(Parser)]
-#[command(version, about = "Agentic Internet independent node")]
+#[command(name = env!("CARGO_BIN_NAME"), version, about = "Agentic Internet independent node")]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -97,7 +97,7 @@ enum Command {
 #[tokio::main]
 async fn main() {
     if let Err(error) = start().await {
-        eprintln!("agentic-node: {error}");
+        eprintln!("kaiki-agentic-node: {error}");
         std::process::exit(1);
     }
 }

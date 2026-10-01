@@ -3,6 +3,10 @@ name = "agentic-node"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
+# The daemon: named for Activity Monitor and ps, where the owner looks for it.
+[[bin]]
+name = "kaiki-agentic-node"
+path = "src/main.rs"
 [dependencies]
 agentic-core = { path = "../core" }
 agentic-mailbox-swarm = { path = "../mailbox-swarm" }

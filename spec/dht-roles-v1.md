@@ -13,7 +13,7 @@ client or, by the owner's choice, a DHT server. Code:
   a client. The owner's preference `dhtServer` is a boolean, false by
   default, kept in the encrypted network preferences with their revision
   check; loading an old record does not rewrite it.
-- `agentic-node serve --dht-server` makes a node without saved preferences
+- `kaiki-agentic-node serve --dht-server` makes a node without saved preferences
   a server. Once the owner saves preferences, the saved value wins over the
   flag, a saved `false` included.
 - The mode is set explicitly (`Some(Client)` or `Some(Server)`), so a

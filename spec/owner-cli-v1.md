@@ -96,7 +96,7 @@ mcp
 - `CONTACT` is a contact's name or its conversation id.
 - `--text-stdin` reads the message from stdin; one final line break (a
   here-document's) is not part of it, everything else is kept as written.
-- The chain flags are those of `agentic-node serve`: `--chain-rpc`,
+- The chain flags are those of `kaiki-agentic-node serve`: `--chain-rpc`,
   `--chain-id`, `--book-shop`, `--grant-issuer`, `--registry` and
   `--chain-confirmations`, and the optional `--operator-pool`.
 - `earnings` is for an operator whose node holds as a registry unit
@@ -208,7 +208,7 @@ mcp
   contact is looked up.
 - Concurrent commands on a stopped profile start one daemon: the start is
   serialised by a lock in the data directory, and the others use it. The
-  daemon runs as `agentic-node serve --profile <data dir>/profile.db …`.
+  daemon runs as `kaiki-agentic-node serve --profile <data dir>/profile.db …`.
 - The node's `chain_pending` and `claim_pending` are retryable (exit 4).
 - `coins buy` answers a request for one book of the profile's key, the same
   unpaid book until it is paid: `{book, key, salt, shop, chainId, count,
@@ -451,7 +451,7 @@ Scoped access for another agent through `agentic-cli` or `agentic-mcp`
 
 ## Distribution
 
-`kaiki` ships in the app bundle next to `agentic-node`, `agentic-cli` and
+`kaiki` ships in the app bundle next to `kaiki-agentic-node`, `agentic-cli` and
 `agentic-mcp`, and finds the daemon binary beside itself (`AGENTIC_NODE`
 overrides it).
 

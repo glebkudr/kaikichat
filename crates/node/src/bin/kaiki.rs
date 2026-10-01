@@ -929,9 +929,9 @@ mod owner {
                 std::env::current_exe()
                     .ok()?
                     .parent()
-                    .map(|dir| dir.join("agentic-node"))
+                    .map(|dir| dir.join("kaiki-agentic-node"))
             })
-            .ok_or_else(|| Output::unavailable("agentic-node binary not found"))?;
+            .ok_or_else(|| Output::unavailable("kaiki-agentic-node binary not found"))?;
         let listen = [
             "/ip4/0.0.0.0/udp/0/quic-v1".to_owned(),
             "/ip4/0.0.0.0/tcp/0".to_owned(),

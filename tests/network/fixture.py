@@ -10,7 +10,7 @@ import sys
 import time
 
 ROOT = Path('/tmp/ain-network-profile')
-BINARY = '/usr/local/bin/agentic-node'
+BINARY = '/usr/local/bin/kaiki-agentic-node'
 
 
 def private_json(path, value):

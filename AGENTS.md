@@ -161,8 +161,10 @@ before it is published, never only with the linker's ad-hoc signature:
 
 - the desktop app: `scripts/macos-notarize.sh` signs it inside-out,
   notarizes and staples it;
-- the command line that `scripts/publish-cli.sh macos-arm64` packs (`kaiki`,
-  `agentic-node`, `agentic-cli`, `agentic-mcp`):
+- the command line that `scripts/publish-cli.sh macos-arm64` packs through
+  `scripts/pack-cli.sh` (`kaiki`, `kaiki-agentic-node`, `agentic-cli`,
+  `agentic-mcp`, and `agentic-node` as a link to the daemon for kaiki 0.2.4
+  and older, which check that name before they update):
   `scripts/macos-sign-cli.sh target/release` signs each one with
   `codesign --force --options runtime --timestamp --identifier <identifier> --sign <Developer ID>`,
   choosing the identity as `macos-notarize.sh` does (`APPLE_SIGNING_IDENTITY`
@@ -170,8 +172,9 @@ before it is published, never only with the linker's ad-hoc signature:
 
 Both take the identifiers from the one table in `scripts/macos-sign-cli.sh`:
 `kaiki` and the app's main executable are `net.agenticinternet.desktop`,
-`agentic-node`, `agentic-cli` and `agentic-mcp` are
-`net.agenticinternet.<name>`. An explicit identifier stays the same from
+`agentic-cli` and `agentic-mcp` are `net.agenticinternet.<name>`, and the
+daemon `kaiki-agentic-node` keeps `net.agenticinternet.agentic-node` from
+before its file was renamed. An explicit identifier stays the same from
 release to release (without it codesign makes one from the file name and a
 hash, or the bare file name), so the Keychain keeps trusting an updated
 binary. `kaiki` shares the app's identifier because the Keychain lets only

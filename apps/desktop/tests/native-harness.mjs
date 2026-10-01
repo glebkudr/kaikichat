@@ -15,7 +15,7 @@ function command(pid) {
   return first===second?[first,...rest].join(' '):text;
 }
 export function createNativeHarness({binary,temporary,evidence}) {
-  const nodeBinary=join(dirname(binary),'agentic-node');
+  const nodeBinary=join(dirname(binary),'kaiki-agentic-node');
   const clients=[],daemonPids=new Map();
 const elementKey = 'element-6066-11e4-a52e-4f735466cecf';
 async function unusedPort() {
@@ -63,7 +63,8 @@ class Client {
     try {
       const data=realpathSync(this.data);
       const prefix=`${nodeBinary} serve --profile ${data}/profile.db --ipc ${data}/node.sock --secrets-stdin`;
-      for(const pid of execFileSync('pgrep',['-x','agentic-node'],{encoding:'utf8'}).trim().split(/\s+/).filter(Boolean)) {
+      // Linux keeps only 15 characters of a process name: match the command line.
+      for(const pid of execFileSync('pgrep',['-f','kaiki-agentic-node serve'],{encoding:'utf8'}).trim().split(/\s+/).filter(Boolean)) {
         try {
           const line=command(pid);
           if(line===prefix||line.startsWith(prefix+' '))daemonPids.set(Number(pid),prefix);

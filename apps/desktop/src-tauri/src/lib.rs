@@ -800,7 +800,7 @@ impl NativeBridge {
         Ok(opened)
     }
 
-    /// The owner CLI `kaiki` beside the app's `agentic-node`: the app's
+    /// The owner CLI `kaiki` beside the app's `kaiki-agentic-node`: the app's
     /// bundle is not on PATH.
     /// It runs on this profile with the returned arguments.
     fn cli(&self) -> std::result::Result<(PathBuf, Vec<String>), CommandError> {

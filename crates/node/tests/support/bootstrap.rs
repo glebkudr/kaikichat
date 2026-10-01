@@ -337,7 +337,7 @@ fn cache_wires(node: &Node) -> Vec<Vec<u8>> {
 #[test]
 fn bootstrap_rejects_a_fifth_explicit_hint_before_starting_network_service() {
     let root = TempDir::new().unwrap();
-    let mut cmd = Command::new(env!("CARGO_BIN_EXE_agentic-node"));
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_kaiki-agentic-node"));
     cmd.args(["serve", "--secrets-stdin", "--profile"])
         .arg(root.path().join("profile.db"))
         .arg("--ipc")

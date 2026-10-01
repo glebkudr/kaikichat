@@ -252,7 +252,7 @@ impl Fixture {
                 .unwrap()
                 .parent()
                 .unwrap()
-                .join("agentic-node"),
+                .join("kaiki-agentic-node"),
             listen: vec!["/ip4/127.0.0.1/tcp/0".into()],
             serve_args,
         };

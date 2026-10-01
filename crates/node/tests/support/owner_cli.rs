@@ -313,7 +313,7 @@ fn daemon_with(owner: &Owner, flag: &str) -> (u32, String) {
             .unwrap()
             .lines()
             .filter(|line| {
-                line.contains("agentic-node serve") && line.contains(path.to_str().unwrap())
+                line.contains("kaiki-agentic-node serve") && line.contains(path.to_str().unwrap())
             })
             .filter_map(|line| {
                 let (pid, command) = line.trim().split_once(' ')?;
@@ -814,7 +814,7 @@ fn concurrent_commands_on_a_stopped_profile_start_one_daemon() {
     )
     .unwrap()
     .lines()
-    .filter(|line| line.contains("agentic-node") && line.contains(&path))
+    .filter(|line| line.contains("kaiki-agentic-node") && line.contains(&path))
     .count();
     assert_eq!(daemons, 1);
 }
@@ -2421,7 +2421,10 @@ fn cli_install() -> (TempDir, std::path::PathBuf) {
     fs::create_dir_all(&bin).unwrap();
     for (name, from) in [
         ("kaiki", env!("CARGO_BIN_EXE_kaiki")),
-        ("agentic-node", env!("CARGO_BIN_EXE_agentic-node")),
+        (
+            "kaiki-agentic-node",
+            env!("CARGO_BIN_EXE_kaiki-agentic-node"),
+        ),
     ] {
         if fs::hard_link(from, bin.join(name)).is_err() {
             fs::copy(from, bin.join(name)).unwrap();
@@ -2439,7 +2442,10 @@ fn cli_archive() -> Vec<u8> {
     fs::create_dir_all(&dir).unwrap();
     for (name, target) in [
         ("kaiki", env!("CARGO_BIN_EXE_kaiki")),
-        ("agentic-node", env!("CARGO_BIN_EXE_agentic-node")),
+        (
+            "kaiki-agentic-node",
+            env!("CARGO_BIN_EXE_kaiki-agentic-node"),
+        ),
     ] {
         fs::write(
             dir.join(name),
@@ -2448,6 +2454,8 @@ fn cli_archive() -> Vec<u8> {
         .unwrap();
         fs::set_permissions(dir.join(name), fs::Permissions::from_mode(0o755)).unwrap();
     }
+    // The daemon's former name, for kaiki 0.2.4 and older (scripts/pack-cli.sh).
+    std::os::unix::fs::symlink("kaiki-agentic-node", dir.join("agentic-node")).unwrap();
     fs::write(dir.join("install.json"), r#"{"build":"cli-test"}"#).unwrap();
     fs::write(dir.join("NEW"), "the new build").unwrap();
     // Packed as scripts/publish-cli.sh packs it: no macOS metadata entries.
@@ -2513,7 +2521,7 @@ fn kaiki_tells_of_a_newer_release_and_updates_itself_when_asked() {
     let (_root, bin) = cli_install();
     let alice = server.owner(&bin.join("kaiki"));
     alice.ok(&["init", "--name", "Alice"], None);
-    let (before, _) = daemon_with(&alice, "bin/agentic-node serve");
+    let (before, _) = daemon_with(&alice, "bin/kaiki-agentic-node serve");
 
     let (code, envelope) = alice.run(&["contacts", "list"], None);
     assert_eq!(code, 0, "{envelope}");
@@ -2575,7 +2583,10 @@ fn kaiki_tells_of_a_newer_release_and_updates_itself_when_asked() {
     server.preset(3, Some(test_release(&server, "99.2.0", b"another build")));
     alice.fails(&["update"], None, 3, "hash_mismatch");
     assert_eq!(install_state(&bin), installed);
-    assert_eq!(daemon_with(&alice, "bin/agentic-node serve").0, before);
+    assert_eq!(
+        daemon_with(&alice, "bin/kaiki-agentic-node serve").0,
+        before
+    );
 
     server.preset(4, Some(test_release(&server, "99.2.0", &archive)));
     let updated = alice.ok(&["update"], None);
@@ -2588,7 +2599,7 @@ fn kaiki_tells_of_a_newer_release_and_updates_itself_when_asked() {
         "the new build"
     );
     // The new build's node: the one its script runs.
-    let node = format!("{} serve", env!("CARGO_BIN_EXE_agentic-node"));
+    let node = format!("{} serve", env!("CARGO_BIN_EXE_kaiki-agentic-node"));
     let (after, command) = daemon_with(&alice, &node);
     assert_ne!(after, before, "{command}");
     assert_eq!(alice.ok(&["daemon", "status"], None)["name"], "Alice");

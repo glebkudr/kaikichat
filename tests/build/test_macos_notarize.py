@@ -17,7 +17,7 @@ class MacosNotarize(unittest.TestCase):
             app = work / "Kaiki Chat.app"
             binaries = app / "Contents" / "MacOS"
             binaries.mkdir(parents=True)
-            for name in ("agentic-desktop", "agentic-node", "agentic-cli", "agentic-mcp", "kaiki"):
+            for name in ("agentic-desktop", "kaiki-agentic-node", "agentic-cli", "agentic-mcp", "kaiki"):
                 path = binaries / name
                 path.write_text("binary")
                 path.chmod(0o755)
@@ -60,7 +60,7 @@ elif name == "ditto":
         self.assertEqual(result.returncode, 0, result.stderr)
         signs = [call for call in commands if call[:2] == ["codesign", "--force"]]
         self.assertEqual([Path(call[-1]).name for call in signs],
-                         ["agentic-desktop", "agentic-node", "agentic-cli", "agentic-mcp", "kaiki", "Kaiki Chat.app"])
+                         ["agentic-desktop", "kaiki-agentic-node", "agentic-cli", "agentic-mcp", "kaiki", "Kaiki Chat.app"])
         for call in signs:
             self.assertIn("--timestamp", call)
             self.assertEqual(call[call.index("--options") + 1], "runtime")
@@ -68,8 +68,8 @@ elif name == "ditto":
         # Stable identifiers; kaiki shares the app's for the Keychain.
         self.assertEqual({Path(call[-1]).name: call[call.index("--identifier") + 1] for call in signs[:-1]},
                          {"agentic-desktop": "net.agenticinternet.desktop", "kaiki": "net.agenticinternet.desktop",
-                          **{name: f"net.agenticinternet.{name}"
-                             for name in ("agentic-node", "agentic-cli", "agentic-mcp")}})
+                          "kaiki-agentic-node": "net.agenticinternet.agentic-node",
+                          **{name: f"net.agenticinternet.{name}" for name in ("agentic-cli", "agentic-mcp")}})
         self.assertEqual(archive, "stapled")
         self.assertTrue(any(call[:2] == ["spctl", "--assess"] for call in commands))
 

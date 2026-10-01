@@ -22,7 +22,7 @@ COPY apps/desktop/src-tauri/build.rs apps/desktop/src-tauri/build.rs
 RUN --mount=type=cache,id=ain-nat-registry,target=/usr/local/cargo/registry \
     --mount=type=cache,id=ain-nat-linux198-target,target=/workspace/target \
     cargo build --locked --release -p agentic-node --bins --example inspect_invitation --example test_state_failure \
-    && install target/release/agentic-node target/release/agentic-mcp /usr/local/bin/ \
+    && install target/release/kaiki-agentic-node target/release/agentic-mcp /usr/local/bin/ \
     && install target/release/examples/inspect_invitation /usr/local/bin/ain-inspect-invitation \
     && install target/release/examples/test_state_failure /usr/local/bin/ain-test-state-failure
 COPY tests/network/fixture.py /usr/local/lib/ain-network-fixture.py

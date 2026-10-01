@@ -23,7 +23,7 @@ phase='host-target';
 const target=execFileSync('rustc',['--print','host-tuple'],{encoding:'utf8'}).trim();
 phase='sidecar-copy';
 const binaries=join(desktop,'src-tauri/binaries');mkdirSync(binaries,{recursive:true});
-for(const name of ['agentic-node','agentic-mcp','agentic-cli','kaiki'])copyFileSync(join(root,`target/${debug?'debug':'release'}/${name}`),join(binaries,`${name}-${target}`));
+for(const name of ['kaiki-agentic-node','agentic-mcp','agentic-cli','kaiki'])copyFileSync(join(root,`target/${debug?'debug':'release'}/${name}`),join(binaries,`${name}-${target}`));
 run('tauri',process.execPath,['node_modules/@tauri-apps/cli/tauri.js','build','--ci','--bundles','app','--config','src-tauri/tauri.bundle.conf.json',...(debug?['--debug']:[]),...(e2e?['--features','e2e']:[]),'--','--locked'],desktop);
 phase='seal';
 execFileSync('python3',[helper,'seal','--output',begun.output],{cwd:root,stdio:'inherit'});

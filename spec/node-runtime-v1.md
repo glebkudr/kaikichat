@@ -1,6 +1,6 @@
 # Node runtime (V1)
 
-`agentic-node serve` is the daemon of one profile: it holds the profile's
+`kaiki-agentic-node serve` is the daemon of one profile: it holds the profile's
 encrypted store ([store-v1.md](store-v1.md)), runs the shared application
 core ([application-core-v1.md](application-core-v1.md)) and the libp2p
 swarm, and serves its owner over a local socket. The owner CLI `kaiki`, the
@@ -12,8 +12,8 @@ desktop window and the scoped agent clients are its clients
 
 ## Start and secrets
 
-- `agentic-node serve --profile DB --ipc SOCKET --secrets-stdin [flags]`
-  (`agentic-node serve --help`): listen and public addresses, bootstrap
+- `kaiki-agentic-node serve --profile DB --ipc SOCKET --secrets-stdin [flags]`
+  (`kaiki-agentic-node serve --help`): listen and public addresses, bootstrap
   peers, relays, relay-only, AutoNAT, relay server, LAN discovery, DHT
   server, chain, identity server, directory. `kaiki daemon start` saves the
   listen, bootstrap, chain, identity-server and directory flags in

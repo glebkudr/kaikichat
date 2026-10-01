@@ -61,7 +61,7 @@ print(json.dumps({"masterKey": secrets.token_hex(32), "ownerToken": secrets.toke
     while read -r route; do
         [ -n "$route" ] && args+=(--bootstrap "$route")
     done < <(routes_for "$n" "$first")
-    agentic-node "${args[@]}" <"$dir/secrets.json" > >(sed -u "s/^/[node-$n] /") 2>&1 &
+    kaiki-agentic-node "${args[@]}" <"$dir/secrets.json" > >(sed -u "s/^/[node-$n] /") 2>&1 &
     pids+=($!)
     node-info.py "$dir" "$PUBLIC_IP" "$port" >"$dir/info.json"
     python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["route"])' \

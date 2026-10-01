@@ -135,7 +135,7 @@ impl Profile {
         let opened = Arc::new(Opened::default());
         let mut bridge = NativeBridge::open(ProfileConfig {
             data_dir: self.data(),
-            node_binary: binaries().join("agentic-node"),
+            node_binary: binaries().join("kaiki-agentic-node"),
             listen: vec!["/ip4/127.0.0.1/tcp/0".into()],
             secrets,
             home: self.home(),
@@ -181,7 +181,7 @@ impl Profile {
                 .unwrap()
                 .lines()
                 .filter(|line| {
-                    line.contains("agentic-node serve")
+                    line.contains("kaiki-agentic-node serve")
                         && line.contains(&format!("{}/profile.db", data.display()))
                 })
                 .filter_map(|line| {
@@ -214,7 +214,7 @@ impl Profile {
             .unwrap()
             .lines()
             .filter(|line| {
-                line.contains("agentic-node serve")
+                line.contains("kaiki-agentic-node serve")
                     && line.contains(&format!("{}/profile.db", data.display()))
             })
             .count()
@@ -230,7 +230,10 @@ impl Drop for Profile {
         let _ = std::process::Command::new("pkill")
             .args([
                 "-f",
-                &format!("agentic-node serve --profile {}/profile.db", data.display()),
+                &format!(
+                    "kaiki-agentic-node serve --profile {}/profile.db",
+                    data.display()
+                ),
             ])
             .status();
     }

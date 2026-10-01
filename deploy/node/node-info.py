@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ask a running agentic-node for `node_info` over its IPC socket and print
+"""Ask a running kaiki-agentic-node for `node_info` over its IPC socket and print
 what the operator needs: its public route and its unit commitment.
 
     node-info.py DATA_DIR PUBLIC_IP PORT

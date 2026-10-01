@@ -75,6 +75,11 @@ fn archive(top: &str, files: &[(&str, &str)]) -> Vec<u8> {
     for (path, text) in files {
         let file = staging.path().join(top).join(path);
         fs::create_dir_all(file.parent().unwrap()).unwrap();
+        // `-> target` is a link, as scripts/pack-cli.sh keeps a former name.
+        if let Some(target) = text.strip_prefix("-> ") {
+            std::os::unix::fs::symlink(target, &file).unwrap();
+            continue;
+        }
         fs::write(&file, text).unwrap();
         let mode = if text.starts_with("#!") { 0o755 } else { 0o644 };
         fs::set_permissions(&file, fs::Permissions::from_mode(mode)).unwrap();
@@ -152,7 +157,7 @@ fn install(root: &TempDir) -> PathBuf {
     fs::create_dir_all(&bin).unwrap();
     for (name, text) in [
         ("kaiki", "#!/bin/sh\necho old kaiki\n"),
-        ("agentic-node", "#!/bin/sh\necho old node\n"),
+        ("kaiki-agentic-node", "#!/bin/sh\necho old node\n"),
         (MARKER, MARKER_TEXT),
     ] {
         fs::write(bin.join(name), text).unwrap();
@@ -165,7 +170,8 @@ fn new_cli() -> Vec<u8> {
         "kaiki",
         &[
             ("kaiki", "#!/bin/sh\necho new kaiki\n"),
-            ("agentic-node", "#!/bin/sh\necho new node\n"),
+            ("kaiki-agentic-node", "#!/bin/sh\necho new node\n"),
+            ("agentic-node", "-> kaiki-agentic-node"),
             ("agentic-mcp", "#!/bin/sh\necho new mcp\n"),
             (MARKER, MARKER_TEXT),
         ],
@@ -209,6 +215,10 @@ async fn an_install_is_replaced_by_its_announced_build() {
             ),
             (MARKER.to_owned(), MARKER_TEXT.to_owned()),
             ("kaiki".to_owned(), "#!/bin/sh\necho new kaiki\n".to_owned()),
+            (
+                "kaiki-agentic-node".to_owned(),
+                "#!/bin/sh\necho new node\n".to_owned()
+            ),
         ])
     );
     assert_eq!(
@@ -228,6 +238,22 @@ async fn an_install_is_replaced_by_its_announced_build() {
     assert_eq!(
         installed_cli(&bin.join("kaiki")).unwrap().1.build,
         "cli-test"
+    );
+    // A later build without the daemon's former name updates it too: the
+    // link is only for kaiki 0.2.4 and older.
+    let later = archive(
+        "kaiki",
+        &[
+            ("kaiki", "#!/bin/sh\necho later kaiki\n"),
+            ("kaiki-agentic-node", "#!/bin/sh\necho later node\n"),
+            (MARKER, MARKER_TEXT),
+        ],
+    );
+    let build = announced(&files, "/kaiki-cli-later.tar.gz", &later);
+    install_cli(&bin, &build).await.unwrap();
+    assert_eq!(
+        fs::read_to_string(bin.join("kaiki-agentic-node")).unwrap(),
+        "#!/bin/sh\necho later node\n"
     );
 }
 
@@ -258,20 +284,32 @@ async fn a_build_other_than_the_announced_one_changes_nothing() {
     unchanged(&bin);
 
     // The announced archive, but not of this command line: no kaiki
-    // directory, one without its binaries or its marker, or the build of
-    // another platform.
+    // directory, one without its binaries or its marker, one packed with the
+    // daemon under its former name only (its kaiki would find no daemon), or
+    // the build of another platform.
     for bytes in [
         archive("other", &[("kaiki", "#!/bin/sh\n"), (MARKER, MARKER_TEXT)]),
         archive("kaiki", &[("kaiki", "#!/bin/sh\n"), (MARKER, MARKER_TEXT)]),
         archive(
             "kaiki",
-            &[("kaiki", "#!/bin/sh\n"), ("agentic-node", "#!/bin/sh\n")],
+            &[
+                ("kaiki", "#!/bin/sh\n"),
+                ("kaiki-agentic-node", "#!/bin/sh\n"),
+            ],
         ),
         archive(
             "kaiki",
             &[
                 ("kaiki", "#!/bin/sh\n"),
                 ("agentic-node", "#!/bin/sh\n"),
+                (MARKER, MARKER_TEXT),
+            ],
+        ),
+        archive(
+            "kaiki",
+            &[
+                ("kaiki", "#!/bin/sh\n"),
+                ("kaiki-agentic-node", "#!/bin/sh\n"),
                 (MARKER, r#"{"build":"cli-other"}"#),
             ],
         ),
@@ -332,7 +370,10 @@ async fn an_app_bundle_is_replaced_whole() {
     for (path, text) in [
         ("Contents/Info.plist", "old plist"),
         ("Contents/MacOS/kaiki-chat", "#!/bin/sh\necho old app\n"),
-        ("Contents/MacOS/agentic-node", "#!/bin/sh\necho old node\n"),
+        (
+            "Contents/MacOS/kaiki-agentic-node",
+            "#!/bin/sh\necho old node\n",
+        ),
         ("Contents/Resources/gone.txt", "only in the old app"),
     ] {
         let file = bundle.join(path);
@@ -343,7 +384,10 @@ async fn an_app_bundle_is_replaced_whole() {
     let new = [
         ("Contents/Info.plist", "new plist"),
         ("Contents/MacOS/kaiki-chat", "#!/bin/sh\necho new app\n"),
-        ("Contents/MacOS/agentic-node", "#!/bin/sh\necho new node\n"),
+        (
+            "Contents/MacOS/kaiki-agentic-node",
+            "#!/bin/sh\necho new node\n",
+        ),
     ];
 
     // An archive of another app, or one without this binary, changes nothing.
