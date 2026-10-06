@@ -6,7 +6,7 @@ use super::*;
 use agentic_desktop::{ProfileConfig, Secrets};
 use agentic_desktop_host::autostart::{Approval, Autostart, Launch, Manager, Place};
 use agentic_desktop_host::network_preset::{PresetSource, public_key, sign};
-use agentic_desktop_host::stop_profile;
+use agentic_desktop_host::{KeychainUnavailable, stop_profile};
 use std::collections::HashMap;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
@@ -463,6 +463,8 @@ struct Keychain {
     items: Mutex<HashMap<String, (Vec<u8>, bool)>>,
     answer: Mutex<DialogAnswer>,
     dialogs: AtomicUsize,
+    /// Why macOS has no keychain to use, while no keychain is the default.
+    missing: Mutex<Option<String>>,
 }
 
 impl Keychain {
@@ -471,7 +473,18 @@ impl Keychain {
             items: Mutex::default(),
             answer: Mutex::new(DialogAnswer::Deny),
             dialogs: AtomicUsize::new(0),
+            missing: Mutex::default(),
         }
+    }
+    /// No keychain is the default (a renamed login keychain): every read
+    /// and write fails, as the keyring crate asks macOS for the default
+    /// keychain first.
+    fn without_default(&self, reason: &str) {
+        *self.missing.lock().unwrap() = Some(reason.into());
+    }
+    /// The owner made a keychain the default again.
+    fn default_restored(&self) {
+        *self.missing.lock().unwrap() = None;
     }
     /// Every item as if another program had saved it.
     fn saved_elsewhere(&self) {
@@ -489,6 +502,9 @@ impl Keychain {
 
 impl SecretStore for Keychain {
     fn get(&self, account: &str) -> Result<Option<Zeroizing<Vec<u8>>>> {
+        if let Some(reason) = self.missing.lock().unwrap().clone() {
+            return Err(KeychainUnavailable { reason }.into());
+        }
         let mut items = self.items.lock().unwrap();
         let Some((secret, trusted)) = items.get_mut(account) else {
             return Ok(None);
@@ -506,6 +522,9 @@ impl SecretStore for Keychain {
         Ok(Some(Zeroizing::new(secret.clone())))
     }
     fn set(&self, account: &str, secret: &[u8]) -> Result<()> {
+        if let Some(reason) = self.missing.lock().unwrap().clone() {
+            return Err(KeychainUnavailable { reason }.into());
+        }
         self.items
             .lock()
             .unwrap()
@@ -592,6 +611,87 @@ async fn a_key_another_program_saved_is_read_only_after_the_window_explains_the_
         "an always allowed app is not asked again"
     );
     assert_eq!(p.daemons(), 1);
+}
+
+/// A Mac with no default keychain (its login keychain was renamed): macOS
+/// neither gives nor keeps the profile's key, and only the owner can fix
+/// that, in Keychain Access. The window names that with macOS's reason, not as a
+/// node someone stopped; trying again changes nothing until a keychain is
+/// the default again, and then opens the profile.
+#[tokio::test]
+async fn a_mac_without_a_default_keychain_is_told_why_the_node_does_not_start() {
+    let p = Profile::new();
+    let keychain = Arc::new(Keychain::new());
+    keychain.without_default("A default keychain could not be found.");
+    let w = p.window_with(Secrets::Store(keychain.clone())).await;
+    let status = w.ok("profile_status");
+    assert_eq!(
+        (status["state"].as_str(), status["error"]["code"].as_str()),
+        (Some("unavailable"), Some("keychain_unavailable")),
+        "{status}"
+    );
+    for (method, body) in [
+        ("snapshot", json!({})),
+        ("reconnect", json!({})),
+        ("refresh_network", json!({"request":{"switch":false}})),
+    ] {
+        let refused = w.refused(method, body);
+        assert_eq!(
+            (
+                refused["code"].as_str(),
+                refused["message"].as_str(),
+                refused["retryable"].as_bool()
+            ),
+            (
+                Some("keychain_unavailable"),
+                Some("A default keychain could not be found."),
+                Some(false)
+            ),
+            "{method}: {refused}"
+        );
+    }
+    assert_eq!(p.daemons(), 0);
+
+    keychain.default_restored();
+    let opened = w.call("reconnect", json!({})).unwrap();
+    assert_eq!(opened["state"], "connected", "{opened}");
+    assert_eq!(p.daemons(), 1);
+}
+
+/// Any other reason the node does not start reaches the window as it is
+/// (`start_failed` with the reason), not as a node someone stopped; here a
+/// profile directory other users may read. Trying again is allowed.
+#[tokio::test]
+async fn a_node_that_does_not_start_tells_the_window_why() {
+    let p = Profile::new();
+    std::fs::create_dir(p.data()).unwrap();
+    std::fs::set_permissions(p.data(), std::fs::Permissions::from_mode(0o755)).unwrap();
+    let w = p.window(Some(PASSWORD)).await;
+    let status = w.ok("profile_status");
+    assert_eq!(
+        (status["state"].as_str(), status["error"]["code"].as_str()),
+        (Some("unavailable"), Some("start_failed")),
+        "{status}"
+    );
+    for (method, body) in [
+        ("snapshot", json!({})),
+        ("reconnect", json!({})),
+        ("refresh_network", json!({"request":{"switch":false}})),
+    ] {
+        let refused = w.refused(method, body);
+        assert_eq!(
+            (refused["code"].as_str(), refused["retryable"].as_bool()),
+            (Some("start_failed"), Some(true)),
+            "{method}: {refused}"
+        );
+        assert!(
+            refused["message"]
+                .as_str()
+                .is_some_and(|reason| reason.contains("private (0700)")),
+            "{method}: {refused}"
+        );
+    }
+    assert_eq!(p.daemons(), 0);
 }
 
 /// The window tells an agent how to reach this profile: the owner CLI beside

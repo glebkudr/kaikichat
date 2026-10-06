@@ -48,9 +48,17 @@ export function LocaleProvider({children,initial}:{children:ReactNode;initial?:L
 export const useLocale=()=>useContext(I18n);
 export const useT=()=>useContext(I18n).t;
 
+/** Refusals whose message is the reason itself, from the node or macOS: the
+ * owner needs it to fix the cause, so it stays beside the known text. */
+const withReason=new Set(['start_failed','keychain_unavailable']);
+
 /** An error as the owner reads it: a known refusal in the current language. */
 export function describe(t:Messages,error:unknown):string {
-  if(error instanceof CoreError)return t.errors[error.code]??error.message;
+  if(error instanceof CoreError) {
+    const known=t.errors[error.code];
+    if(!known)return error.message;
+    return withReason.has(error.code)&&error.message!==error.code?`${known} (${error.message})`:known;
+  }
   return error instanceof Error?error.message:String(error);
 }
 export function useDescribe() {

@@ -30,6 +30,23 @@ pub trait SecretStore: Send + Sync {
         Ok(false)
     }
 }
+/// The keychain is not there to use: no keychain is the default (as after
+/// a renamed login keychain), or the one named is missing, not available,
+/// damaged or read-only. Only the owner can fix that, in Keychain Access;
+/// `reason` is macOS's own words.
+#[derive(Debug)]
+pub struct KeychainUnavailable {
+    pub reason: String,
+}
+
+impl std::fmt::Display for KeychainUnavailable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.reason)
+    }
+}
+
+impl std::error::Error for KeychainUnavailable {}
+
 pub struct KeychainStore {
     service: String,
 }
@@ -49,11 +66,13 @@ impl SecretStore for KeychainStore {
         match keyring::Entry::new(&self.service, account)?.get_secret() {
             Ok(value) => Ok(Some(Zeroizing::new(value))),
             Err(keyring::Error::NoEntry) => Ok(None),
-            Err(error) => Err(error.into()),
+            Err(error) => Err(keychain_error(error)),
         }
     }
     fn set(&self, account: &str, secret: &[u8]) -> Result<()> {
-        keyring::Entry::new(&self.service, account)?.set_secret(secret)?;
+        keyring::Entry::new(&self.service, account)?
+            .set_secret(secret)
+            .map_err(keychain_error)?;
         Ok(())
     }
     /// Reads the item with the keychain's dialogs off: a refusal the dialog
@@ -68,8 +87,47 @@ impl SecretStore for KeychainStore {
         match read {
             Ok(_) | Err(keyring::Error::NoEntry) => Ok(false),
             Err(error) if needs_dialog(&error) => Ok(true),
-            Err(error) => Err(error.into()),
+            Err(error) => Err(keychain_error(error)),
         }
+    }
+}
+
+/// The keychain's refusal as this crate passes it on: a keychain that is
+/// not there to use is `KeychainUnavailable`, any other refusal as it was.
+fn keychain_error(error: keyring::Error) -> crate::NodeError {
+    #[cfg(target_os = "macos")]
+    if let Some(reason) = no_keychain(&error) {
+        return KeychainUnavailable { reason }.into();
+    }
+    error.into()
+}
+
+/// macOS's words when the keychain itself is not there to use: none is the
+/// default (errSecNoDefaultKeychain), the one named is missing
+/// (errSecNoSuchKeychain), not available (errSecNotAvailable), damaged
+/// (errSecInvalidKeychain) or read-only (errSecReadOnly).
+#[cfg(target_os = "macos")]
+fn no_keychain(error: &keyring::Error) -> Option<String> {
+    const NOT_AVAILABLE: i32 = -25291;
+    const READ_ONLY: i32 = -25292;
+    const NO_SUCH_KEYCHAIN: i32 = -25294;
+    const INVALID_KEYCHAIN: i32 = -25295;
+    const NO_DEFAULT_KEYCHAIN: i32 = -25307;
+    match error {
+        keyring::Error::PlatformFailure(inner) | keyring::Error::NoStorageAccess(inner) => inner
+            .downcast_ref::<security_framework::base::Error>()
+            .filter(|error| {
+                matches!(
+                    error.code(),
+                    NOT_AVAILABLE
+                        | READ_ONLY
+                        | NO_SUCH_KEYCHAIN
+                        | INVALID_KEYCHAIN
+                        | NO_DEFAULT_KEYCHAIN
+                )
+            })
+            .map(ToString::to_string),
+        _ => None,
     }
 }
 
@@ -875,7 +933,7 @@ mod network_status_tests {
 #[cfg(all(test, target_os = "macos"))]
 #[allow(clippy::unwrap_used)]
 mod keychain_dialog_tests {
-    use super::needs_dialog;
+    use super::{KeychainUnavailable, keychain_error, needs_dialog};
     use apple_native_keyring_store::keychain::decode_error;
     use security_framework::base::Error;
 
@@ -898,6 +956,34 @@ mod keychain_dialog_tests {
         for code in [-25300, -25294, -128] {
             assert!(
                 !needs_dialog(&decode_error(Error::from_code(code))),
+                "{code}"
+            );
+        }
+    }
+
+    /// A Mac whose keychain is not there to use (none is the default, as
+    /// after a renamed login keychain; or the one named is missing, not
+    /// available, damaged or read-only) refuses with `KeychainUnavailable`
+    /// in macOS's own words: only the owner can fix that. A refusal the
+    /// dialog would lift and a cancelled dialog stay what they were.
+    #[test]
+    fn a_keychain_that_is_not_there_is_a_refusal_of_its_own() {
+        for code in [-25307, -25294, -25291, -25295, -25292] {
+            let error = keychain_error(decode_error(Error::from_code(code)));
+            let refusal = error
+                .downcast_ref::<KeychainUnavailable>()
+                .unwrap_or_else(|| panic!("{code}: {error}"));
+            assert_eq!(refusal.reason, Error::from_code(code).to_string(), "{code}");
+        }
+        for code in [-25293, -25308, -128] {
+            let error = keychain_error(decode_error(Error::from_code(code)));
+            assert!(
+                error.downcast_ref::<KeychainUnavailable>().is_none(),
+                "{code}: {error}"
+            );
+            assert_eq!(
+                error.to_string(),
+                decode_error(Error::from_code(code)).to_string(),
                 "{code}"
             );
         }

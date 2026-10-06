@@ -1,7 +1,9 @@
 import {networkFixture} from './network-fixture';
 // UI-only visual fixture. Never imported by the production entry point.
-// `?state=locked|new|keychain|stopped|onboarding|coins|elsewhere|again|home` shows the profile gates
-// (`keychain`: a key another program saved, which macOS asks about first)
+// `?state=locked|new|keychain|nokeychain|stopped|failed|onboarding|coins|elsewhere|again|home` shows the profile gates
+// (`keychain`: a key another program saved, which macOS asks about first;
+// `nokeychain`: a Mac with no default keychain for the key; `failed`: a
+// node that did not start)
 // (`?release=newer|download|failed` a newer release;
 // `?autostart=off|blocked|none` opening at login;
 // `?move=offered|failed` an app outside the Applications folder)
@@ -81,6 +83,7 @@ network.status.bootstrap.routes=['/ip4/51.91.126.3/udp/4105/quic-v1/p2p/12D3KooW
 let keychain=state==='keychain';
 const status=():ProfileStatus=>state==='locked'?{state:'locked',secrets:'file',newProfile:false}:state==='new'?{state:'locked',secrets:'file',newProfile:true}:keychain?{state:'keychain',secrets:'keychain'}:{state:'connected',secrets:'keychain'};
 let locked=state==='locked'||state==='new';let stopped=state==='stopped';
+let idle=state==='failed'?{code:'start_failed',message:'profile directory must be private (0700)',retryable:true}:state==='nokeychain'?{code:'keychain_unavailable',message:'A default keychain could not be found.',retryable:false}:null;
 /** kaikichat.com's preset as `?preset=` shows it: current (default),
  * unavailable, switch or update. */
 let presetState=params.get('preset')??'current';
@@ -108,7 +111,7 @@ let release:Release={current:'0.2.0',latest:releaseState==='current'?'0.2.0':'0.
 const api:DesktopApi={
   profileStatus:async()=>status(),
   unlockProfile:async()=>{locked=false;return {state:'connected',secrets:'file'};},
-  reconnect:async()=>{stopped=false;return {state:'connected',secrets:'keychain'};},
+  reconnect:async()=>{stopped=false;idle=null;return {state:'connected',secrets:'keychain'};},
   // macOS's own dialog never shows here: going on opens the profile.
   openKeychain:async()=>{keychain=false;return {state:'connected',secrets:'keychain'};},
   networkPreset:async()=>networkPreset(),
@@ -124,7 +127,7 @@ const api:DesktopApi={
   moveOffer:async()=>moveState!=='none',
   // The moved app quits and opens from its new place: no answer comes.
   moveToApplications:()=>moveState==='failed'?refusal('move_failed','ditto: Permission denied'):new Promise<void>(()=>{}),
-  snapshot:async()=>locked?refusal('profile_locked','locked'):keychain?refusal('keychain_consent','keychain'):stopped?refusal('daemon_unavailable','stopped',true):structuredClone(snapshot),
+  snapshot:async()=>locked?refusal('profile_locked','locked'):keychain?refusal('keychain_consent','keychain'):idle?refusal(idle.code,idle.message,idle.retryable):stopped?refusal('daemon_unavailable','stopped',true):structuredClone(snapshot),
   conversationHistory:async({conversationId})=>({conversationId,messages:structuredClone(snapshot.conversations.find(c=>c.id===conversationId)?.messages??[]),nextBefore:null}),
   networkSettings:async()=>structuredClone(network),
   configureNetwork:async(request)=>{network={...network,revision:network.revision+1,preferences:request.preferences};return structuredClone(network);},

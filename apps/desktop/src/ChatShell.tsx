@@ -6,7 +6,7 @@ import {ContactsPanel} from './ContactsPanel';
 import {GroupPanel,NewGroupPanel} from './GroupPanel';
 import {WalletPanel} from './WalletPanel';
 import {DiscoverPanel} from './DiscoverPanel';
-import {KeychainScreen,Onboarding,UnlockScreen} from './Onboarding';
+import {KeychainScreen,NoKeychainScreen,Onboarding,UnlockScreen} from './Onboarding';
 import {StartHere} from './StartHere';
 import {RecommendedPending} from './Recommended';
 import {MoveNotice} from './MoveApp';
@@ -15,13 +15,23 @@ import {NavMenu} from './NavMenu';
 import {NetworkNotice} from './NetworkPreset';
 import {ReleaseNotice} from './Release';
 import {useMessageHistory} from './useMessageHistory';
-import {isCode} from './core-error';
+import {CoreError,isCode} from './core-error';
 import {shortId} from './group-roles';
 import {LanguageSelect,LocaleProvider,useDescribe,useT,type Locale} from './i18n';
 import type {DesktopApi,Follow,Group,ProfileStatus,Snapshot} from './types';
 
 type Panel='chat'|'contacts'|'new-group'|'group'|'agents'|'wallet'|'network'|'discover';
-type Gate={kind:'loading'}|{kind:'locked';status:ProfileStatus}|{kind:'keychain'}|{kind:'stopped'}|{kind:'failed'}|{kind:'ready'};
+type Gate={kind:'loading'}|{kind:'locked';status:ProfileStatus}|{kind:'keychain'}|{kind:'no-keychain';reason:string}|{kind:'stopped';reason?:string}|{kind:'failed'}|{kind:'ready'};
+
+/** The screen of a node that does not run: stopped by someone, did not
+ * start (with the reason), or no keychain for the profile's key. */
+function idleGate(error:unknown):Gate|undefined {
+  if(!(error instanceof CoreError))return undefined;
+  if(error.code==='keychain_unavailable')return {kind:'no-keychain',reason:error.message};
+  if(error.code==='start_failed')return {kind:'stopped',reason:error.message};
+  if(error.code==='daemon_unavailable')return {kind:'stopped'};
+  return undefined;
+}
 
 /** The owner's window, in the language the owner chose (English at first). */
 export function ChatShell({api,locale}:{api:DesktopApi;locale?:Locale}) {
@@ -61,8 +71,11 @@ function Shell({api}:{api:DesktopApi}) {
         try {const status=await api.profileStatus();if(current===generation.current)setGate({kind:'locked',status});}
         catch(inner){setError(errorText(inner));setGate({kind:'failed'});}
       } else if(isCode(err,'keychain_consent'))setGate({kind:'keychain'});
-      else if(isCode(err,'daemon_unavailable'))setGate({kind:'stopped'});
-      else {setError(errorText(err));setGate(previous=>previous.kind==='ready'?previous:{kind:'failed'});}
+      else {
+        const idle=idleGate(err);
+        if(idle)setGate(idle);
+        else {setError(errorText(err));setGate(previous=>previous.kind==='ready'?previous:{kind:'failed'});}
+      }
     }
   },[api,errorText]);
   useEffect(()=>{void reload(); const stop=api.subscribe(()=>{void reload();}); return ()=>{++generation.current;stop();};},[api,reload]);
@@ -95,7 +108,7 @@ function Shell({api}:{api:DesktopApi}) {
   async function restart() {
     setBusy(true);setError('');
     try {await api.reconnect();await reload();}
-    catch(err){setError(errorText(err));}
+    catch(err){const idle=idleGate(err);if(idle)setGate(idle);else setError(errorText(err));}
     finally {setBusy(false);}
   }
   const identity=snapshot?.identity;
@@ -131,7 +144,8 @@ function Shell({api}:{api:DesktopApi}) {
       {notice}
       {gate.kind==='locked'?<UnlockScreen api={api} status={gate.status} onOpened={()=>void reload()}/>:
       gate.kind==='keychain'?<KeychainScreen api={api} onOpened={()=>void reload()}/>:
-      gate.kind==='stopped'?<section className="empty"><span className="eyebrow">{t.shell.stoppedEyebrow}</span><h2>{t.shell.stoppedTitle}</h2><p>{t.shell.stoppedText}</p><button disabled={busy} onClick={()=>void restart()}>{busy?t.shell.starting:t.shell.startNode}</button></section>:
+      gate.kind==='no-keychain'?<NoKeychainScreen reason={gate.reason} busy={busy} onRetry={()=>void restart()}/>:
+      gate.kind==='stopped'?<section className="empty"><span className="eyebrow">{t.shell.stoppedEyebrow}</span><h2>{gate.reason?t.shell.startFailedTitle:t.shell.stoppedTitle}</h2>{gate.reason?<><p>{t.shell.startFailedText}</p><p className="failure-reason" dir="auto">{gate.reason}</p></>:<p>{t.shell.stoppedText}</p>}<button disabled={busy} onClick={()=>void restart()}>{busy?t.shell.starting:gate.reason?t.shell.retryStart:t.shell.startNode}</button></section>:
       !ready?<section className="empty"><span className="eyebrow">{t.shell.coreEyebrow}</span><h2>{gate.kind==='failed'?t.shell.coreUnavailable:t.shell.coreConnecting}</h2><p>{t.shell.coreHint}</p>{gate.kind==='failed'&&<button onClick={()=>{setError('');void reload();}}>{t.shell.retryConnect}</button>}</section>:
       !identity?null:
       panel==='network'?<SettingsPanel api={api} onBack={()=>setPanel('chat')}/>:

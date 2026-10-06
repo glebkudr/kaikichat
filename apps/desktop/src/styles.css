@@ -234,3 +234,4 @@ button.link:hover{background:transparent;color:var(--gf2)}
 .read-only-note{font-size:12px;color:var(--g8d)}
 .start-actions{justify-content:flex-start;flex-wrap:wrap;margin-top:22px}
 .start-actions .start-group{margin-top:0}
+.empty p.failure-reason{align-self:stretch;margin:-14px 0 30px;padding:12px 14px;font-family:ui-monospace,monospace;font-size:12px;line-height:1.6;color:var(--gbb);background:var(--g12);border:1px solid var(--g2e);border-radius:4px;white-space:pre-wrap;overflow-wrap:anywhere}

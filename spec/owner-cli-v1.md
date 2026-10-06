@@ -16,7 +16,7 @@ newer release of Kaiki Chat is known and not skipped, the envelope also has
 | Code | When |
 |---|---|
 | 0 | success |
-| 2 | invalid arguments or input, or local secrets that cannot be opened (`secrets_locked`) |
+| 2 | invalid arguments or input, or local secrets that cannot be opened (`secrets_locked`, `keychain_unavailable`) |
 | 3 | a final refusal (`unknown_contact`, `profile_exists`, `chain_not_configured`, …) |
 | 4 | retryable: the daemon is unavailable, or the node asks to try again (`chain_pending`, `claim_pending`) |
 
@@ -465,6 +465,10 @@ overrides it).
     desktop's service name. When another program saved the key (the app
     signed otherwise, an older `kaiki`), macOS asks the owner before it gives
     it; `kaiki` finds that without asking and first says so on stderr.
+    A Mac whose keychain cannot keep or give the key (none is the default,
+    or it is missing, not available, damaged or read-only) is
+    `keychain_unavailable` (exit 2): macOS's own words and what to do in
+    Keychain Access.
   - `file`: `secrets.json` in the data directory (mode 0600):
     `{"version": 1, "kdf": "argon2id", "salt", "nonce", "ciphertext"}`
     (hex).

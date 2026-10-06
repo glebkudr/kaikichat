@@ -6,9 +6,10 @@ mod owner {
     use agentic_node::autostart::{Autostart, Launch, Place, SystemApproval};
     use agentic_node::discover::{self, handles_from};
     use agentic_node::host::{
-        DaemonFlags, DesktopHost, KeychainStore, SERVICE, SKILL_ROOTS, SecretStore, SecretsBackend,
-        asks_before_opening, connect_profile, default_data_dir, network_status, owner_skill,
-        password_from_env, platform_data_dir, restart_profile, stop_profile,
+        DaemonFlags, DesktopHost, KeychainStore, KeychainUnavailable, SERVICE, SKILL_ROOTS,
+        SecretStore, SecretsBackend, asks_before_opening, connect_profile, default_data_dir,
+        network_status, owner_skill, password_from_env, platform_data_dir, restart_profile,
+        stop_profile,
     };
     use agentic_node::network_preset::{self, NoNetworkOffer, PresetSource, ReleaseStatus};
     use agentic_node::secrets_file::{PasswordFileStore, SecretsLocked};
@@ -750,6 +751,16 @@ mod owner {
     fn host_error(error: &(dyn std::error::Error + 'static)) -> Output {
         if error.downcast_ref::<SecretsLocked>().is_some() {
             return Output::invalid("secrets_locked", &error.to_string());
+        }
+        // Trying again changes nothing until the owner sets a keychain.
+        if let Some(keychain) = error.downcast_ref::<KeychainUnavailable>() {
+            return Output::invalid(
+                "keychain_unavailable",
+                &format!(
+                    "{} kaiki keeps the profile's key in the macOS keychain: in Keychain Access select the login keychain, make it the default from the File menu and try again.",
+                    keychain.reason
+                ),
+            );
         }
         Output::unavailable(&error.to_string())
     }
@@ -3302,6 +3313,56 @@ mod owner {
                 }
                 .into())
             }
+        }
+    }
+
+    #[cfg(test)]
+    #[allow(clippy::unwrap_used)]
+    mod tests {
+        use super::host_error;
+        use agentic_node::host::KeychainUnavailable;
+
+        /// A Mac without a keychain to keep the profile's key in: every
+        /// command that opens the profile names that, in macOS's words and
+        /// with what to do, as final (exit 2, not retryable: trying again
+        /// changes nothing until the owner sets a default keychain). Any
+        /// other reason a daemon does not start stays retryable.
+        #[test]
+        fn a_missing_keychain_is_named_with_what_to_do() {
+            let output = host_error(&KeychainUnavailable {
+                reason: "A default keychain could not be found.".into(),
+            });
+            let error = &output.value["error"];
+            assert_eq!(
+                (
+                    output.code,
+                    error["code"].as_str(),
+                    error["retryable"].as_bool()
+                ),
+                (2, Some("keychain_unavailable"), Some(false)),
+                "{error}"
+            );
+            let message = error["message"].as_str().unwrap();
+            assert!(
+                message.starts_with("A default keychain could not be found.")
+                    && message.contains("Keychain Access"),
+                "{message}"
+            );
+
+            let other: agentic_node::NodeError =
+                "profile key is missing from system keychain; restore the key before opening"
+                    .into();
+            let output = host_error(other.as_ref());
+            let error = &output.value["error"];
+            assert_eq!(
+                (
+                    output.code,
+                    error["code"].as_str(),
+                    error["retryable"].as_bool()
+                ),
+                (4, Some("unavailable"), Some(true)),
+                "{error}"
+            );
         }
     }
 }

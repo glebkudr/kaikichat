@@ -54,6 +54,21 @@ export function KeychainScreen({api,onOpened}:{api:DesktopApi;onOpened:()=>void}
   </section>;
 }
 
+/** A Mac whose keychain cannot keep the profile's key (none is the
+ * default, or it does not open): only the owner can fix that, in Keychain
+ * Access, so the window says how, with macOS's own words, and tries again. */
+export function NoKeychainScreen({reason,busy,onRetry}:{reason:string;busy:boolean;onRetry:()=>void}) {
+  const t=useT();
+  return <section className="empty onboarding" aria-labelledby="no-keychain-title">
+    <span className="eyebrow">{t.keychain.eyebrow}</span>
+    <h2 id="no-keychain-title">{t.keychainMissing.title}</h2>
+    <p>{t.keychainMissing.text}</p>
+    <p>{t.keychainMissing.steps(t.shell.retryStart)}</p>
+    <p className="failure-reason">{t.keychainMissing.says} <bdi>{reason}</bdi></p>
+    <button disabled={busy} onClick={onRetry}>{busy?t.shell.starting:t.shell.retryStart}</button>
+  </section>;
+}
+
 type Step='welcome'|'name'|'login'|'recommended'|'agent'|'invite';
 const steps:Step[]=['welcome','name','login','recommended','agent','invite'];
 

@@ -114,6 +114,14 @@ describe('localization tables',()=>{
     expect(describeError(locales.ru,refusal)).toBe(locales.ru.errors.network_unavailable);
     expect(describeError(locales.en,new CoreError('brand_new_code','as the daemon said',false))).toBe('as the daemon said');
   });
+  it('keeps the reason a node did not start in every language: the owner needs it to fix the cause',()=>{
+    const reasons=[new CoreError('start_failed','profile directory must be private (0700)',true),new CoreError('keychain_unavailable','A default keychain could not be found.',false)];
+    for(const [code,table] of Object.entries(locales))for(const refusal of reasons) {
+      const text=describeError(table,refusal);
+      expect(text,code).toContain(table.errors[refusal.code]);
+      expect(text,code).toContain(refusal.message);
+    }
+  });
 });
 
 describe('language choice',()=>{

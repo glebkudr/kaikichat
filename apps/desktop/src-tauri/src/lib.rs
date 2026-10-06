@@ -8,8 +8,9 @@ use agentic_desktop_host::network_preset::{
 use agentic_desktop_host::relocate::{self, SystemTrash};
 use agentic_desktop_host::update::{self, UpdateError};
 use agentic_desktop_host::{
-    DesktopHost, PasswordFileStore, SKILL_ROOTS, SecretStore, SecretsLocked, asks_before_opening,
-    connect_profile, discover, owner_skill, platform_data_dir, restart_profile, stop_profile,
+    DesktopHost, KeychainUnavailable, PasswordFileStore, SKILL_ROOTS, SecretStore, SecretsLocked,
+    asks_before_opening, connect_profile, discover, owner_skill, platform_data_dir,
+    restart_profile, stop_profile,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -21,14 +22,16 @@ use std::time::{Duration, Instant};
 use tauri::{Emitter, Manager, Runtime, State, WebviewWindow};
 use zeroize::Zeroizing;
 
-/// Daemon answers that ask to try again, as for the CLI; and a stopped daemon.
-const RETRYABLE: [&str; 6] = [
+/// Daemon answers that ask to try again, as for the CLI; a stopped daemon,
+/// and one that did not start.
+const RETRYABLE: [&str; 7] = [
     "chain_pending",
     "claim_pending",
     "network_unavailable",
     "card_pending",
     "group_busy",
     "daemon_unavailable",
+    "start_failed",
 ];
 /// How long a command waits while the node looks for members' cards.
 const CARD_WAIT: Duration = Duration::from_secs(75);
@@ -161,6 +164,15 @@ impl SecretStore for Watched {
     }
     fn set(&self, account: &str, secret: &[u8]) -> agentic_desktop_host::Result<()> {
         self.store.set(account, secret)
+    }
+}
+
+/// Why the daemon did not start, as the window shows it: a keychain only the
+/// owner can fix, in macOS's words; any other reason as it was said.
+fn start_failure(error: &(dyn std::error::Error + 'static)) -> CommandError {
+    match error.downcast_ref::<KeychainUnavailable>() {
+        Some(keychain) => CommandError::new("keychain_unavailable", keychain.reason.clone()),
+        None => CommandError::new("start_failed", error.to_string()),
     }
 }
 
@@ -332,7 +344,7 @@ impl NativeBridge {
                 CommandError::new("secrets_locked", "The password does not open this profile"),
             ),
             Err(error) => {
-                let failure = CommandError::new("daemon_unavailable", error.to_string());
+                let failure = start_failure(error.as_ref());
                 *link = Link {
                     vault: Some(vault),
                     failure: Some(failure.clone()),
@@ -686,7 +698,7 @@ impl NativeBridge {
                 return Err(CommandError::new("no_network_offer", error.to_string()));
             }
             Err(error) => {
-                let failure = CommandError::new("daemon_unavailable", error.to_string());
+                let failure = start_failure(error.as_ref());
                 link.host = None;
                 link.failure = Some(failure.clone());
                 return Err(failure);

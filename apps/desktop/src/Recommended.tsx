@@ -16,7 +16,7 @@ export async function take(api:DesktopApi,r:Recommended) {
 
 // Refusals that pass: no book yet (the free messages are on their way), the
 // network or the node away for now.
-const waiting=new Set(['book_required','network_unavailable','card_pending','unavailable','daemon_unavailable']);
+const waiting=new Set(['book_required','network_unavailable','card_pending','unavailable','daemon_unavailable','keychain_unavailable']);
 const shouldWait=(error:unknown)=>error instanceof CoreError&&(error.retryable||waiting.has(error.code));
 
 const storageKey='agentic.recommended.pending';

@@ -33,11 +33,20 @@ project; the bundle identifier and the data directory stay
     `keychain_denied` and the explanation stays. The app and `kaiki` are one
     program for the keychain (the same Developer ID and identifier), so a
     key either saved opens silently in the other.
+  - A Mac whose keychain cannot keep or give the key (none is the default,
+    as after a renamed login keychain; or it is missing, not available,
+    damaged or read-only) is `keychain_unavailable`, with macOS's own words
+    as the message. The window says what to do in Keychain Access and tries
+    again on the owner's word; nothing starts meanwhile.
 - **The daemon.** The window and the CLI start the daemon the same way: under
   the profile's start lock, the first one starts `kaiki-agentic-node serve` with the
   flags saved in `daemon.json` (listen addresses, bootstrap peers, chain,
   identity server), and the others use it through `node.sock`.
   - Closing the window leaves the daemon running.
+  - A daemon that could not be started is `start_failed` with the reason as
+    the message; the window shows the reason and tries again on the owner's
+    word. `daemon_unavailable` is only a daemon that stopped (someone ran
+    `kaiki daemon stop`, say): the window does not start it on its own.
 - **Start at login.** The installed app (the macOS bundle, the Linux
   package) opens when the owner logs in, on the profile it opens by itself;
   a build, the E2E build and a profile named by `AGENTIC_DATA_DIR` do not.
@@ -120,10 +129,11 @@ signing seed or the password.
 
 - A refusal is `{code, message, retryable}`: the daemon's code, or
   `profile_locked`, `secrets_locked`, `keychain_consent`, `keychain_denied`,
-  `daemon_unavailable`, `unsafe_link`,
+  `keychain_unavailable`, `daemon_unavailable`, `start_failed`, `unsafe_link`,
   `unknown_payment`, `cli_unavailable` from the native side. Retryable are `chain_pending`,
-  `claim_pending`, `network_unavailable`, `card_pending`, `group_busy` and
-  `daemon_unavailable`.
+  `claim_pending`, `network_unavailable`, `card_pending`, `group_busy`,
+  `daemon_unavailable` and `start_failed`. The window shows the message of
+  `start_failed` and `keychain_unavailable` beside its own text.
 - `request_contact`, `create_group` and `change_group` with members to add,
   `join_group` and `channel_subscribe` wait, like the CLI, while the node
   looks up the members' cards.
