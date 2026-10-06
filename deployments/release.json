@@ -1,17 +1,17 @@
 {
-  "version": "0.2.5",
+  "version": "0.2.6",
   "builds": {
     "app-macos-arm64": {
-      "url": "https://kaikichat.com/downloads/0.2.5/kaiki-chat-macos-arm64.tar.gz",
-      "sha256": "46792bc4464a6f6164a196fc7c13ede817c43e6fe0084faec40ce56c015b28a2"
+      "url": "https://kaikichat.com/downloads/0.2.6/kaiki-chat-macos-arm64.tar.gz",
+      "sha256": "ba8dddbfe6c1c8c5aaa249a6dc53552e79711ce85d94168e97e56241d52c3633"
     },
     "cli-linux-x86_64": {
-      "url": "https://kaikichat.com/downloads/0.2.5/kaiki-linux-x86_64.tar.gz",
-      "sha256": "2db033c97a9b1a39cf3814e6dc15594dbcde3910ad81e5f902b630ab5a01dfba"
+      "url": "https://kaikichat.com/downloads/0.2.6/kaiki-linux-x86_64.tar.gz",
+      "sha256": "283d3448218d4844b107d635812f5adaa8eba9bf8f9dee1336a588ad989b157d"
     },
     "cli-macos-arm64": {
-      "url": "https://kaikichat.com/downloads/0.2.5/kaiki-macos-arm64.tar.gz",
-      "sha256": "42117cd1442f4c7c7a764ab2061c4dfbf74881eddc5739fe297db495f0b3f1f9"
+      "url": "https://kaikichat.com/downloads/0.2.6/kaiki-macos-arm64.tar.gz",
+      "sha256": "efe904ce55fc9d4ba44284410f2430f20ab783c6d941af5c036ad2156f63ada7"
     }
   }
 }
